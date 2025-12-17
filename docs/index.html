@@ -5,25 +5,50 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>VaultFlow</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 24px; }
-    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
-    .card { border:1px solid #ddd; border-radius:12px; padding:16px; max-width:720px; }
-    input { padding:10px; border-radius:10px; border:1px solid #ccc; min-width:260px; }
-    button { padding:10px 12px; border-radius:10px; border:1px solid #111; background:#111; color:#fff; cursor:pointer; }
-    button.secondary { background:#fff; color:#111; }
+    :root { color-scheme: light; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 24px; background:#fafafa; color:#111; }
+    h1,h2,h3 { margin: 0 0 10px; }
+    p { margin: 6px 0; }
     .muted { color:#666; }
     .ok { color:#0a7a2f; }
     .err { color:#b00020; white-space:pre-wrap; }
-    select { padding:10px; border-radius:10px; border:1px solid #ccc; min-width:260px; }
-    hr { border:none; border-top:1px solid #eee; margin:16px 0; }
+    .wrap { max-width: 1040px; margin: 0 auto; }
+    .grid { display:grid; gap:16px; }
+    .grid.cols2 { grid-template-columns: 1fr 1fr; }
+    .grid.cols3 { grid-template-columns: 1fr 1fr 1fr; }
+    @media (max-width: 980px) { .grid.cols2, .grid.cols3 { grid-template-columns: 1fr; } }
+    .card { background:#fff; border:1px solid #e6e6e6; border-radius:14px; padding:16px; box-shadow: 0 2px 10px rgba(0,0,0,.03); }
+    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    input, select { padding:10px; border-radius:10px; border:1px solid #d0d0d0; min-width:220px; background:#fff; }
+    input[type="month"], input[type="date"] { min-width: 170px; }
+    button { padding:10px 12px; border-radius:10px; border:1px solid #111; background:#111; color:#fff; cursor:pointer; }
+    button.secondary { background:#fff; color:#111; }
+    button.ghost { background:transparent; color:#111; border-color:#d0d0d0; }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    hr { border:none; border-top:1px solid #eee; margin:14px 0; }
+    .pill { display:inline-flex; padding:4px 10px; border:1px solid #ddd; border-radius:999px; font-size:12px; color:#333; background:#f7f7f7; }
+    .kpi { padding:12px; border-radius:12px; border:1px solid #eee; background:#fcfcfc; }
+    .kpi .label { font-size:12px; color:#666; }
+    .kpi .value { font-size:18px; font-weight:700; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { border-bottom:1px solid #eee; padding:10px 8px; text-align:left; vertical-align:top; }
+    th { font-size:12px; color:#666; font-weight:600; }
+    td { font-size:14px; }
+    .right { text-align:right; }
+    .nowrap { white-space:nowrap; }
+    .tabs { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .tab { padding:8px 12px; border-radius:999px; border:1px solid #ddd; background:#fff; cursor:pointer; font-size:13px; color:#111; }
+    .tab.active { border-color:#111; font-weight:600; }
+    .badge { font-size:12px; border-radius:8px; padding:3px 8px; border:1px solid #ddd; background:#fff; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; }
   </style>
 </head>
 <body>
-
+<div class="wrap">
   <h1>VaultFlow (Dev)</h1>
-  <p class="muted">Base inicial: Auth + Firestore + Wallets + Casal (agregado)</p>
+  <p class="muted">Auth + Firestore + Wallets + Casal (agregado) + Categorias + Transações + Dashboard</p>
 
-  <div class="card" id="authCard">
+  <div class="card" id="authCard" style="margin-top:14px;">
     <h2>Login</h2>
     <div class="row">
       <input id="email" type="email" placeholder="email" autocomplete="username" />
@@ -33,37 +58,153 @@
       <button id="btnEmail">Entrar com Email/Senha</button>
       <button id="btnGoogle" class="secondary">Entrar com Google</button>
       <button id="btnLogout" class="secondary" style="display:none;">Sair</button>
+      <span class="pill" id="envPill">vaultflow-dev-marc35</span>
+      <span class="pill" id="autoPill">Auto-sync Casal: ON</span>
     </div>
-    <p id="authStatus" class="muted" style="margin-top:12px;"></p>
+    <p id="authStatus" class="muted" style="margin-top:10px;"></p>
     <p id="authError" class="err"></p>
   </div>
 
-  <div class="card" id="appCard" style="margin-top:16px; display:none;">
-    <h2>Contexto</h2>
-    <div class="row">
-      <div>
-        <div class="muted">Usuário</div>
-        <div id="me"></div>
+  <div class="grid cols2" style="margin-top:16px; display:none;" id="appGrid">
+    <div class="card">
+      <h2>Contexto</h2>
+      <div class="row">
+        <div style="min-width: 320px;">
+          <div class="muted">Usuário</div>
+          <div id="me"></div>
+          <div class="muted mono" id="uidLine"></div>
+        </div>
+        <div style="min-width: 320px;">
+          <div class="muted">Wallet</div>
+          <select id="walletSelect"></select>
+          <div style="margin-top:8px;">
+            <span class="badge" id="walletRoleBadge">role: -</span>
+            <span class="badge" id="walletTypeBadge">type: -</span>
+          </div>
+        </div>
       </div>
-      <div>
-        <div class="muted">Wallet</div>
-        <select id="walletSelect"></select>
+
+      <hr />
+
+      <div class="row">
+        <div>
+          <div class="muted">Mês</div>
+          <input id="month" type="month" />
+        </div>
+        <div style="display:flex; gap:8px; align-items:flex-end;">
+          <button id="btnReload" class="secondary">Recarregar</button>
+        </div>
       </div>
+
+      <p class="muted" id="walletInfo" style="margin-top:10px;"></p>
+      <p class="err" id="appError"></p>
+
+      <div class="tabs" id="coupleTabs" style="display:none;">
+        <button class="tab active" data-tab="totals">Totais</button>
+        <button class="tab" data-tab="details">Detalhes</button>
+      </div>
+
+      <div id="coupleHint" class="muted" style="display:none; margin-top:10px;">
+        Casal é automático: ao adicionar/excluir transações nas wallets pessoais, os totais e detalhes do casal são atualizados.
+      </div>
+
+      <div style="margin-top:12px;" class="grid cols3" id="kpis">
+        <div class="kpi">
+          <div class="label">Receitas</div>
+          <div class="value" id="kpiIncome">R$ 0,00</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Despesas</div>
+          <div class="value" id="kpiExpense">R$ 0,00</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Saldo</div>
+          <div class="value" id="kpiBalance">R$ 0,00</div>
+        </div>
+      </div>
+
+      <div id="coupleBreakdown" style="display:none; margin-top:10px;"></div>
     </div>
 
-    <hr />
+    <div class="card">
+      <h2>Operações</h2>
 
-    <h3>Visão Casal</h3>
-    <p class="muted">
-      Por padrão, a conta “Casal” vê totais. Detalhes ficam disponíveis em uma tela específica (vamos montar).
-    </p>
+      <div id="personalOps">
+        <h3>Categorias</h3>
+        <div class="row">
+          <input id="catName" placeholder="Nome da categoria" />
+          <select id="catKind">
+            <option value="expense">Despesa</option>
+            <option value="income">Receita</option>
+            <option value="both">Ambos</option>
+          </select>
+          <button id="btnAddCat">Adicionar</button>
+          <button id="btnSeedCats" class="ghost">Criar categorias padrão</button>
+        </div>
+        <div class="muted" id="catStatus" style="margin-top:8px;"></div>
+        <div style="margin-top:10px; max-height: 180px; overflow:auto; border:1px solid #eee; border-radius:12px;">
+          <table>
+            <thead>
+              <tr><th>Nome</th><th>Tipo</th><th class="right">Ações</th></tr>
+            </thead>
+            <tbody id="catTable"></tbody>
+          </table>
+        </div>
 
-    <div id="walletInfo" class="muted"></div>
-    <p id="appError" class="err"></p>
+        <hr />
+
+        <h3>Transações</h3>
+        <p class="muted" style="margin-top:-6px;">
+          Ao adicionar/excluir transações nesta wallet pessoal, o Casal é atualizado automaticamente (reports + transactions_view).
+        </p>
+        <div class="row">
+          <input id="txnDate" type="date" />
+          <select id="txnType">
+            <option value="expense">Despesa</option>
+            <option value="income">Receita</option>
+          </select>
+          <select id="txnCat"></select>
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <input id="txnAmount" placeholder="Valor (ex: 35,90)" />
+          <input id="txnNote" placeholder="Observação (opcional)" style="min-width: 420px; flex:1;" />
+          <button id="btnAddTxn">Adicionar</button>
+        </div>
+      </div>
+
+      <div id="coupleOps" style="display:none;">
+        <h3>Casal (agregado)</h3>
+        <p class="muted">
+          Totais vêm de <span class="mono">reports</span>. Detalhes vêm de <span class="mono">transactions_view</span>.
+          Ambos são atualizados automaticamente quando Marcelino/Luiza adicionam/excluem transações nas wallets pessoais.
+        </p>
+      </div>
+
+      <hr />
+
+      <h3>Lista do mês</h3>
+      <div style="max-height: 330px; overflow:auto; border:1px solid #eee; border-radius:12px;">
+        <table>
+          <thead>
+            <tr>
+              <th class="nowrap">Data</th>
+              <th>Categoria</th>
+              <th>Descrição</th>
+              <th class="right nowrap">Valor</th>
+              <th class="right nowrap">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="txnTable"></tbody>
+        </table>
+      </div>
+
+      <div class="muted" id="txnStatus" style="margin-top:10px;"></div>
+      <p class="err" id="opsError"></p>
+    </div>
   </div>
+</div>
 
 <script type="module">
-  // Firebase SDK (modular)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
 
@@ -78,15 +219,22 @@
 
   import {
     getFirestore,
+    Timestamp,
     doc,
     getDoc,
     setDoc,
+    deleteDoc,
     collection,
     getDocs,
-    serverTimestamp
+    addDoc,
+    query,
+    where,
+    orderBy,
+    serverTimestamp,
+    runTransaction
   } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-  // === Seu firebaseConfig (DEV) ===
+  // Firebase Config (VaultFlow-Dev / vaultflow-dev-marc35)
   const firebaseConfig = {
     apiKey: "AIzaSyDIXLjoqxDQrDr7rhxfBjCBzsXZUycTWD0",
     authDomain: "vaultflow-dev-marc35.firebaseapp.com",
@@ -99,134 +247,886 @@
 
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
-
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // === Allowlist (consistente com as Rules) ===
+  // Allowlist (somente vocês 3)
   const ALLOWED_EMAILS = new Set([
     "hbmarc35@gmail.com",
     "lzmarc25@gmail.com",
     "herbertmarck@gmail.com"
   ]);
 
-  // === IDs fixos das wallets do seu seed ===
-  // (mantém consistência com o que você criou no Firestore)
-  const WALLET_IDS_BY_EMAIL = {
-    "hbmarc35@gmail.com": ["w_marcelino", "w_casal"],
-    "lzmarc25@gmail.com": ["w_luiza", "w_casal"],
-    "herbertmarck@gmail.com": ["w_casal"]
-  };
+  const COUPLE_WALLET_ID = "w_casal";
+  const PERSONAL_WALLETS = new Set(["w_marcelino", "w_luiza"]);
+  const KNOWN_WALLETS = ["w_marcelino", "w_luiza", "w_casal"];
 
-  // UI refs
   const $ = (id) => document.getElementById(id);
-  const authCard = $("authCard");
-  const appCard = $("appCard");
+
   const btnEmail = $("btnEmail");
   const btnGoogle = $("btnGoogle");
   const btnLogout = $("btnLogout");
+
   const authStatus = $("authStatus");
   const authError = $("authError");
-  const appError = $("appError");
+
+  const appGrid = $("appGrid");
+
   const me = $("me");
+  const uidLine = $("uidLine");
+
   const walletSelect = $("walletSelect");
+  const walletRoleBadge = $("walletRoleBadge");
+  const walletTypeBadge = $("walletTypeBadge");
   const walletInfo = $("walletInfo");
+
+  const monthInput = $("month");
+  const btnReload = $("btnReload");
+
+  const kpiIncome = $("kpiIncome");
+  const kpiExpense = $("kpiExpense");
+  const kpiBalance = $("kpiBalance");
+  const coupleBreakdown = $("coupleBreakdown");
+
+  const coupleTabs = $("coupleTabs");
+  const coupleHint = $("coupleHint");
+
+  const personalOps = $("personalOps");
+  const coupleOps = $("coupleOps");
+
+  const catName = $("catName");
+  const catKind = $("catKind");
+  const btnAddCat = $("btnAddCat");
+  const btnSeedCats = $("btnSeedCats");
+  const catStatus = $("catStatus");
+  const catTable = $("catTable");
+
+  const txnDate = $("txnDate");
+  const txnType = $("txnType");
+  const txnCat = $("txnCat");
+  const txnAmount = $("txnAmount");
+  const txnNote = $("txnNote");
+  const btnAddTxn = $("btnAddTxn");
+
+  const txnTable = $("txnTable");
+  const txnStatus = $("txnStatus");
+
+  const appError = $("appError");
+  const opsError = $("opsError");
+
+  const state = {
+    user: null,
+    email: null,
+    uid: null,
+    walletId: null,
+    walletRole: null,
+    walletType: null,
+    walletName: null,
+    coupleTab: "totals",
+    categories: new Map() // catId -> {name, kind}
+  };
 
   function setAuthMessage(msg, isError = false) {
     authStatus.textContent = isError ? "" : msg;
     authError.textContent = isError ? msg : "";
   }
+  function setAppError(msg = "") { appError.textContent = msg; }
+  function setOpsError(msg = "") { opsError.textContent = msg; }
 
-  function setAppError(msg = "") {
-    appError.textContent = msg;
+  function escapeHtml(s) {
+    return String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 
-  // === Helpers Firestore ===
+  function toBRL(cents) {
+    const v = (Number(cents || 0) / 100);
+    return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  function parseAmountToCents(text) {
+    const clean = (text ?? "").trim().replace(/\./g, "").replace(",", ".");
+    const n = Number(clean);
+    if (!Number.isFinite(n)) return null;
+    return Math.round(n * 100);
+  }
+
+  function yyyyMMFromMonthInput(value) {
+    if (!value || !/^\d{4}-\d{2}$/.test(value)) return null;
+    return value;
+  }
+
+  function yyyyMMFromDateStr(dateStr) {
+    if (!dateStr || dateStr.length < 7) return null;
+    return dateStr.slice(0, 7);
+  }
+
+  function yyyyMMFromTimestamp(ts) {
+    try {
+      const d = ts?.toDate?.();
+      if (!d) return null;
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      return `${d.getFullYear()}-${mm}`;
+    } catch { return null; }
+  }
+
+  function startEndForMonth(yyyyMM) {
+    const [y, m] = yyyyMM.split("-").map(Number);
+    const start = new Date(Date.UTC(y, m - 1, 1, 0, 0, 0));
+    const end = new Date(Date.UTC(y, m, 1, 0, 0, 0));
+    return { start, end };
+  }
+
+  function toISODateLocal(d) {
+    const pad = (x) => String(x).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+
+  function renderKPIs(incomeCents, expenseCents) {
+    const bal = Number(incomeCents || 0) - Number(expenseCents || 0);
+    kpiIncome.textContent = toBRL(incomeCents);
+    kpiExpense.textContent = toBRL(expenseCents);
+    kpiBalance.textContent = toBRL(bal);
+  }
+
+  function isCoupleWallet() {
+    return state.walletId === COUPLE_WALLET_ID && state.walletType === "aggregate";
+  }
+
+  function isPersonalWalletId(walletId) {
+    return PERSONAL_WALLETS.has(walletId);
+  }
+
+  // ===== Bootstrap =====
+
   async function ensureUserProfile(user) {
     const ref = doc(db, "users", user.uid);
     const snap = await getDoc(ref);
     if (!snap.exists()) {
       await setDoc(ref, {
         displayName: user.displayName ?? (user.email?.split("@")[0] ?? "Usuário"),
-        email: user.email ?? "",
-        createdAt: serverTimestamp()
+        email: (user.email ?? "").toLowerCase(),
+        createdAt: Timestamp.now()
+      }, { merge: true });
+    } else {
+      await setDoc(ref, {
+        email: (user.email ?? "").toLowerCase(),
+        displayName: snap.data().displayName ?? user.displayName ?? "Usuário"
       }, { merge: true });
     }
   }
 
-  async function ensureMembershipsForSeededWallets(user) {
-    // Cria /users/{uid}/memberships/{walletId} baseado no e-mail,
-    // para evitar você criar isso manualmente.
+  async function ensureWalletMetaIfOwner(user) {
     const email = (user.email ?? "").toLowerCase();
-    const walletIds = WALLET_IDS_BY_EMAIL[email] ?? [];
+    const uid = user.uid;
 
+    const isMarcelino = email === "hbmarc35@gmail.com";
+    const isLuiza = email === "lzmarc25@gmail.com";
+
+    async function upsertWallet(walletId, dataIfCreate, dataMerge) {
+      const wRef = doc(db, "wallets", walletId);
+      const wSnap = await getDoc(wRef);
+      if (!wSnap.exists()) {
+        await setDoc(wRef, dataIfCreate, { merge: false });
+      } else {
+        await setDoc(wRef, dataMerge, { merge: true });
+      }
+    }
+
+    if (isMarcelino) {
+      await upsertWallet(
+        "w_marcelino",
+        { name: "Marcelino (Pessoal)", type: "personal", createdBy: uid, createdAt: Timestamp.now() },
+        { name: "Marcelino (Pessoal)", type: "personal" }
+      );
+    }
+
+    if (isLuiza) {
+      await upsertWallet(
+        "w_luiza",
+        { name: "Luiza (Pessoal)", type: "personal", createdBy: uid, createdAt: Timestamp.now() },
+        { name: "Luiza (Pessoal)", type: "personal" }
+      );
+    }
+
+    if (isMarcelino || isLuiza) {
+      const srcRefs = [
+        doc(db, "wallets", "w_marcelino"),
+        doc(db, "wallets", "w_luiza")
+      ];
+      await upsertWallet(
+        "w_casal",
+        {
+          name: "Casal (Agregado)",
+          type: "aggregate",
+          createdBy: uid,
+          createdAt: Timestamp.now(),
+          sources: srcRefs
+        },
+        {
+          name: "Casal (Agregado)",
+          type: "aggregate",
+          sources: srcRefs
+        }
+      );
+    }
+  }
+
+  async function ensureMembershipShortcutsFromMembers(user) {
     const membershipCol = collection(db, "users", user.uid, "memberships");
     const existing = await getDocs(membershipCol);
-    const existingIds = new Set(existing.docs.map(d => d.id));
+    if (existing.size > 0) return;
 
-    // Se já tem memberships, não mexe.
-    if (existingIds.size > 0) return;
+    for (const walletId of KNOWN_WALLETS) {
+      try {
+        const mRef = doc(db, "wallets", walletId, "members", user.uid);
+        const mSnap = await getDoc(mRef);
+        if (!mSnap.exists()) continue;
 
-    // Se não tem, cria “atalhos” mínimos.
-    for (const wid of walletIds) {
-      const role =
-        (email === "herbertmarck@gmail.com") ? "viewer" :
-        (wid === "w_casal") ? "owner" : "owner";
-
-      await setDoc(doc(db, "users", user.uid, "memberships", wid), {
-        role,
-        createdAt: serverTimestamp()
-      }, { merge: true });
+        const role = mSnap.data().role;
+        await setDoc(doc(db, "users", user.uid, "memberships", walletId), {
+          role,
+          createdAt: Timestamp.now()
+        }, { merge: true });
+      } catch {
+        // ignore
+      }
     }
   }
 
-  async function loadWalletsFromMemberships(user) {
+  async function loadWalletOptions(user) {
     const membershipCol = collection(db, "users", user.uid, "memberships");
     const snaps = await getDocs(membershipCol);
-    const wallets = snaps.docs.map(d => ({ walletId: d.id, role: d.data().role }));
+    const list = snaps.docs.map(d => ({ walletId: d.id, role: d.data().role }));
 
-    // popula select
     walletSelect.innerHTML = "";
-    for (const w of wallets) {
+    for (const item of list) {
+      let label = item.walletId;
+      let type = "?";
+      try {
+        const wSnap = await getDoc(doc(db, "wallets", item.walletId));
+        if (wSnap.exists()) {
+          label = wSnap.data().name ?? item.walletId;
+          type = wSnap.data().type ?? "?";
+        }
+      } catch {}
+
       const opt = document.createElement("option");
-      opt.value = w.walletId;
-      opt.textContent = `${w.walletId} (${w.role})`;
+      opt.value = item.walletId;
+      opt.textContent = `${label} (${item.role})`;
       walletSelect.appendChild(opt);
     }
-
-    return wallets;
+    return list;
   }
 
-  async function showSelectedWallet(user) {
+  async function refreshWalletContext() {
     setAppError("");
-    const wid = walletSelect.value;
-    if (!wid) {
-      walletInfo.textContent = "Nenhuma wallet encontrada.";
+    setOpsError("");
+
+    const walletId = walletSelect.value;
+    if (!walletId) {
+      setAppError("Nenhuma wallet encontrada para este usuário.");
       return;
     }
 
-    const wRef = doc(db, "wallets", wid);
-    const wSnap = await getDoc(wRef);
+    let role = null;
+    try {
+      const mSnap = await getDoc(doc(db, "users", state.uid, "memberships", walletId));
+      role = mSnap.exists() ? mSnap.data().role : null;
+    } catch {}
 
-    if (!wSnap.exists()) {
-      walletInfo.textContent = `Wallet ${wid} não existe no Firestore.`;
-      return;
+    let name = walletId;
+    let type = "?";
+    try {
+      const wSnap = await getDoc(doc(db, "wallets", walletId));
+      if (wSnap.exists()) {
+        name = wSnap.data().name ?? walletId;
+        type = wSnap.data().type ?? "?";
+      }
+    } catch (e) {
+      setAppError(`Não foi possível ler a wallet: ${e?.message ?? e}`);
     }
 
-    const w = wSnap.data();
-    walletInfo.textContent = `Wallet: ${w.name ?? wid} | type: ${w.type ?? "?"}`;
+    state.walletId = walletId;
+    state.walletRole = role ?? "-";
+    state.walletType = type;
+    state.walletName = name;
+
+    walletRoleBadge.textContent = `role: ${state.walletRole}`;
+    walletTypeBadge.textContent = `type: ${state.walletType}`;
+    walletInfo.textContent = `Wallet: ${state.walletName} | id: ${state.walletId} | type: ${state.walletType}`;
+
+    const couple = isCoupleWallet();
+    coupleTabs.style.display = couple ? "" : "none";
+    coupleHint.style.display = couple ? "" : "none";
+    coupleBreakdown.style.display = couple ? "" : "none";
+
+    personalOps.style.display = couple ? "none" : "";
+    coupleOps.style.display = couple ? "" : "none";
+
+    const now = new Date();
+    txnDate.value = toISODateLocal(now);
+
+    await reloadAll();
   }
 
-  // === Auth handlers ===
+  // ===== Categories =====
+
+  async function loadCategories() {
+    state.categories.clear();
+    txnCat.innerHTML = "";
+
+    if (isCoupleWallet()) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "—";
+      txnCat.appendChild(opt);
+      catTable.innerHTML = "";
+      catStatus.textContent = "Categorias: N/A na visão agregada.";
+      return;
+    }
+
+    const colRef = collection(db, "wallets", state.walletId, "categories");
+    const snaps = await getDocs(colRef);
+
+    for (const d of snaps.docs) {
+      const data = d.data();
+      state.categories.set(d.id, { name: data.name, kind: data.kind });
+    }
+
+    if (state.categories.size === 0) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "Sem categorias (crie uma)";
+      txnCat.appendChild(opt);
+    } else {
+      for (const [id, c] of state.categories.entries()) {
+        const opt = document.createElement("option");
+        opt.value = id;
+        opt.textContent = c.name;
+        txnCat.appendChild(opt);
+      }
+    }
+
+    renderCategoriesTable();
+    catStatus.textContent = `Categorias carregadas: ${state.categories.size}`;
+  }
+
+  function renderCategoriesTable() {
+    catTable.innerHTML = "";
+    const entries = Array.from(state.categories.entries())
+      .map(([id, c]) => ({ id, ...c }))
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+
+    for (const c of entries) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${escapeHtml(c.name)}</td>
+        <td><span class="badge">${escapeHtml(c.kind)}</span></td>
+        <td class="right"><button class="ghost" data-del-cat="${c.id}">Excluir</button></td>
+      `;
+      catTable.appendChild(tr);
+    }
+
+    catTable.querySelectorAll("button[data-del-cat]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-del-cat");
+        if (!confirm("Excluir esta categoria?")) return;
+        try {
+          await deleteDoc(doc(db, "wallets", state.walletId, "categories", id));
+          await loadCategories();
+        } catch (e) {
+          setOpsError(`Erro ao excluir categoria: ${e?.message ?? e}`);
+        }
+      });
+    });
+  }
+
+  async function addCategory() {
+    setOpsError("");
+    const name = (catName.value ?? "").trim();
+    const kind = catKind.value;
+
+    if (!name) {
+      setOpsError("Informe o nome da categoria.");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "wallets", state.walletId, "categories"), {
+        name,
+        kind,
+        createdAt: serverTimestamp(),
+        createdBy: state.uid
+      });
+      catName.value = "";
+      await loadCategories();
+    } catch (e) {
+      setOpsError(`Erro ao adicionar categoria: ${e?.message ?? e}`);
+    }
+  }
+
+  async function seedDefaultCategories() {
+    setOpsError("");
+    if (!confirm("Criar categorias padrão nesta wallet?")) return;
+
+    const defaults = [
+      { name: "Alimentação", kind: "expense" },
+      { name: "Transporte", kind: "expense" },
+      { name: "Moradia", kind: "expense" },
+      { name: "Saúde", kind: "expense" },
+      { name: "Lazer", kind: "expense" },
+      { name: "Compras", kind: "expense" },
+      { name: "Salário", kind: "income" },
+      { name: "Outras receitas", kind: "income" }
+    ];
+
+    try {
+      for (const c of defaults) {
+        await addDoc(collection(db, "wallets", state.walletId, "categories"), {
+          ...c,
+          createdAt: serverTimestamp(),
+          createdBy: state.uid
+        });
+      }
+      await loadCategories();
+      catStatus.textContent = "Categorias padrão criadas.";
+    } catch (e) {
+      setOpsError(`Erro ao criar categorias padrão: ${e?.message ?? e}`);
+    }
+  }
+
+  // ===== Auto-sync Casal (corrigido: reads antes de writes) =====
+
+  function clampNonNegative(n) {
+    n = Number(n || 0);
+    return n < 0 ? 0 : n;
+  }
+
+  function computeCoupleSourceNext(repData, sourceWalletId, deltaIncomeCents, deltaExpenseCents) {
+    const sources = repData?.sources ?? {};
+    const cur = sources?.[sourceWalletId] ?? {};
+    const curIncome = Number(cur.incomeCents || 0);
+    const curExpense = Number(cur.expenseCents || 0);
+
+    const nextIncome = clampNonNegative(curIncome + Number(deltaIncomeCents || 0));
+    const nextExpense = clampNonNegative(curExpense + Number(deltaExpenseCents || 0));
+
+    return { nextIncome, nextExpense };
+  }
+
+  async function addTransaction() {
+    setOpsError("");
+
+    if (isCoupleWallet()) {
+      setOpsError("Não é possível lançar transações diretamente na visão agregada (Casal).");
+      return;
+    }
+
+    const dateStr = txnDate.value;
+    if (!dateStr) { setOpsError("Informe a data."); return; }
+
+    const type = txnType.value;
+    const catId = txnCat.value;
+    if (!catId) { setOpsError("Selecione uma categoria."); return; }
+
+    const amountCents = parseAmountToCents(txnAmount.value);
+    if (amountCents == null || amountCents <= 0) {
+      setOpsError("Informe um valor válido (maior que zero).");
+      return;
+    }
+
+    const note = (txnNote.value ?? "").trim();
+    const cat = state.categories.get(catId);
+    const categoryName = cat?.name ?? "";
+
+    const personalWalletId = state.walletId;
+    const shouldSyncToCouple = isPersonalWalletId(personalWalletId);
+
+    btnAddTxn.disabled = true;
+    btnAddTxn.textContent = "Salvando...";
+
+    try {
+      const dt = new Date(dateStr + "T00:00:00");
+      const ts = Timestamp.fromDate(dt);
+      const yyyyMM = yyyyMMFromDateStr(dateStr);
+
+      const personalCol = collection(db, "wallets", personalWalletId, "transactions");
+      const newRef = doc(personalCol); // gera ID já
+
+      const txnPayload = {
+        date: ts,
+        amountCents,
+        type,
+        categoryId: catId,
+        categoryName,
+        note,
+        createdAt: serverTimestamp(),
+        createdBy: state.uid
+      };
+
+      const viewId = `${personalWalletId}_${newRef.id}`;
+      const viewRef = doc(db, "wallets", COUPLE_WALLET_ID, "transactions_view", viewId);
+
+      const reportRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", yyyyMM);
+
+      await runTransaction(db, async (tx) => {
+        // ===== READS FIRST =====
+        let repSnap = null;
+        let repData = null;
+        let repExists = false;
+
+        if (shouldSyncToCouple) {
+          repSnap = await tx.get(reportRef);
+          repExists = repSnap.exists();
+          repData = repExists ? repSnap.data() : null;
+        }
+
+        // ===== WRITES AFTER READS =====
+        tx.set(newRef, txnPayload);
+
+        if (shouldSyncToCouple) {
+          tx.set(viewRef, {
+            sourceWalletId: personalWalletId,
+            sourceTxnId: newRef.id,
+            sourceUid: state.uid,
+            date: ts,
+            amountCents,
+            type,
+            categoryId: catId,
+            categoryName,
+            note,
+            syncedAt: serverTimestamp()
+          }, { merge: true });
+
+          const deltaIncome = (type === "income") ? amountCents : 0;
+          const deltaExpense = (type === "expense") ? amountCents : 0;
+
+          const { nextIncome, nextExpense } = computeCoupleSourceNext(repData, personalWalletId, deltaIncome, deltaExpense);
+
+          const reportPatch = {
+            month: yyyyMM,
+            updatedAt: serverTimestamp(),
+            updatedBy: state.uid,
+            sources: {
+              [personalWalletId]: {
+                incomeCents: nextIncome,
+                expenseCents: nextExpense,
+                updatedAt: serverTimestamp(),
+                updatedBy: state.uid
+              }
+            }
+          };
+
+          const mergeFields = ["month", "updatedAt", "updatedBy", `sources.${personalWalletId}`];
+
+          // só cria createdAt/createdBy se ainda não existe
+          if (!repExists) {
+            reportPatch.createdAt = serverTimestamp();
+            reportPatch.createdBy = state.uid;
+            mergeFields.push("createdAt", "createdBy");
+          }
+
+          tx.set(reportRef, reportPatch, { mergeFields });
+        }
+      });
+
+      txnAmount.value = "";
+      txnNote.value = "";
+
+      await reloadAll();
+    } catch (e) {
+      setOpsError(`Erro ao adicionar transação: ${e?.message ?? e}`);
+    } finally {
+      btnAddTxn.disabled = false;
+      btnAddTxn.textContent = "Adicionar";
+    }
+  }
+
+  async function deleteTransactionPersonalAndSync(txnId) {
+    setOpsError("");
+
+    const personalWalletId = state.walletId;
+    if (!isPersonalWalletId(personalWalletId)) {
+      setOpsError("Exclusão com auto-sync só é aplicável em wallets pessoais.");
+      return;
+    }
+
+    const personalTxnRef = doc(db, "wallets", personalWalletId, "transactions", txnId);
+    const viewRef = doc(db, "wallets", COUPLE_WALLET_ID, "transactions_view", `${personalWalletId}_${txnId}`);
+
+    try {
+      await runTransaction(db, async (tx) => {
+        // ===== READS FIRST =====
+        const txnSnap = await tx.get(personalTxnRef);
+        if (!txnSnap.exists()) return;
+
+        const t = txnSnap.data();
+        const amount = Number(t.amountCents || 0);
+        const type = t.type ?? "expense";
+        const yyyyMM = yyyyMMFromTimestamp(t.date);
+
+        const reportRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", yyyyMM);
+        const repSnap = await tx.get(reportRef);
+        const repExists = repSnap.exists();
+        const repData = repExists ? repSnap.data() : null;
+
+        // ===== WRITES AFTER READS =====
+        tx.delete(personalTxnRef);
+        tx.delete(viewRef);
+
+        // atualiza totals do casal (decremento)
+        const deltaIncome = (type === "income") ? -amount : 0;
+        const deltaExpense = (type === "expense") ? -amount : 0;
+
+        const { nextIncome, nextExpense } = computeCoupleSourceNext(repData, personalWalletId, deltaIncome, deltaExpense);
+
+        const reportPatch = {
+          month: yyyyMM,
+          updatedAt: serverTimestamp(),
+          updatedBy: state.uid,
+          sources: {
+            [personalWalletId]: {
+              incomeCents: nextIncome,
+              expenseCents: nextExpense,
+              updatedAt: serverTimestamp(),
+              updatedBy: state.uid
+            }
+          }
+        };
+
+        const mergeFields = ["month", "updatedAt", "updatedBy", `sources.${personalWalletId}`];
+
+        // se report não existia (situação rara), cria sem quebrar
+        if (!repExists) {
+          reportPatch.createdAt = serverTimestamp();
+          reportPatch.createdBy = state.uid;
+          mergeFields.push("createdAt", "createdBy");
+        }
+
+        tx.set(reportRef, reportPatch, { mergeFields });
+      });
+
+      await reloadAll();
+    } catch (e) {
+      setOpsError(`Erro ao excluir transação: ${e?.message ?? e}`);
+    }
+  }
+
+  // ===== Transactions list / Couple views =====
+
+  function renderTxnRows(rows, { allowDelete, isCoupleView }) {
+    txnTable.innerHTML = "";
+
+    for (const r of rows) {
+      const dt = r.date ? toISODateLocal(r.date) : "-";
+      const display = toBRL(Math.abs(r.amountCents));
+      const prefix = (r.type === "income") ? "+" : "-";
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="nowrap">${escapeHtml(dt)}</td>
+        <td>${escapeHtml(r.categoryName || "-")}</td>
+        <td>${escapeHtml(r.note || "")}${isCoupleView ? `<div class="muted mono" style="margin-top:4px;">${escapeHtml(r.sourceLabel || "")}</div>` : ""}</td>
+        <td class="right nowrap">${prefix} ${escapeHtml(display)}</td>
+        <td class="right nowrap">
+          ${allowDelete ? `<button class="ghost" data-del-txn="${r.id}">Excluir</button>` : `<span class="muted">—</span>`}
+        </td>
+      `;
+      txnTable.appendChild(tr);
+    }
+
+    if (allowDelete) {
+      txnTable.querySelectorAll("button[data-del-txn]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-del-txn");
+          if (!confirm("Excluir esta transação? (Isso também removerá do Casal automaticamente)")) return;
+          await deleteTransactionPersonalAndSync(id);
+        });
+      });
+    }
+  }
+
+  async function loadCoupleTotals(yyyyMM) {
+    coupleBreakdown.style.display = "";
+    coupleBreakdown.innerHTML = "";
+
+    let income = 0;
+    let expense = 0;
+
+    try {
+      const repRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", yyyyMM);
+      const repSnap = await getDoc(repRef);
+
+      if (!repSnap.exists()) {
+        coupleBreakdown.innerHTML = `<p class="muted">Sem relatório para ${escapeHtml(yyyyMM)}. Adicione transações nas wallets pessoais para gerar automaticamente.</p>`;
+        return { income: 0, expense: 0, balance: 0 };
+      }
+
+      const rep = repSnap.data();
+      const sources = rep.sources ?? {};
+
+      const lines = [];
+      for (const [sourceWalletId, s] of Object.entries(sources)) {
+        const inc = Number(s?.incomeCents || 0);
+        const exp = Number(s?.expenseCents || 0);
+        income += inc;
+        expense += exp;
+
+        lines.push(`
+          <div class="kpi" style="margin-top:8px;">
+            <div class="label">${escapeHtml(sourceWalletId)}</div>
+            <div class="value">${toBRL(inc - exp)}</div>
+            <div class="muted">Receitas: ${toBRL(inc)} | Despesas: ${toBRL(exp)}</div>
+          </div>
+        `);
+      }
+
+      coupleBreakdown.innerHTML = lines.length
+        ? `<div class="muted">Quebra por fonte (somado no total acima):</div>${lines.join("")}`
+        : `<p class="muted">Relatório existe, mas sem fontes preenchidas.</p>`;
+
+      return { income, expense, balance: income - expense };
+    } catch (e) {
+      setOpsError(`Erro ao ler reports do casal: ${e?.message ?? e}`);
+      coupleBreakdown.innerHTML = `<p class="err">${escapeHtml(e?.message ?? String(e))}</p>`;
+      return { income: 0, expense: 0, balance: 0 };
+    }
+  }
+
+  async function loadCoupleDetails(startTS, endTS) {
+    try {
+      const qRef = query(
+        collection(db, "wallets", COUPLE_WALLET_ID, "transactions_view"),
+        where("date", ">=", startTS),
+        where("date", "<", endTS),
+        orderBy("date", "desc")
+      );
+
+      const snaps = await getDocs(qRef);
+      const rows = [];
+      let income = 0, expense = 0;
+
+      for (const d of snaps.docs) {
+        const t = d.data();
+        const amount = Number(t.amountCents || 0);
+        if (t.type === "income") income += amount;
+        else expense += amount;
+
+        rows.push({
+          id: d.id,
+          date: t.date?.toDate?.() ?? null,
+          categoryName: t.categoryName ?? "",
+          note: t.note ?? "",
+          type: t.type ?? "",
+          amountCents: amount,
+          sourceLabel: t.sourceWalletId ? `fonte: ${t.sourceWalletId}` : ""
+        });
+      }
+
+      renderTxnRows(rows, { allowDelete: false, isCoupleView: true });
+      coupleBreakdown.style.display = "none";
+
+      return { income, expense, balance: income - expense };
+    } catch (e) {
+      setOpsError(`Erro ao carregar detalhes do casal: ${e?.message ?? e}`);
+      txnTable.innerHTML = "";
+      return { income: 0, expense: 0, balance: 0 };
+    }
+  }
+
+  async function loadTransactionsForMonth() {
+    txnTable.innerHTML = "";
+    txnStatus.textContent = "";
+    setOpsError("");
+
+    const yyyyMM = yyyyMMFromMonthInput(monthInput.value);
+    if (!yyyyMM) { setOpsError("Selecione um mês válido."); return { income: 0, expense: 0, balance: 0 }; }
+
+    const { start, end } = startEndForMonth(yyyyMM);
+    const startTS = Timestamp.fromDate(start);
+    const endTS = Timestamp.fromDate(end);
+
+    if (isCoupleWallet()) {
+      if (state.coupleTab === "totals") {
+        const totals = await loadCoupleTotals(yyyyMM);
+        renderKPIs(totals.income, totals.expense);
+        txnStatus.textContent = "Totais carregados via reports (auto-sync).";
+        return totals;
+      } else {
+        const totals = await loadCoupleDetails(startTS, endTS);
+        renderKPIs(totals.income, totals.expense);
+        txnStatus.textContent = "Detalhes carregados via transactions_view (auto-sync).";
+        return totals;
+      }
+    }
+
+    let income = 0;
+    let expense = 0;
+
+    try {
+      const qRef = query(
+        collection(db, "wallets", state.walletId, "transactions"),
+        where("date", ">=", startTS),
+        where("date", "<", endTS),
+        orderBy("date", "desc")
+      );
+
+      const snaps = await getDocs(qRef);
+      const rows = [];
+
+      for (const d of snaps.docs) {
+        const t = d.data();
+        const amount = Number(t.amountCents || 0);
+        if (t.type === "income") income += amount;
+        else expense += amount;
+
+        rows.push({
+          id: d.id,
+          date: t.date?.toDate?.() ?? null,
+          categoryName: t.categoryName ?? "",
+          note: t.note ?? "",
+          type: t.type ?? "",
+          amountCents: amount
+        });
+      }
+
+      renderTxnRows(rows, { allowDelete: true, isCoupleView: false });
+      txnStatus.textContent = `Transações no mês: ${rows.length}`;
+      renderKPIs(income, expense);
+
+      return { income, expense, balance: income - expense };
+    } catch (e) {
+      setOpsError(`Erro ao carregar transações: ${e?.message ?? e}`);
+      renderKPIs(0, 0);
+      return { income: 0, expense: 0, balance: 0 };
+    }
+  }
+
+  async function reloadAll() {
+    setOpsError("");
+    if (!isCoupleWallet()) await loadCategories();
+    else {
+      state.categories.clear();
+      txnCat.innerHTML = `<option value="">—</option>`;
+      catTable.innerHTML = "";
+      catStatus.textContent = "Categorias: N/A na visão agregada.";
+    }
+    await loadTransactionsForMonth();
+  }
+
+  // ===== Events =====
+
   btnEmail.addEventListener("click", async () => {
     try {
       setAuthMessage("Entrando...");
       const email = $("email").value.trim().toLowerCase();
       const pass = $("pass").value;
 
-      if (!ALLOWED_EMAILS.has(email)) {
-        throw new Error("Este e-mail não está autorizado no VaultFlow-Dev.");
-      }
+      if (!ALLOWED_EMAILS.has(email)) throw new Error("Este e-mail não está autorizado no VaultFlow-Dev.");
 
       await signInWithEmailAndPassword(auth, email, pass);
       setAuthMessage("Login OK.");
@@ -243,7 +1143,6 @@
       const email = (result.user.email ?? "").toLowerCase();
 
       if (!ALLOWED_EMAILS.has(email)) {
-        // Se não for autorizado, desloga na sequência.
         await signOut(auth);
         throw new Error("Conta Google não autorizada no VaultFlow-Dev.");
       }
@@ -258,17 +1157,41 @@
     await signOut(auth);
   });
 
-  // === Auth state ===
+  btnReload.addEventListener("click", reloadAll);
+  walletSelect.addEventListener("change", refreshWalletContext);
+  monthInput.addEventListener("change", reloadAll);
+
+  btnAddCat.addEventListener("click", addCategory);
+  btnSeedCats.addEventListener("click", seedDefaultCategories);
+  btnAddTxn.addEventListener("click", addTransaction);
+
+  coupleTabs.addEventListener("click", async (e) => {
+    const btn = e.target?.closest?.("button[data-tab]");
+    if (!btn) return;
+
+    coupleTabs.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    btn.classList.add("active");
+
+    state.coupleTab = btn.getAttribute("data-tab") || "totals";
+    await reloadAll();
+  });
+
+  (function initDates() {
+    const now = new Date();
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    monthInput.value = `${now.getFullYear()}-${mm}`;
+    txnDate.value = toISODateLocal(now);
+  })();
+
   onAuthStateChanged(auth, async (user) => {
     try {
       setAuthMessage("");
       setAppError("");
+      setOpsError("");
 
       if (!user) {
-        // Deslogado
-        authCard.style.display = "";
-        appCard.style.display = "none";
         btnLogout.style.display = "none";
+        appGrid.style.display = "none";
         return;
       }
 
@@ -278,30 +1201,25 @@
         throw new Error("Usuário autenticado, mas não autorizado (allowlist).");
       }
 
+      state.user = user;
+      state.email = email;
+      state.uid = user.uid;
+
       btnLogout.style.display = "";
-      authCard.style.display = "";
-      appCard.style.display = "";
+      appGrid.style.display = "";
 
-      me.textContent = `${user.email} | uid: ${user.uid}`;
+      me.textContent = `${user.email}`;
+      uidLine.textContent = `uid: ${user.uid}`;
 
-      // 1) Garante user profile
       await ensureUserProfile(user);
+      await ensureWalletMetaIfOwner(user);
+      await ensureMembershipShortcutsFromMembers(user);
 
-      // 2) Garante memberships (para o seed existente)
-      await ensureMembershipsForSeededWallets(user);
+      const wallets = await loadWalletOptions(user);
+      if (!walletSelect.value && wallets.length > 0) walletSelect.value = wallets[0].walletId;
 
-      // 3) Carrega wallets a partir de memberships
-      const wallets = await loadWalletsFromMemberships(user);
+      await refreshWalletContext();
 
-      if (wallets.length === 0) {
-        walletInfo.textContent = "Nenhuma wallet encontrada. Verifique memberships.";
-        return;
-      }
-
-      // 4) Exibe wallet selecionada
-      await showSelectedWallet(user);
-
-      walletSelect.onchange = () => showSelectedWallet(user);
       setAuthMessage("Sessão ativa.");
     } catch (e) {
       setAppError(e?.message ?? String(e));
