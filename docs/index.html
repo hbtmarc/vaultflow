@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VaultFlow</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 24px; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .card { border:1px solid #ddd; border-radius:12px; padding:16px; max-width:720px; }
+    input { padding:10px; border-radius:10px; border:1px solid #ccc; min-width:260px; }
+    button { padding:10px 12px; border-radius:10px; border:1px solid #111; background:#111; color:#fff; cursor:pointer; }
+    button.secondary { background:#fff; color:#111; }
+    .muted { color:#666; }
+    .ok { color:#0a7a2f; }
+    .err { color:#b00020; white-space:pre-wrap; }
+    select { padding:10px; border-radius:10px; border:1px solid #ccc; min-width:260px; }
+    hr { border:none; border-top:1px solid #eee; margin:16px 0; }
+  </style>
+</head>
+<body>
+
+  <h1>VaultFlow (Dev)</h1>
+  <p class="muted">Base inicial: Auth + Firestore + Wallets + Casal (agregado)</p>
+
+  <div class="card" id="authCard">
+    <h2>Login</h2>
+    <div class="row">
+      <input id="email" type="email" placeholder="email" autocomplete="username" />
+      <input id="pass" type="password" placeholder="senha" autocomplete="current-password" />
+    </div>
+    <div class="row" style="margin-top:12px;">
+      <button id="btnEmail">Entrar com Email/Senha</button>
+      <button id="btnGoogle" class="secondary">Entrar com Google</button>
+      <button id="btnLogout" class="secondary" style="display:none;">Sair</button>
+    </div>
+    <p id="authStatus" class="muted" style="margin-top:12px;"></p>
+    <p id="authError" class="err"></p>
+  </div>
+
+  <div class="card" id="appCard" style="margin-top:16px; display:none;">
+    <h2>Contexto</h2>
+    <div class="row">
+      <div>
+        <div class="muted">Usuário</div>
+        <div id="me"></div>
+      </div>
+      <div>
+        <div class="muted">Wallet</div>
+        <select id="walletSelect"></select>
+      </div>
+    </div>
+
+    <hr />
+
+    <h3>Visão Casal</h3>
+    <p class="muted">
+      Por padrão, a conta “Casal” vê totais. Detalhes ficam disponíveis em uma tela específica (vamos montar).
+    </p>
+
+    <div id="walletInfo" class="muted"></div>
+    <p id="appError" class="err"></p>
+  </div>
+
+<script type="module">
+  // Firebase SDK (modular)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+
+  import {
+    getAuth,
+    onAuthStateChanged,
+    signInWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+  import {
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    collection,
+    getDocs,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+  // === Seu firebaseConfig (DEV) ===
+  const firebaseConfig = {
+    apiKey: "AIzaSyDIXLjoqxDQrDr7rhxfBjCBzsXZUycTWD0",
+    authDomain: "vaultflow-dev-marc35.firebaseapp.com",
+    projectId: "vaultflow-dev-marc35",
+    storageBucket: "vaultflow-dev-marc35.firebasestorage.app",
+    messagingSenderId: "806046110940",
+    appId: "1:806046110940:web:aab0a3245bb304e14b9019",
+    measurementId: "G-CMZTW66KS9"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // === Allowlist (consistente com as Rules) ===
+  const ALLOWED_EMAILS = new Set([
+    "hbmarc35@gmail.com",
+    "lzmarc25@gmail.com",
+    "herbertmarck@gmail.com"
+  ]);
+
+  // === IDs fixos das wallets do seu seed ===
+  // (mantém consistência com o que você criou no Firestore)
+  const WALLET_IDS_BY_EMAIL = {
+    "hbmarc35@gmail.com": ["w_marcelino", "w_casal"],
+    "lzmarc25@gmail.com": ["w_luiza", "w_casal"],
+    "herbertmarck@gmail.com": ["w_casal"]
+  };
+
+  // UI refs
+  const $ = (id) => document.getElementById(id);
+  const authCard = $("authCard");
+  const appCard = $("appCard");
+  const btnEmail = $("btnEmail");
+  const btnGoogle = $("btnGoogle");
+  const btnLogout = $("btnLogout");
+  const authStatus = $("authStatus");
+  const authError = $("authError");
+  const appError = $("appError");
+  const me = $("me");
+  const walletSelect = $("walletSelect");
+  const walletInfo = $("walletInfo");
+
+  function setAuthMessage(msg, isError = false) {
+    authStatus.textContent = isError ? "" : msg;
+    authError.textContent = isError ? msg : "";
+  }
+
+  function setAppError(msg = "") {
+    appError.textContent = msg;
+  }
+
+  // === Helpers Firestore ===
+  async function ensureUserProfile(user) {
+    const ref = doc(db, "users", user.uid);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      await setDoc(ref, {
+        displayName: user.displayName ?? (user.email?.split("@")[0] ?? "Usuário"),
+        email: user.email ?? "",
+        createdAt: serverTimestamp()
+      }, { merge: true });
+    }
+  }
+
+  async function ensureMembershipsForSeededWallets(user) {
+    // Cria /users/{uid}/memberships/{walletId} baseado no e-mail,
+    // para evitar você criar isso manualmente.
+    const email = (user.email ?? "").toLowerCase();
+    const walletIds = WALLET_IDS_BY_EMAIL[email] ?? [];
+
+    const membershipCol = collection(db, "users", user.uid, "memberships");
+    const existing = await getDocs(membershipCol);
+    const existingIds = new Set(existing.docs.map(d => d.id));
+
+    // Se já tem memberships, não mexe.
+    if (existingIds.size > 0) return;
+
+    // Se não tem, cria “atalhos” mínimos.
+    for (const wid of walletIds) {
+      const role =
+        (email === "herbertmarck@gmail.com") ? "viewer" :
+        (wid === "w_casal") ? "owner" : "owner";
+
+      await setDoc(doc(db, "users", user.uid, "memberships", wid), {
+        role,
+        createdAt: serverTimestamp()
+      }, { merge: true });
+    }
+  }
+
+  async function loadWalletsFromMemberships(user) {
+    const membershipCol = collection(db, "users", user.uid, "memberships");
+    const snaps = await getDocs(membershipCol);
+    const wallets = snaps.docs.map(d => ({ walletId: d.id, role: d.data().role }));
+
+    // popula select
+    walletSelect.innerHTML = "";
+    for (const w of wallets) {
+      const opt = document.createElement("option");
+      opt.value = w.walletId;
+      opt.textContent = `${w.walletId} (${w.role})`;
+      walletSelect.appendChild(opt);
+    }
+
+    return wallets;
+  }
+
+  async function showSelectedWallet(user) {
+    setAppError("");
+    const wid = walletSelect.value;
+    if (!wid) {
+      walletInfo.textContent = "Nenhuma wallet encontrada.";
+      return;
+    }
+
+    const wRef = doc(db, "wallets", wid);
+    const wSnap = await getDoc(wRef);
+
+    if (!wSnap.exists()) {
+      walletInfo.textContent = `Wallet ${wid} não existe no Firestore.`;
+      return;
+    }
+
+    const w = wSnap.data();
+    walletInfo.textContent = `Wallet: ${w.name ?? wid} | type: ${w.type ?? "?"}`;
+  }
+
+  // === Auth handlers ===
+  btnEmail.addEventListener("click", async () => {
+    try {
+      setAuthMessage("Entrando...");
+      const email = $("email").value.trim().toLowerCase();
+      const pass = $("pass").value;
+
+      if (!ALLOWED_EMAILS.has(email)) {
+        throw new Error("Este e-mail não está autorizado no VaultFlow-Dev.");
+      }
+
+      await signInWithEmailAndPassword(auth, email, pass);
+      setAuthMessage("Login OK.");
+    } catch (e) {
+      setAuthMessage(e?.message ?? String(e), true);
+    }
+  });
+
+  btnGoogle.addEventListener("click", async () => {
+    try {
+      setAuthMessage("Abrindo Google...");
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const email = (result.user.email ?? "").toLowerCase();
+
+      if (!ALLOWED_EMAILS.has(email)) {
+        // Se não for autorizado, desloga na sequência.
+        await signOut(auth);
+        throw new Error("Conta Google não autorizada no VaultFlow-Dev.");
+      }
+
+      setAuthMessage("Login Google OK.");
+    } catch (e) {
+      setAuthMessage(e?.message ?? String(e), true);
+    }
+  });
+
+  btnLogout.addEventListener("click", async () => {
+    await signOut(auth);
+  });
+
+  // === Auth state ===
+  onAuthStateChanged(auth, async (user) => {
+    try {
+      setAuthMessage("");
+      setAppError("");
+
+      if (!user) {
+        // Deslogado
+        authCard.style.display = "";
+        appCard.style.display = "none";
+        btnLogout.style.display = "none";
+        return;
+      }
+
+      const email = (user.email ?? "").toLowerCase();
+      if (!ALLOWED_EMAILS.has(email)) {
+        await signOut(auth);
+        throw new Error("Usuário autenticado, mas não autorizado (allowlist).");
+      }
+
+      btnLogout.style.display = "";
+      authCard.style.display = "";
+      appCard.style.display = "";
+
+      me.textContent = `${user.email} | uid: ${user.uid}`;
+
+      // 1) Garante user profile
+      await ensureUserProfile(user);
+
+      // 2) Garante memberships (para o seed existente)
+      await ensureMembershipsForSeededWallets(user);
+
+      // 3) Carrega wallets a partir de memberships
+      const wallets = await loadWalletsFromMemberships(user);
+
+      if (wallets.length === 0) {
+        walletInfo.textContent = "Nenhuma wallet encontrada. Verifique memberships.";
+        return;
+      }
+
+      // 4) Exibe wallet selecionada
+      await showSelectedWallet(user);
+
+      walletSelect.onchange = () => showSelectedWallet(user);
+      setAuthMessage("Sessão ativa.");
+    } catch (e) {
+      setAppError(e?.message ?? String(e));
+    }
+  });
+</script>
+
+</body>
+</html>
