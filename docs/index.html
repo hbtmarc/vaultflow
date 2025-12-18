@@ -6,548 +6,687 @@
   <title>VaultFlow</title>
   
   <style>
+    @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
     :root {
       color-scheme: light;
       --bg: #0f172a;
-      --surface: #0b1222;
-      --card: #0f172a;
-      --muted: #98a2b3;
-      --line: #1f2a44;
-      --primary: #7c3aed;
-      --primary-strong: #6d28d9;
-      --success: #22c55e;
-      --error: #ef4444;
-      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+      --panel: #ffffff;
+      --muted: #6b7280;
+      --text: #0b1224;
+      --border: #e5e7eb;
+      --primary: #0f172a;
+      --accent: #0ea5e9;
+      --success: #0ea76b;
+      --danger: #ef4444;
+      --shadow: 0 16px 60px rgba(15, 23, 42, 0.12);
+      --soft: #f8fafc;
     }
-
+    * { box-sizing: border-box; }
     body {
-      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial;
       margin: 0;
+      font-family: "Space Grotesk", "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(1000px at 15% 20%, #e8f4ff, transparent),
+        radial-gradient(900px at 80% 0%, #e2f5ed, transparent),
+        #f8fafc;
+      color: var(--text);
       min-height: 100vh;
-      background: radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.12), transparent 30%),
-        radial-gradient(circle at 80% 0%, rgba(14, 165, 233, 0.18), transparent 28%),
-        linear-gradient(160deg, #0b1020 0%, #0f172a 50%, #0a0f1c 100%);
-      color: #f8fafc;
     }
-
-    h1,
-    h2,
-    h3 {
-      margin: 0 0 12px;
-      letter-spacing: -0.02em;
-    }
-
-    p {
-      margin: 6px 0;
-    }
-
-    .muted {
-      color: var(--muted);
-    }
-
-    .ok {
-      color: var(--success);
-    }
-
-    .err {
-      color: var(--error);
-      white-space: pre-wrap;
-    }
-
-    .wrap {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 32px 28px 46px;
-    }
-
-    .glass {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-    }
-
-    .grid {
+    h1,h2,h3 { margin: 0; }
+    p { margin: 0; }
+    .muted { color: var(--muted); }
+    .err { color: var(--danger); white-space: pre-wrap; margin-top: 6px; }
+    .ok { color: var(--success); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; }
+    .app-shell {
       display: grid;
-      gap: 16px;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh;
+      transition: grid-template-columns 0.25s ease;
     }
-
-    .grid.cols2 {
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .grid.cols3 {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    @media (max-width: 980px) {
-      .grid.cols2,
-      .grid.cols3 {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .card {
-      background: rgba(15, 23, 42, 0.86);
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      border-radius: 16px;
-      padding: 18px;
-      box-shadow: var(--shadow);
-    }
-
-    .row {
+    .app-shell.collapsed { grid-template-columns: 96px 1fr; }
+    .sidebar {
+      background: linear-gradient(180deg, #0f172a 0%, #0b1224 100%);
+      color: #e2e8f0;
+      padding: 22px 20px;
       display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      border-right: 1px solid rgba(255, 255, 255, 0.04);
+      width: 100%;
+      overflow: hidden;
+    }
+    .brand-row {
+      display: flex;
+      align-items: center;
       gap: 12px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    input,
-    select {
-      padding: 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      min-width: 220px;
-      background: rgba(255, 255, 255, 0.02);
-      color: #e5e7eb;
-    }
-
-    input::placeholder,
-    select:invalid {
-      color: var(--muted);
-    }
-
-    input[type="month"],
-    input[type="date"] {
-      min-width: 170px;
-    }
-
-    button {
-      padding: 11px 14px;
-      border-radius: 12px;
-      border: 1px solid transparent;
-      background: linear-gradient(120deg, var(--primary-strong), var(--primary));
-      color: #f8fafc;
-      cursor: pointer;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      box-shadow: 0 10px 30px rgba(124, 58, 237, 0.35);
-    }
-
-    button.secondary {
-      background: rgba(255, 255, 255, 0.04);
-      border-color: rgba(255, 255, 255, 0.1);
-      box-shadow: none;
-    }
-
-    button.ghost {
-      background: transparent;
-      border-color: rgba(255, 255, 255, 0.12);
-      color: #e5e7eb;
-      box-shadow: none;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    hr {
-      border: none;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-      margin: 14px 0;
-    }
-
-    .pill {
-      display: inline-flex;
-      padding: 4px 12px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 999px;
-      font-size: 12px;
-      color: #e5e7eb;
-      background: rgba(255, 255, 255, 0.04);
-      align-items: center;
-      gap: 6px;
-    }
-
-    .pill.dot::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: #22c55e;
-      display: inline-block;
-    }
-
-    .kpi {
-      padding: 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: radial-gradient(circle at 0% 0%, rgba(124, 58, 237, 0.08), transparent 45%), rgba(255, 255, 255, 0.02);
-    }
-
-    .kpi .label {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .kpi .value {
-      font-size: 20px;
-      font-weight: 700;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th,
-    td {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      padding: 10px 8px;
-      text-align: left;
-      vertical-align: top;
-    }
-
-    th {
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    td {
-      font-size: 14px;
-      color: #e5e7eb;
-    }
-
-    .right {
-      text-align: right;
-    }
-
-    .nowrap {
-      white-space: nowrap;
-    }
-
-    .tabs {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-
-    .tab {
-      padding: 8px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.02);
-      cursor: pointer;
-      font-size: 13px;
-      color: #e5e7eb;
-    }
-
-    .tab.active {
-      border-color: var(--primary);
-      background: rgba(124, 58, 237, 0.08);
-      font-weight: 700;
-    }
-
-    .badge {
-      font-size: 12px;
-      border-radius: 12px;
-      padding: 6px 10px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(255, 255, 255, 0.03);
-      color: #e5e7eb;
-    }
-
-    .mono {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 12px;
-    }
-
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(5, 10, 25, 0.7);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      backdrop-filter: blur(4px);
-    }
-
-    .modal {
-      background: #0f172a;
-      border-radius: 16px;
-      padding: 16px;
-      max-width: 620px;
-      width: 100%;
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    .topbar {
-      display: flex;
       justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 18px;
     }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0ea5e9, #22d3ee);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      color: #0b1224;
+      letter-spacing: -0.5px;
+      flex-shrink: 0;
     }
-
-    .brand-badge {
+    .brand-text { display: grid; gap: 2px; }
+    .brand-name { font-weight: 700; letter-spacing: -0.2px; }
+    .brand-sub { font-size: 12px; color: #94a3b8; }
+    .icon-btn {
       width: 36px;
       height: 36px;
       border-radius: 12px;
-      background: linear-gradient(140deg, #22c55e, #0ea5e9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.06);
+      color: #e2e8f0;
+      cursor: pointer;
       display: grid;
       place-items: center;
-      font-weight: 800;
-      color: #0b1222;
-      box-shadow: 0 10px 40px rgba(14, 165, 233, 0.45);
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      padding: 0;
+      line-height: 0;
     }
-
-    .toolbar {
+    .icon-btn svg { width: 18px; height: 18px; display: block; }
+    .icon-btn:hover { transform: translateY(-1px); background: rgba(255, 255, 255, 0.1); }
+    .nav { display: grid; gap: 6px; }
+    .nav-item {
+      position: relative;
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #e2e8f0;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
       display: flex;
-      gap: 8px;
       align-items: center;
-      flex-wrap: wrap;
+      justify-content: flex-start;
+      gap: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .nav-icon { width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .nav-icon svg { width: 22px; height: 22px; display: block; }
+    .nav-label { line-height: 1; }
+    .nav-item:hover { background: rgba(255, 255, 255, 0.05); }
+    .nav-item.active { border-color: rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.08); }
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      display: grid;
+      gap: 8px;
+    }
+    .sidebar-footer .label { font-size: 12px; color: #94a3b8; }
+    .sidebar-footer .strong { font-weight: 600; }
+    .main-area { background: transparent; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 28px 32px 10px;
+    }
+    .eyebrow { text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 6px; }
+    .top-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .wallet-select {
+      min-width: 120px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      cursor: pointer;
+      appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, var(--text) 50%), linear-gradient(135deg, var(--text) 50%, transparent 50%);
+      background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%;
+      background-size: 6px 6px, 6px 6px;
+      background-repeat: no-repeat;
+      padding-right: 32px;
+    }
+    .wallet-select:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.12); }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .month-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      font-weight: 700;
+      color: var(--text);
+    }
+    .month-control .mc-btn { border: none; background: transparent; padding: 6px; border-radius: 10px; cursor: pointer; display: grid; place-items: center; color: var(--text); }
+    .month-control .mc-btn:hover { background: #f1f5f9; }
+    .month-control .mc-label { white-space: nowrap; cursor: pointer; user-select: none; }
+    .month-control .mc-btn svg path { fill: currentColor; }
+    .month-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+      border: 0;
+      padding: 0;
+      margin: 0;
+    }
+    .content { padding: 0 32px 32px; display: grid; gap: 16px; }
+    .card, .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+    .card { padding: 20px; }
+    .panel { padding: 18px 18px 16px; }
+    .panel-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+    .panel-footer { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .auth-card { display: grid; gap: 12px; border: 1px solid #dbeafe; background: linear-gradient(135deg, #ffffff, #f8fbff); }
+    .auth-grid { display: grid; gap: 10px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
+    input, select, textarea {
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      min-width: 200px;
+      font: inherit;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.12); }
+    button {
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--primary);
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+      letter-spacing: -0.2px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    button.secondary { background: #fff; color: var(--primary); border-color: var(--border); }
+    button.ghost { background: #f8fafc; color: var(--text); border-color: var(--border); }
+    button svg { width: 18px; height: 18px; display: block; }
+    .app-grid { display: grid; gap: 16px; }
+    .page { display: none; }
+    .page.active { display: grid; gap: 14px; }
+    .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; align-items: end; }
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 10px 0 6px; }
+    .metric-card { padding: 14px; border-radius: 14px; border: 1px solid var(--border); background: linear-gradient(150deg, #ffffff, #f8fafc); display: grid; gap: 6px; }
+    .metric-card .label { font-size: 13px; color: var(--muted); }
+    .metric-card .value { font-size: 24px; font-weight: 700; letter-spacing: -0.3px; }
+    .metric-card.income { border-color: rgba(14, 167, 107, 0.2); background: linear-gradient(135deg, #f0fdf4, #f8fffb); }
+    .metric-card.expense { border-color: rgba(239, 68, 68, 0.2); background: linear-gradient(135deg, #fff1f2, #fff7f7); }
+    .metric-card.balance { background: linear-gradient(135deg, #e0f2fe, #f8fbff); border-color: rgba(14, 165, 233, 0.2); }
+    .mini-label { font-size: 12px; color: var(--muted); }
+    .kpi { padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: #f8fafc; }
+    .kpi .label { font-size: 12px; color: var(--muted); }
+    .kpi .value { font-size: 18px; font-weight: 700; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 10px; background: var(--soft); border: 1px solid var(--border); font-size: 12px; color: var(--text); }
+    .tabs { display: inline-flex; gap: 8px; background: #f8fafc; padding: 6px; border-radius: 12px; border: 1px solid var(--border); margin: 8px 0 4px; }
+    .tab { padding: 8px 12px; border-radius: 10px; border: 1px solid transparent; background: transparent; cursor: pointer; font-size: 13px; color: var(--text); font-weight: 600; }
+    .tab.active { background: #fff; border-color: var(--border); box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08); }
+    .info-note { background: #f8fafc; border: 1px dashed var(--border); border-radius: 12px; padding: 10px 12px; color: var(--muted); margin: 6px 0 2px; }
+    .table-shell { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: #fff; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+    th { font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+    td { font-size: 14px; }
+    td .muted { font-size: 12px; }
+    .right { text-align: right; }
+    .nowrap { white-space: nowrap; }
+    .table-shell.large { max-height: 420px; overflow: auto; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; align-items: end; }
+    .chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .divider { height: 1px; background: var(--border); margin: 14px 0; }
+    .list-panel { padding-bottom: 10px; grid-column: 1 / -1; }
+    .stack-list { display: grid; gap: 10px; }
+    .move-card { padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: #fff; display: grid; gap: 4px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05); }
+    .move-meta { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); }
+    .move-amount { font-weight: 700; }
+    .actions { display: flex; gap: 6px; justify-content: flex-end; }
+    .split-panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+    .mini-panel { padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: #fff; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06); display: grid; gap: 6px; }
+    .mini-panel h3 { margin: 0; font-size: 16px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--soft); font-size: 12px; font-weight: 600; }
+    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .section-heading h2, .section-heading h3 { margin: 0; }
+    .icon-action { border: 1px solid var(--border); background: var(--soft); border-radius: 10px; padding: 8px 10px; cursor: pointer; }
+    .icon-action:hover { background: #fff; }
+    .optional-block { margin-top: 10px; padding: 12px; border-radius: 12px; border: 1px dashed var(--border); background: #f8fafc; display: grid; gap: 10px; }
+    .optional-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0; }
+    .optional-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; align-items: start; }
+    .option-card { border: 1px solid var(--border); border-radius: 12px; background: #fff; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05); padding: 10px; display: grid; gap: 8px; }
+    .option-head { display: flex; align-items: center; gap: 10px; }
+    .option-head input[type="checkbox"] { width: 16px; height: 16px; }
+    .option-text { display: grid; gap: 2px; }
+    .option-label { font-weight: 700; }
+    .option-sub { font-size: 12px; color: var(--muted); }
+    .option-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+    @media (max-width: 1180px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar { position: relative; height: auto; border-right: none; }
+      .app-grid { grid-template-columns: 1fr; }
+      .page.active { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 720px) {
+      .topbar, .panel-header { flex-direction: column; align-items: flex-start; }
+      .content { padding: 0 18px 24px; }
+      .card, .panel { padding: 16px; }
+    }
+    .app-shell.collapsed .brand-text,
+    .app-shell.collapsed .nav-item .nav-label,
+    .app-shell.collapsed .sidebar-footer .label,
+    .app-shell.collapsed .sidebar-footer .strong,
+    .app-shell.collapsed .sidebar-footer .mono { display: none; }
+    .app-shell.collapsed .sidebar { padding: 18px 12px; align-items: center; }
+    .app-shell.collapsed .brand-row { justify-content: center; }
+    .app-shell.collapsed .brand { justify-content: center; }
+    .app-shell.collapsed .icon-btn { width: 36px; height: 36px; }
+    .app-shell.collapsed .nav { gap: 10px; width: 64px; margin: 0 auto; }
+    .app-shell.collapsed .nav-item {
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      gap: 6px;
+      text-align: center;
+      padding: 10px;
+      min-height: 48px;
+      width: 64px;
+      margin: 0 auto;
+    }
+    .app-shell.collapsed .nav-item .nav-label { display: none; }
+    .app-shell.collapsed .nav-item .nav-icon { margin: 0; }
+    .app-shell.collapsed .nav-item::after { content: none; }
     }
   </style>
 
 </head>
 <body>
-<div class="wrap">
-  <div class="topbar">
-    <div class="brand">
-      <div class="brand-badge">VF</div>
-      <div>
-        <h1>VaultFlow</h1>
-        <p class="muted">Controle financeiro seguro, multi-wallet e pronto para o casal.</p>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand-row">
+      <div class="brand">
+        <div class="logo">VF</div>
+        <div class="brand-text">
+          <div class="brand-name">VaultFlow</div>
+          <div class="brand-sub">Fintech control</div>
+        </div>
       </div>
+      <button class="icon-btn" id="sidebarToggle" aria-label="Recolher menu" type="button">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2 6a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1ZM2 18a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1ZM3 11a1 1 0 1 0 0 2h18a1 1 0 1 0 0-2H3Z" fill="#ffffff"/></svg>
+      </button>
     </div>
-    <div class="toolbar">
-      <span class="pill dot">Status ativo</span>
-      <span class="pill" id="envPill">vaultflow-dev-marc35</span>
-      <span class="pill" id="autoPill">Auto-sync Casal: ON</span>
-    </div>
-  </div>
 
-  <div class="card glass" id="authCard" style="margin-top:4px;">
-    <div class="row" style="justify-content: space-between; gap: 16px;">
-      <div>
-        <h2>Acesso</h2>
-        <p class="muted">Entre com email/senha ou Google para continuar.</p>
-      </div>
-      <div class="pill" id="authStatus" style="min-width: 160px; justify-content: center;">Aguardando login</div>
-    </div>
-    <div class="row" style="margin-top:10px;">
-      <input id="email" type="email" placeholder="email" autocomplete="username" />
-      <input id="pass" type="password" placeholder="senha" autocomplete="current-password" />
-    </div>
-    <div class="row" style="margin-top:12px;">
-      <button id="btnEmail">Entrar com Email/Senha</button>
-      <button id="btnGoogle" class="secondary">Entrar com Google</button>
+    <nav class="nav">
+      <button class="nav-item active" type="button" data-page-target="dashboard">
+        <span class="nav-icon" aria-hidden="true"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.499 9.5 11.5 21H6.25a3.25 3.25 0 0 1-3.245-3.065L3 17.752V9.499h8.499Zm1.5 5.999H21.5v2.253a3.25 3.25 0 0 1-3.25 3.25L13 21l-.001-5.502Zm5.252-13a3.25 3.25 0 0 1 3.245 3.065l.005.184-.001 8.251h-8.501L13 2.498h5.251ZM11.5 2.497 11.499 8H3V5.748a3.25 3.25 0 0 1 3.25-3.25h5.25Z" fill="#ffffff"/></svg></span>
+        <span class="nav-label">Dashboard</span>
+      </button>
+      <button class="nav-item" type="button" data-page-target="transactions">
+        <span class="nav-icon" aria-hidden="true"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6.5 2a1 1 0 0 0-1 1v.112A4.502 4.502 0 0 0 2 7.5v.384a4.883 4.883 0 0 0 2.796 4.415l.704.332v6.14A2.5 2.5 0 0 1 4 16.48v-.845a1 1 0 1 0-2 0v.845a4.502 4.502 0 0 0 3.5 4.389v.124a1 1 0 0 0 2 0v-.124a4.502 4.502 0 0 0 3.5-4.389v-.372A4.875 4.875 0 0 0 8.209 11.7l-.709-.335V5.208A2.5 2.5 0 0 1 9 7.5v.865a1 1 0 1 0 2 0V7.5a4.502 4.502 0 0 0-3.5-4.388V3a1 1 0 0 0-1-1ZM4 7.5a2.5 2.5 0 0 1 1.5-2.292v5.206A2.884 2.884 0 0 1 4 7.884V7.5Zm3.5 11.271v-5.189c.92.501 1.5 1.468 1.5 2.525v.372a2.5 2.5 0 0 1-1.5 2.292Z" fill="#ffffff"/><path d="M15 12c0-.332.015-.657.043-.975H16a1 1 0 0 0 0-2h-.577a7.898 7.898 0 0 1 .979-2.125c.85-1.268 1.916-1.9 2.962-1.9.378 0 .785.117 1.067.31a1 1 0 1 0 1.13-1.65C20.904 3.21 20.09 3 19.364 3c-1.917 0-3.533 1.159-4.623 2.786-.619.923-1.094 2.025-1.39 3.239H12a1 1 0 1 0 0 2h1.036c-.024.32-.036.646-.036.975v.027h-1a1 1 0 1 0 0 2h1.16c.255 1.588.804 3.03 1.58 4.187C15.832 19.84 17.448 21 19.364 21c.697 0 1.535-.174 2.222-.67a1 1 0 0 0-1.172-1.621c-.254.183-.644.291-1.05.291-1.046 0-2.112-.632-2.962-1.9-.553-.824-.98-1.876-1.212-3.075H16a1 1 0 0 0 0-2h-1V12Z" fill="#ffffff"/></svg></span>
+        <span class="nav-label">Transações</span>
+      </button>
+      <button class="nav-item" type="button" data-page-target="categories">
+        <span class="nav-icon" aria-hidden="true"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2 6a2 2 0 0 1 2-2h1v7.174a6.488 6.488 0 0 0-3 1.636V6ZM16 8.5h-4a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5V9a.5.5 0 0 0-.5-.5Z" fill="#ffffff"/><path d="M12.502 20H20a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6.5v7a6.5 6.5 0 0 1 6.002 9ZM10 9a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V9Z" fill="#ffffff"/><path d="M6.5 12a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Zm.501 8.503V18h2.496a.5.5 0 0 0 0-1H7v-2.5a.5.5 0 1 0-1 0V17H3.496a.5.5 0 0 0 0 1H6v2.503a.5.5 0 1 0 1 0Z" fill="#ffffff"/></svg></span>
+        <span class="nav-label">Categorias</span>
+      </button>
+      <button class="nav-item" type="button" data-page-target="settings">
+        <span class="nav-icon" aria-hidden="true"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2 6a1 1 0 0 1 1-1h15a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1ZM2 18a1 1 0 0 1 1-1h11a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1ZM3 11a1 1 0 1 0 0 2h18a1 1 0 1 0 0-2H3Z" fill="#ffffff"/></svg></span>
+        <span class="nav-label">Preferências</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="label">Sessão</div>
+      <div class="strong" id="me">Aguardando login</div>
       <button id="btnLogout" class="ghost" style="display:none;">Sair</button>
     </div>
-    <p id="authError" class="err"></p>
-  </div>
+  </aside>
 
-  <div class="grid cols2" style="margin-top:16px; display:none;" id="appGrid">
-    <div class="card glass">
-      <h2>Contexto</h2>
-      <div class="row">
-        <div style="min-width: 320px;">
-          <div class="muted">Usuário</div>
-          <div id="me"></div>
-          <div class="muted mono" id="uidLine"></div>
+  <div class="main-area">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">VaultFlow</p>
+        <h1 id="pageTitle">Dashboard</h1>
+      </div>
+      <div class="top-actions">
+        <select id="walletSelect" class="wallet-select" aria-label="Selecionar carteira"></select>
+        <div class="month-control">
+          <button class="mc-btn" id="btnMonthPrev" type="button" aria-label="Mês anterior">◀</button>
+          <span class="mc-label" id="monthDisplay">Mês atual</span>
+          <button class="mc-btn" id="btnMonthNext" type="button" aria-label="Próximo mês">▶</button>
+          <button class="mc-btn" id="btnMonthPicker" type="button" aria-label="Escolher mês">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17 4a1 1 0 0 1 1 1v1h1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h1V5a1 1 0 1 1 2 0v1h6V5a1 1 0 0 1 1-1Zm2 7H5v7h14v-7Zm-4-5v1a1 1 0 1 1-2 0V6h-4v1a1 1 0 1 1-2 0V6H6v2h12V6h-1Zm-8.5 7a1 1 0 1 1 0 2h-1a1 1 0 1 1 0-2h1Zm5 0a1 1 0 1 1 0 2h-1a1 1 0 1 1 0-2h1Zm5 0a1 1 0 1 1 0 2h-1a1 1 0 1 1 0-2h1Z" fill="currentColor"/></svg>
+          </button>
         </div>
-        <div style="min-width: 320px;">
-          <div class="muted">Wallet</div>
-          <select id="walletSelect"></select>
-          <div style="margin-top:8px;">
-            <span class="badge" id="walletRoleBadge">role: -</span>
-            <span class="badge" id="walletTypeBadge">type: -</span>
+        <input id="month" type="month" class="month-input" />
+      </div>
+    </header>
+
+    <main class="content">
+      <section class="card auth-card" id="authCard">
+        <div class="panel-header" style="margin-bottom:0;">
+          <div>
+            <p class="eyebrow">Acesso</p>
+            <h2>Entrar</h2>
+          </div>
+          <p id="authStatus" class="muted"></p>
+        </div>
+        <div class="auth-grid">
+          <div class="form-grid">
+            <div>
+              <label for="email">E-mail</label>
+              <input id="email" type="email" placeholder="seu@email.com" autocomplete="username" />
+            </div>
+            <div>
+              <label for="pass">Senha</label>
+              <input id="pass" type="password" placeholder="********" autocomplete="current-password" />
+            </div>
+          </div>
+          <div class="row">
+            <button id="btnEmail">Entrar com e-mail</button>
+            <button id="btnGoogle" class="secondary">Google</button>
           </div>
         </div>
-      </div>
+        <p id="authError" class="err"></p>
+      </section>
 
-      <hr />
+      <section class="app-grid" id="appGrid" style="display:none;">
+        <section class="page active" id="page-dashboard">
+          <p class="err" id="appError"></p>
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Carteira</p>
+                <h2>Dashboard</h2>
+              </div>
+            </div>
 
-      <div class="row">
-        <div>
-          <div class="muted">Mês</div>
-          <input id="month" type="month" />
-        </div>
-        <div style="display:flex; gap:8px; align-items:flex-end;">
-          <button id="btnReload" class="secondary">Recarregar</button>
-        </div>
-      </div>
+            <div class="kpi-row" id="kpis">
+              <div class="metric-card income">
+                <div class="label">Receitas</div>
+                <div class="value" id="kpiIncome">R$ 0,00</div>
+                <div class="mini-label">Entradas no período</div>
+              </div>
+              <div class="metric-card expense">
+                <div class="label">Despesas</div>
+                <div class="value" id="kpiExpense">R$ 0,00</div>
+                <div class="mini-label">Saídas no período</div>
+              </div>
+              <div class="metric-card balance">
+                <div class="label">Saldo</div>
+                <div class="value" id="kpiBalance">R$ 0,00</div>
+                <div class="mini-label">Resultado consolidado</div>
+              </div>
+            </div>
 
-      <p class="muted" id="walletInfo" style="margin-top:10px;"></p>
-      <p class="err" id="appError"></p>
+            <div class="tabs" id="coupleTabs" style="display:none;">
+              <button class="tab active" data-tab="totals">Totais</button>
+              <button class="tab" data-tab="details">Detalhes</button>
+            </div>
 
-      <div class="tabs" id="coupleTabs" style="display:none;">
-        <button class="tab active" data-tab="totals">Totais</button>
-        <button class="tab" data-tab="details">Detalhes</button>
-      </div>
+            <div id="coupleHint" class="info-note" style="display:none;">
+              Visão consolidada: sincronizada automaticamente a partir das carteiras individuais.
+            </div>
 
-      <div id="coupleHint" class="muted" style="display:none; margin-top:10px;">
-        Casal é automático: ao adicionar/excluir transações nas wallets pessoais, os totais e detalhes do casal são atualizados.
-      </div>
+            <div id="coupleBreakdown" style="display:none; margin-top:10px;"></div>
+          </div>
 
-      <div style="margin-top:12px;" class="grid cols3" id="kpis">
-        <div class="kpi">
-          <div class="label">Receitas</div>
-          <div class="value" id="kpiIncome">R$ 0,00</div>
-        </div>
-        <div class="kpi">
-          <div class="label">Despesas</div>
-          <div class="value" id="kpiExpense">R$ 0,00</div>
-        </div>
-        <div class="kpi">
-          <div class="label">Saldo</div>
-          <div class="value" id="kpiBalance">R$ 0,00</div>
-        </div>
-      </div>
+          <div class="panel list-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Movimentações</p>
+                <h2>Receitas e Despesas</h2>
+              </div>
+            </div>
+            <div class="split-panels">
+              <div class="mini-panel">
+                <div class="section-heading"><h3>Receitas</h3><span class="pill">Mês selecionado</span></div>
+                <div id="incomeList" class="stack-list"></div>
+              </div>
+              <div class="mini-panel">
+                <div class="section-heading"><h3>Despesas</h3><span class="pill">Mês selecionado</span></div>
+                <div id="expenseList" class="stack-list"></div>
+              </div>
+            </div>
+            <p class="muted" id="dashboardStatus"></p>
+          </div>
+        </section>
 
-      <div id="coupleBreakdown" style="display:none; margin-top:10px;"></div>
-    </div>
+        <section class="page" id="page-transactions">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Fluxo</p>
+                <h3>Transações</h3>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div>
+                <label for="txnDate">Data</label>
+                <input id="txnDate" type="date" />
+              </div>
+              <div>
+                <label for="txnType">Tipo</label>
+                <select id="txnType">
+                  <option value="expense">Despesa</option>
+                  <option value="income">Receita</option>
+                  <option value="reserve">Reserva</option>
+                </select>
+              </div>
+              <div>
+                <label for="txnNote">Descrição</label>
+                <input id="txnNote" placeholder="Observação" />
+              </div>
+            </div>
 
-    <div class="card glass">
-      <h2>Operações</h2>
+            <div class="form-grid" style="margin-top:10px;">
+              <div>
+                <label for="txnAmount">Valor</label>
+                <input id="txnAmount" placeholder="Ex.: 35,90" />
+              </div>
+              <div>
+                <label for="txnPayment">Forma de pagamento</label>
+                <select id="txnPayment">
+                  <option value="">Selecione</option>
+                  <option value="pix">Pix</option>
+                  <option value="credito">Cartão de crédito</option>
+                  <option value="debito">Cartão de débito</option>
+                  <option value="dinheiro">Dinheiro</option>
+                  <option value="transferencia">Transferência</option>
+                  <option value="boleto">Boleto</option>
+                  <option value="outro">Outro</option>
+                </select>
+              </div>
+              <div>
+                <label for="txnCat">Categoria</label>
+                <select id="txnCat"></select>
+              </div>
+            </div>
 
-      <div id="personalOps">
-        <h3>Categorias</h3>
-        <div class="row">
-          <input id="catName" placeholder="Nome da categoria" />
-          <select id="catKind">
-            <option value="expense">Despesa</option>
-            <option value="income">Receita</option>
-            <option value="both">Ambos</option>
-          </select>
-          <button id="btnAddCat">Adicionar</button>
-          <button id="btnSeedCats" class="ghost">Criar categorias padrão</button>
-        </div>
-        <div class="muted" id="catStatus" style="margin-top:8px;"></div>
-        <div style="margin-top:10px; max-height: 180px; overflow:auto; border:1px solid #eee; border-radius:12px;">
-          <table>
-            <thead>
-              <tr><th>Nome</th><th>Tipo</th><th class="right">Ações</th></tr>
-            </thead>
-            <tbody id="catTable"></tbody>
-          </table>
-        </div>
+            <div class="optional-block">
+              <p class="optional-title">Opcionais</p>
+              <div class="optional-cards">
+                <div class="option-card" id="cardRecurring">
+                  <div class="option-head">
+                    <input type="checkbox" id="cbRecurring" />
+                    <div class="option-text">
+                      <span class="option-label">Tornar recorrente</span>
+                      <span class="option-sub">Mensal</span>
+                    </div>
+                  </div>
+                </div>
 
-        <hr />
+                <div class="option-card" id="cardInstallment" hidden>
+                  <div class="option-head">
+                    <input type="checkbox" id="cbInstallment" />
+                    <div class="option-text">
+                      <span class="option-label">Despesa parcelada</span>
+                      <span class="option-sub">Controlar parcelas</span>
+                    </div>
+                  </div>
+                  <div class="option-fields" id="installmentFields" hidden>
+                    <div>
+                      <label for="installmentTotal">Total de parcelas</label>
+                      <input id="installmentTotal" type="number" min="1" step="1" placeholder="Ex.: 12" />
+                    </div>
+                    <div>
+                      <label for="installmentCurrent">Parcela atual</label>
+                      <input id="installmentCurrent" type="number" min="1" step="1" placeholder="Ex.: 3" />
+                    </div>
+                  </div>
+                </div>
 
-        <h3>Transações</h3>
-        <p class="muted" style="margin-top:-6px;">
-          Ao adicionar/excluir transações nesta wallet pessoal, o Casal é atualizado automaticamente (reports + transactions_view).
-        </p>
-        <div class="row">
-          <input id="txnDate" type="date" />
-          <select id="txnType">
-            <option value="expense">Despesa</option>
-            <option value="income">Receita</option>
-          </select>
-          <select id="txnCat"></select>
-        </div>
-        <div class="row" style="margin-top:10px;">
-          <input id="txnAmount" placeholder="Valor (ex: 35,90)" />
-          <input id="txnNote" placeholder="Observação (opcional)" style="min-width: 420px; flex:1;" />
-          <button id="btnAddTxn">Adicionar</button>
-        </div>
-      </div>
+                <div class="option-card" id="cardFinance" hidden>
+                  <div class="option-head">
+                    <input type="checkbox" id="cbFinance" />
+                    <div class="option-text">
+                      <span class="option-label">Financiamento</span>
+                      <span class="option-sub">Detalhar parcelas</span>
+                    </div>
+                  </div>
+                  <div class="option-fields" id="financeFields" hidden>
+                    <div>
+                      <label for="financeTotal">Total de parcelas</label>
+                      <input id="financeTotal" type="number" min="1" step="1" placeholder="Ex.: 48" />
+                    </div>
+                    <div>
+                      <label for="financeCurrent">Parcela atual</label>
+                      <input id="financeCurrent" type="number" min="1" step="1" placeholder="Ex.: 10" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-      <div id="coupleOps" style="display:none;">
-        <h3>Casal (agregado)</h3>
-        <p class="muted">
-          Totais vêm de <span class="mono">reports</span>. Detalhes vêm de <span class="mono">transactions_view</span>.
-          Ambos são atualizados automaticamente quando Marcelino/Luiza adicionam/excluem transações nas wallets pessoais.
-        </p>
-      </div>
+            <div style="display:flex; align-items:flex-end; justify-content:flex-start; margin-top:12px;">
+              <button id="btnAddTxn">Adicionar</button>
+            </div>
+            <p class="muted" id="txnStatus" style="margin-top:10px;"></p>
+            <p class="err" id="opsError"></p>
+          </div>
 
-      <hr />
+          <div class="panel list-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Movimentações</p>
+                <h2>Lista do mês</h2>
+              </div>
+            </div>
+            <div class="table-shell large">
+              <table>
+                <thead>
+                  <tr>
+                    <th class="nowrap">Data</th>
+                    <th>Categoria</th>
+                    <th>Descrição</th>
+                    <th class="right nowrap">Valor</th>
+                    <th class="right nowrap">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="txnTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
 
-      <h3>Lista do mês</h3>
-      <div style="max-height: 330px; overflow:auto; border:1px solid #eee; border-radius:12px;">
-        <table>
-          <thead>
-            <tr>
-              <th class="nowrap">Data</th>
-              <th>Categoria</th>
-              <th>Descrição</th>
-              <th class="right nowrap">Valor</th>
-              <th class="right nowrap">Ações</th>
-            </tr>
-          </thead>
-          <tbody id="txnTable"></tbody>
-        </table>
-      </div>
+        <section class="page" id="page-categories">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Organização</p>
+                <h3>Categorias</h3>
+              </div>
+            </div>
 
-      <div class="muted" id="txnStatus" style="margin-top:10px;"></div>
-      <p class="err" id="opsError"></p>
-    </div>
+            <div class="form-grid">
+              <div>
+                <label for="catName">Nome</label>
+                <input id="catName" placeholder="Ex.: Alimentação" />
+              </div>
+              <div>
+                <label for="catKind">Tipo</label>
+                <select id="catKind">
+                  <option value="expense">Despesa</option>
+                  <option value="income">Receita</option>
+                  <option value="both">Ambos</option>
+                </select>
+              </div>
+              <div class="row">
+                <button id="btnAddCat">Adicionar</button>
+                <button id="btnSeedCats" class="ghost">Categorias padrão</button>
+              </div>
+            </div>
+            <div class="muted" id="catStatus" style="margin-top:6px;"></div>
+            <div class="table-shell" style="margin-top:10px; max-height: 240px; overflow:auto;">
+              <table>
+                <thead>
+                  <tr><th>Nome</th><th>Tipo</th><th class="right">Ações</th></tr>
+                </thead>
+                <tbody id="catTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
 
-    <div class="card glass">
-      <h2>Diagnóstico</h2>
-      <p class="muted">Verifica consistência de memberships entre <span class="mono">wallets/*/members</span> e <span class="mono">users/*/memberships</span>.</p>
-      <div class="grid cols2" style="margin-top:10px;">
-        <div>
-          <div class="muted">Wallet atual</div>
-          <div id="diagWallet">-</div>
-          <div class="muted" style="margin-top:6px;">Role: <span class="mono" id="diagRole">-</span> | Tipo: <span class="mono" id="diagType">-</span></div>
-        </div>
-        <div>
-          <div class="muted">Status</div>
-          <div id="diagMemberStatus" class="mono">—</div>
-          <div id="diagMembershipStatus" class="mono" style="margin-top:4px;">—</div>
-        </div>
-      </div>
-      <div class="row" style="margin-top:12px;">
-        <button id="btnRunDiag" class="secondary">Reavaliar</button>
-        <button id="btnReconcile" class="ghost">Reconciliar memberships</button>
-        <span class="muted" id="diagActionStatus"></span>
-      </div>
-      <p class="err" id="diagError"></p>
-    </div>
-  </div>
-</div>
-
-<div class="modal-backdrop" id="editModal">
-  <div class="modal">
-    <h3>Editar transação</h3>
-    <p class="muted" id="editHelper"></p>
-    <div class="row" style="margin-top:8px;">
-      <input id="editTxnDate" type="date" />
-      <select id="editTxnType">
-        <option value="expense">Despesa</option>
-        <option value="income">Receita</option>
-      </select>
-      <select id="editTxnCat"></select>
-    </div>
-    <div class="row" style="margin-top:10px;">
-      <input id="editTxnAmount" placeholder="Valor (ex: 35,90)" />
-      <input id="editTxnNote" placeholder="Observação (opcional)" style="min-width: 420px; flex:1;" />
-    </div>
-    <div class="row" style="margin-top:12px; justify-content:flex-end; gap:8px;">
-      <button id="btnCloseEdit" class="ghost">Cancelar</button>
-      <button id="btnSaveEdit">Salvar alterações</button>
-    </div>
-    <div class="muted" id="editStatus" style="margin-top:8px;"></div>
-    <p class="err" id="editError"></p>
+        <section class="page" id="page-settings">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Sessão</p>
+                <h3>Preferências</h3>
+              </div>
+            </div>
+            <p class="muted">Use o menu para navegar. Seus dados sincronizam automaticamente.</p>
+          </div>
+        </section>
+      </section>
+    </main>
   </div>
 </div>
 
 <script type="module">
+
+
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
 
@@ -603,28 +742,45 @@
   const COUPLE_WALLET_ID = "w_casal";
   const PERSONAL_WALLETS = new Set(["w_marcelino", "w_luiza"]);
   const KNOWN_WALLETS = ["w_marcelino", "w_luiza", "w_casal"];
+  const FRIENDLY_WALLET_NAMES = {
+    w_marcelino: "Marcelino",
+    w_luiza: "Luiza",
+    w_casal: "Casal"
+  };
+  const USER_PERSONAL_WALLET = {
+    "hbmarc35@gmail.com": "w_marcelino",
+    "lzmarc25@gmail.com": "w_luiza",
+    "herbertmarck@gmail.com": "w_marcelino"
+  };
 
   const $ = (id) => document.getElementById(id);
 
   const btnEmail = $("btnEmail");
   const btnGoogle = $("btnGoogle");
   const btnLogout = $("btnLogout");
+  const authCard = $("authCard");
 
   const authStatus = $("authStatus");
   const authError = $("authError");
 
   const appGrid = $("appGrid");
+  const pageTitle = $("pageTitle");
+  const navButtons = Array.from(document.querySelectorAll("[data-page-target]"));
+  const pages = {
+    dashboard: $("page-dashboard"),
+    transactions: $("page-transactions"),
+    categories: $("page-categories"),
+    settings: $("page-settings")
+  };
 
   const me = $("me");
-  const uidLine = $("uidLine");
 
   const walletSelect = $("walletSelect");
-  const walletRoleBadge = $("walletRoleBadge");
-  const walletTypeBadge = $("walletTypeBadge");
-  const walletInfo = $("walletInfo");
-
   const monthInput = $("month");
-  const btnReload = $("btnReload");
+  const monthDisplay = $("monthDisplay");
+  const btnMonthPrev = $("btnMonthPrev");
+  const btnMonthNext = $("btnMonthNext");
+  const btnMonthPicker = $("btnMonthPicker");
 
   const kpiIncome = $("kpiIncome");
   const kpiExpense = $("kpiExpense");
@@ -634,8 +790,9 @@
   const coupleTabs = $("coupleTabs");
   const coupleHint = $("coupleHint");
 
-  const personalOps = $("personalOps");
-  const coupleOps = $("coupleOps");
+  const incomeList = $("incomeList");
+  const expenseList = $("expenseList");
+  const dashboardStatus = $("dashboardStatus");
 
   const catName = $("catName");
   const catKind = $("catKind");
@@ -646,16 +803,31 @@
 
   const txnDate = $("txnDate");
   const txnType = $("txnType");
+  const txnPayment = $("txnPayment");
   const txnCat = $("txnCat");
   const txnAmount = $("txnAmount");
   const txnNote = $("txnNote");
   const btnAddTxn = $("btnAddTxn");
+
+  const cbRecurring = $("cbRecurring");
+  const cbInstallment = $("cbInstallment");
+  const cbFinance = $("cbFinance");
+  const installmentFields = $("installmentFields");
+  const financeFields = $("financeFields");
+  const cardInstallment = $("cardInstallment");
+  const cardFinance = $("cardFinance");
+  const installmentTotal = $("installmentTotal");
+  const installmentCurrent = $("installmentCurrent");
+  const financeTotal = $("financeTotal");
+  const financeCurrent = $("financeCurrent");
 
   const txnTable = $("txnTable");
   const txnStatus = $("txnStatus");
 
   const appError = $("appError");
   const opsError = $("opsError");
+  const appShell = document.querySelector(".app-shell");
+  const sidebarToggle = $("sidebarToggle");
 
   const diagWallet = $("diagWallet");
   const diagRole = $("diagRole");
@@ -683,15 +855,17 @@
     user: null,
     email: null,
     uid: null,
+    displayName: "",
     walletId: null,
     walletRole: null,
     walletType: null,
     walletName: null,
+    walletLabels: new Map(),
     coupleTab: "totals",
     categories: new Map(), // catId -> {name, kind}
-    txnCache: new Map(),
-    editingTxnId: null
+    currentRows: []
   };
+  Object.entries(FRIENDLY_WALLET_NAMES).forEach(([id, label]) => state.walletLabels.set(id, label));
 
   function setAuthMessage(msg, isError = false) {
     authStatus.textContent = isError ? "" : msg;
@@ -757,31 +931,28 @@
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   }
 
-  function setCategoryOptions(selectEl, selectedId = "", fallbackLabel = "") {
-    selectEl.innerHTML = "";
-
-    if (state.categories.size === 0) {
-      const opt = document.createElement("option");
-      opt.value = "";
-      opt.textContent = "Sem categorias (crie uma)";
-      selectEl.appendChild(opt);
-    } else {
-      for (const [id, c] of state.categories.entries()) {
-        const opt = document.createElement("option");
-        opt.value = id;
-        opt.textContent = c.name;
-        selectEl.appendChild(opt);
-      }
+  function currentDateInTZ(timeZone = "America/Sao_Paulo") {
+    try {
+      const iso = new Date().toLocaleString("en-US", { timeZone, hour12: false });
+      return new Date(iso);
+    } catch {
+      return new Date();
     }
+  }
 
-    if (selectedId && !state.categories.has(selectedId)) {
-      const opt = document.createElement("option");
-      opt.value = selectedId;
-      opt.textContent = fallbackLabel || `Categoria ${selectedId}`;
-      selectEl.appendChild(opt);
-    }
+  function currentYYYYMM(timeZone = "America/Sao_Paulo") {
+    const d = currentDateInTZ(timeZone);
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    return `${d.getFullYear()}-${mm}`;
+  }
 
-    if (selectedId) selectEl.value = selectedId;
+  function monthLabelFromYYYYMM(yyyyMM) {
+    if (!yyyyMMFromMonthInput(yyyyMM)) return "Mês";
+    const [y, m] = yyyyMM.split("-").map(Number);
+    // usa data local (não UTC) para evitar regressão de mês ao aplicar timezone
+    const d = new Date(y, m - 1, 1);
+    const raw = d.toLocaleString("pt-BR", { month: "long", timeZone: "America/Sao_Paulo" }) || "";
+    return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : "Mês";
   }
 
   function renderKPIs(incomeCents, expenseCents) {
@@ -789,6 +960,87 @@
     kpiIncome.textContent = toBRL(incomeCents);
     kpiExpense.textContent = toBRL(expenseCents);
     kpiBalance.textContent = toBRL(bal);
+  }
+
+  function syncMonthLabel() {
+    if (monthDisplay) monthDisplay.textContent = monthLabelFromYYYYMM(monthInput.value) || "Mês";
+  }
+
+  function shiftMonth(delta) {
+    const current = yyyyMMFromMonthInput(monthInput.value)
+      || currentYYYYMM()
+      || yyyyMMFromDateStr(toISODateLocal(currentDateInTZ()));
+    if (!current) return;
+    const [y, m] = current.split("-").map(Number);
+    const nextDate = new Date(Date.UTC(y, m - 1 + delta, 1));
+    const mm = String(nextDate.getUTCMonth() + 1).padStart(2, "0");
+    const yyyyMM = `${nextDate.getUTCFullYear()}-${mm}`;
+    monthInput.value = yyyyMM;
+    syncMonthLabel();
+    reloadAll();
+  }
+
+  function renderMovementList(target, rows) {
+    if (!target) return;
+    target.innerHTML = "";
+    if (!rows || rows.length === 0) {
+      target.innerHTML = `<p class="muted">Sem lançamentos.</p>`;
+      return;
+    }
+    const limited = rows.slice(0, 6);
+    for (const r of limited) {
+      const dt = r.date ? toISODateLocal(r.date) : "-";
+      const card = document.createElement("div");
+      card.className = "move-card";
+      card.innerHTML = `
+        <div class="move-meta">
+          <span>${escapeHtml(dt)} - ${escapeHtml(r.categoryName || "-")}</span>
+          <span class="move-amount">${toBRL(Math.abs(r.amountCents))}</span>
+        </div>
+        <div class="muted">${escapeHtml(r.note || "")}${r.sourceLabel ? ` - ${escapeHtml(r.sourceLabel)}` : ""}</div>
+      `;
+      target.appendChild(card);
+    }
+  }
+
+  function renderDashboardMovements(rows) {
+    const incomeRows = [];
+    const expenseRows = [];
+    for (const r of rows || []) {
+      if (r.type === "income") incomeRows.push(r);
+      else expenseRows.push(r);
+    }
+    renderMovementList(incomeList, incomeRows);
+    renderMovementList(expenseList, expenseRows);
+  }
+
+  function syncOptionalFields() {
+    const isExpense = txnType.value === "expense";
+
+    if (cardInstallment) cardInstallment.hidden = !isExpense;
+    if (cardFinance) cardFinance.hidden = !isExpense;
+
+    if (!isExpense) {
+      cbInstallment.checked = false;
+      cbFinance.checked = false;
+    }
+
+    const showInstallment = isExpense && cbInstallment.checked;
+    const showFinance = isExpense && cbFinance.checked;
+
+    installmentFields.hidden = !showInstallment;
+    financeFields.hidden = !showFinance;
+
+    [installmentTotal, installmentCurrent].forEach((el) => { if (el) el.disabled = !showInstallment; });
+    [financeTotal, financeCurrent].forEach((el) => { if (el) el.disabled = !showFinance; });
+  }
+
+  function syncCoupleTabs() {
+    if (!coupleTabs) return;
+    coupleTabs.querySelectorAll(".tab").forEach((btn) => {
+      const tab = btn.getAttribute("data-tab");
+      btn.classList.toggle("active", tab === state.coupleTab);
+    });
   }
 
   function isCoupleWallet() {
@@ -799,19 +1051,40 @@
     return PERSONAL_WALLETS.has(walletId);
   }
 
-  function openEditModal(txnId) {
-    state.editingTxnId = txnId;
-    editError.textContent = "";
-    editStatus.textContent = "";
-    editHelper.textContent = `Wallet: ${state.walletId} | ID: ${txnId}`;
-    editModal.style.display = "flex";
+  function friendlyWalletLabel(walletId, fallbackName = "") {
+    if (FRIENDLY_WALLET_NAMES[walletId]) return FRIENDLY_WALLET_NAMES[walletId];
+    if (fallbackName) {
+      const trimmed = fallbackName.includes("(") ? fallbackName.split("(")[0].trim() : fallbackName.trim();
+      if (trimmed) return trimmed;
+    }
+    if (walletId?.startsWith("w_")) {
+      const slug = walletId.slice(2).replace(/_/g, " ");
+      return slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : walletId;
+    }
+    return walletId || fallbackName || "";
   }
 
-  function closeEditModal() {
-    state.editingTxnId = null;
-    editModal.style.display = "none";
-    editStatus.textContent = "";
-    editError.textContent = "";
+  function showPage(key) {
+    const titles = {
+      dashboard: "Dashboard",
+      transactions: "Transações",
+      categories: "Categorias",
+      settings: "Preferências"
+    };
+
+    Object.entries(pages).forEach(([pageKey, el]) => {
+      if (!el) return;
+      const active = pageKey === key;
+      el.classList.toggle("active", active);
+      el.style.display = active ? "grid" : "none";
+    });
+
+    navButtons.forEach((btn) => {
+      const target = btn.getAttribute("data-page-target");
+      btn.classList.toggle("active", target === key);
+    });
+
+    if (pageTitle) pageTitle.textContent = titles[key] ?? "VaultFlow";
   }
 
   // ===== Bootstrap =====
@@ -853,16 +1126,16 @@
     if (isMarcelino) {
       await upsertWallet(
         "w_marcelino",
-        { name: "Marcelino (Pessoal)", type: "personal", createdBy: uid, createdAt: Timestamp.now() },
-        { name: "Marcelino (Pessoal)", type: "personal" }
+        { name: "Marcelino", type: "personal", createdBy: uid, createdAt: Timestamp.now() },
+        { name: "Marcelino", type: "personal" }
       );
     }
 
     if (isLuiza) {
       await upsertWallet(
         "w_luiza",
-        { name: "Luiza (Pessoal)", type: "personal", createdBy: uid, createdAt: Timestamp.now() },
-        { name: "Luiza (Pessoal)", type: "personal" }
+        { name: "Luiza", type: "personal", createdBy: uid, createdAt: Timestamp.now() },
+        { name: "Luiza", type: "personal" }
       );
     }
 
@@ -874,14 +1147,14 @@
       await upsertWallet(
         "w_casal",
         {
-          name: "Casal (Agregado)",
+          name: "Casal",
           type: "aggregate",
           createdBy: uid,
           createdAt: Timestamp.now(),
           sources: srcRefs
         },
         {
-          name: "Casal (Agregado)",
+          name: "Casal",
           type: "aggregate",
           sources: srcRefs
         }
@@ -916,8 +1189,23 @@
     const snaps = await getDocs(membershipCol);
     const list = snaps.docs.map(d => ({ walletId: d.id, role: d.data().role }));
 
+    const personalId = USER_PERSONAL_WALLET[state.email];
+
+    // mantém só a carteira pessoal do usuário e o casal (se existirem); se nada sobrar, usa a lista original
+    const filtered = list.filter(w => w.walletId === personalId || w.walletId === COUPLE_WALLET_ID);
+    const effectiveList = filtered.length ? filtered : list;
+
+    // Ordena priorizando pessoais antes das agregadas
+    effectiveList.sort((a, b) => {
+      const aPersonal = PERSONAL_WALLETS.has(a.walletId);
+      const bPersonal = PERSONAL_WALLETS.has(b.walletId);
+      if (aPersonal !== bPersonal) return aPersonal ? -1 : 1;
+      return (state.walletLabels.get(a.walletId) || a.walletId).localeCompare(state.walletLabels.get(b.walletId) || b.walletId);
+    });
+
     walletSelect.innerHTML = "";
-    for (const item of list) {
+    state.walletLabels.clear();
+    for (const item of effectiveList) {
       let label = item.walletId;
       let type = "?";
       try {
@@ -928,12 +1216,45 @@
         }
       } catch {}
 
+      let friendly = friendlyWalletLabel(item.walletId, label);
+      if (item.walletId === personalId) friendly = "Pessoal";
+      if (item.walletId === COUPLE_WALLET_ID) friendly = "Casal";
+      state.walletLabels.set(item.walletId, friendly);
+
       const opt = document.createElement("option");
       opt.value = item.walletId;
-      opt.textContent = `${label} (${item.role})`;
+      opt.textContent = friendly;
+      opt.dataset.type = type;
       walletSelect.appendChild(opt);
     }
-    return list;
+    return effectiveList;
+  }
+
+  function selectDefaultWallet(wallets) {
+    const current = walletSelect.value;
+    const hasCurrent = wallets.some(w => w.walletId === current);
+    if (hasCurrent && isPersonalWalletId(current)) return;
+
+    const preferredId = USER_PERSONAL_WALLET[state.email];
+    if (preferredId && wallets.some(w => w.walletId === preferredId)) {
+      walletSelect.value = preferredId;
+      return;
+    }
+
+    const casal = wallets.find(w => w.walletId === COUPLE_WALLET_ID);
+    if (casal) {
+      walletSelect.value = casal.walletId;
+      return;
+    }
+
+    if (hasCurrent) {
+      walletSelect.value = current;
+      return;
+    }
+
+    if (wallets.length > 0) {
+      walletSelect.value = wallets[0].walletId;
+    }
   }
 
   async function refreshWalletContext() {
@@ -942,7 +1263,7 @@
 
     const walletId = walletSelect.value;
     if (!walletId) {
-      setAppError("Nenhuma wallet encontrada para este usuário.");
+      setAppError("Nenhuma carteira disponível para sua conta.");
       return;
     }
 
@@ -961,25 +1282,27 @@
         type = wSnap.data().type ?? "?";
       }
     } catch (e) {
-      setAppError(`Não foi possível ler a wallet: ${e?.message ?? e}`);
+      setAppError("Não foi possível carregar a carteira. Tente novamente.");
     }
 
     state.walletId = walletId;
     state.walletRole = role ?? "-";
     state.walletType = type;
-    state.walletName = name;
-
-    walletRoleBadge.textContent = `role: ${state.walletRole}`;
-    walletTypeBadge.textContent = `type: ${state.walletType}`;
-    walletInfo.textContent = `Wallet: ${state.walletName} | id: ${state.walletId} | type: ${state.walletType}`;
+    state.walletName = friendlyWalletLabel(walletId, name);
+    state.walletLabels.set(walletId, state.walletName);
 
     const couple = isCoupleWallet();
+    state.coupleTab = couple ? "details" : "totals";
+    syncCoupleTabs();
     coupleTabs.style.display = couple ? "" : "none";
     coupleHint.style.display = couple ? "" : "none";
     coupleBreakdown.style.display = couple ? "" : "none";
 
-    personalOps.style.display = couple ? "none" : "";
-    coupleOps.style.display = couple ? "" : "none";
+    const disablePersonal = couple;
+    [catName, catKind, btnAddCat, btnSeedCats].forEach((el) => el && (el.disabled = disablePersonal));
+    [txnDate, txnType, txnCat, txnAmount, txnNote, btnAddTxn].forEach((el) => el && (el.disabled = disablePersonal));
+    if (catStatus) catStatus.textContent = disablePersonal ? "Categorias não disponíveis nesta visão." : "";
+    if (disablePersonal && txnStatus) txnStatus.textContent = "Visão consolidada em modo leitura.";
 
     const now = new Date();
     txnDate.value = toISODateLocal(now);
@@ -1080,7 +1403,7 @@
       txnCat.appendChild(opt);
       editTxnCat.appendChild(opt.cloneNode(true));
       catTable.innerHTML = "";
-      catStatus.textContent = "Categorias: N/A na visão agregada.";
+      catStatus.textContent = "Categorias não disponíveis nesta carteira.";
       return;
     }
 
@@ -1106,14 +1429,25 @@
       .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
 
     for (const c of entries) {
+      const kindLabel = c.kind === "income" ? "Receita" : (c.kind === "expense" ? "Despesa" : "Ambos");
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${escapeHtml(c.name)}</td>
-        <td><span class="badge">${escapeHtml(c.kind)}</span></td>
-        <td class="right"><button class="ghost" data-del-cat="${c.id}">Excluir</button></td>
+        <td><span class="badge">${escapeHtml(kindLabel)}</span></td>
+        <td class="right actions">
+          <button class="icon-action" data-edit-cat="${c.id}" aria-label="Editar">✏</button>
+          <button class="icon-action" data-del-cat="${c.id}" aria-label="Excluir">🗑</button>
+        </td>
       `;
       catTable.appendChild(tr);
     }
+
+    catTable.querySelectorAll("button[data-edit-cat]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-edit-cat");
+        await editCategory(id);
+      });
+    });
 
     catTable.querySelectorAll("button[data-del-cat]").forEach(btn => {
       btn.addEventListener("click", async () => {
@@ -1123,7 +1457,7 @@
           await deleteDoc(doc(db, "wallets", state.walletId, "categories", id));
           await loadCategories();
         } catch (e) {
-          setOpsError(`Erro ao excluir categoria: ${e?.message ?? e}`);
+          catStatus.textContent = "Não foi possível excluir a categoria.";
         }
       });
     });
@@ -1131,11 +1465,12 @@
 
   async function addCategory() {
     setOpsError("");
+    catStatus.textContent = "";
     const name = (catName.value ?? "").trim();
     const kind = catKind.value;
 
     if (!name) {
-      setOpsError("Informe o nome da categoria.");
+      catStatus.textContent = "Informe o nome da categoria.";
       return;
     }
 
@@ -1149,13 +1484,29 @@
       catName.value = "";
       await loadCategories();
     } catch (e) {
-      setOpsError(`Erro ao adicionar categoria: ${e?.message ?? e}`);
+      catStatus.textContent = "Não foi possível adicionar a categoria.";
+    }
+  }
+
+  async function editCategory(catId) {
+    setOpsError("");
+    const current = state.categories.get(catId);
+    const nextName = prompt("Editar nome da categoria", current?.name ?? "");
+    if (nextName == null) return;
+    const trimmed = nextName.trim();
+    if (!trimmed) return;
+
+    try {
+      await setDoc(doc(db, "wallets", state.walletId, "categories", catId), { name: trimmed }, { merge: true });
+      await loadCategories();
+    } catch (e) {
+      catStatus.textContent = "Não foi possível atualizar a categoria.";
     }
   }
 
   async function seedDefaultCategories() {
     setOpsError("");
-    if (!confirm("Criar categorias padrão nesta wallet?")) return;
+    if (!confirm("Criar categorias padrão nesta carteira?")) return;
 
     const defaults = [
       { name: "Alimentação", kind: "expense" },
@@ -1179,7 +1530,7 @@
       await loadCategories();
       catStatus.textContent = "Categorias padrão criadas.";
     } catch (e) {
-      setOpsError(`Erro ao criar categorias padrão: ${e?.message ?? e}`);
+      catStatus.textContent = "Não foi possível criar categorias padrão agora.";
     }
   }
 
@@ -1251,14 +1602,15 @@
     setOpsError("");
 
     if (isCoupleWallet()) {
-      setOpsError("Não é possível lançar transações diretamente na visão agregada (Casal).");
+      setOpsError("Esta visão consolidada é somente leitura. Lance receitas e despesas em uma carteira pessoal.");
       return;
     }
 
     const dateStr = txnDate.value;
     if (!dateStr) { setOpsError("Informe a data."); return; }
 
-    const type = txnType.value;
+    const rawType = txnType.value;
+    const type = rawType === "reserve" ? "expense" : rawType;
     const catId = txnCat.value;
     if (!catId) { setOpsError("Selecione uma categoria."); return; }
 
@@ -1368,7 +1720,7 @@
 
       await reloadAll();
     } catch (e) {
-      setOpsError(`Erro ao adicionar transação: ${e?.message ?? e}`);
+      setOpsError("Não foi possível salvar a transação. Tente novamente.");
     } finally {
       btnAddTxn.disabled = false;
       btnAddTxn.textContent = "Adicionar";
@@ -1380,7 +1732,7 @@
 
     const personalWalletId = state.walletId;
     if (!isPersonalWalletId(personalWalletId)) {
-      setOpsError("Exclusão com auto-sync só é aplicável em wallets pessoais.");
+      setOpsError("Para excluir aqui, escolha uma carteira pessoal.");
       return;
     }
 
@@ -1441,7 +1793,7 @@
 
       await reloadAll();
     } catch (e) {
-      setOpsError(`Erro ao excluir transação: ${e?.message ?? e}`);
+      setOpsError("Não foi possível excluir a transação. Tente novamente.");
     }
   }
 
@@ -1600,17 +1952,16 @@
       const display = toBRL(Math.abs(r.amountCents));
       const prefix = (r.type === "income") ? "+" : "-";
 
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td class="nowrap">${escapeHtml(dt)}</td>
-        <td>${escapeHtml(r.categoryName || "-")}</td>
-        <td>${escapeHtml(r.note || "")}${isCoupleView ? `<div class="muted mono" style="margin-top:4px;">${escapeHtml(r.sourceLabel || "")}</div>` : ""}</td>
-        <td class="right nowrap">${prefix} ${escapeHtml(display)}</td>
-        <td class="right nowrap">
-          ${allowEdit ? `<button class="ghost" data-edit-txn="${r.id}">Editar</button>` : ""}
-          ${allowDelete ? `<button class="ghost" data-del-txn="${r.id}" style="margin-left:6px;">Excluir</button>` : `<span class="muted">—</span>`}
-        </td>
-      `;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="nowrap">${escapeHtml(dt)}</td>
+          <td>${escapeHtml(r.categoryName || "-")}</td>
+          <td>${escapeHtml(r.note || "")}${isCoupleView ? `<div class="muted" style="margin-top:4px;">${escapeHtml(r.sourceLabel || "")}</div>` : ""}</td>
+          <td class="right nowrap">${prefix} ${escapeHtml(display)}</td>
+          <td class="right nowrap">
+            ${allowDelete ? `<button class="ghost" data-del-txn="${r.id}">Excluir</button>` : `<span class="muted">–</span>`}
+          </td>
+        `;
       txnTable.appendChild(tr);
     }
 
@@ -1618,7 +1969,7 @@
       txnTable.querySelectorAll("button[data-del-txn]").forEach(btn => {
         btn.addEventListener("click", async () => {
           const id = btn.getAttribute("data-del-txn");
-          if (!confirm("Excluir esta transação? (Isso também removerá do Casal automaticamente)")) return;
+          if (!confirm("Excluir esta transação? Isso também removerá do consolidado.")) return;
           await deleteTransactionPersonalAndSync(id);
         });
       });
@@ -1637,6 +1988,7 @@
   async function loadCoupleTotals(yyyyMM) {
     coupleBreakdown.style.display = "";
     coupleBreakdown.innerHTML = "";
+    state.currentRows = [];
 
     let income = 0;
     let expense = 0;
@@ -1646,7 +1998,7 @@
       const repSnap = await getDoc(repRef);
 
       if (!repSnap.exists()) {
-        coupleBreakdown.innerHTML = `<p class="muted">Sem relatório para ${escapeHtml(yyyyMM)}. Adicione transações nas wallets pessoais para gerar automaticamente.</p>`;
+        coupleBreakdown.innerHTML = `<p class="muted">Sem totais para ${escapeHtml(yyyyMM)}. Adicione lançamentos nas carteiras pessoais para gerar automaticamente.</p>`;
         return { income: 0, expense: 0, balance: 0 };
       }
 
@@ -1659,10 +2011,11 @@
         const exp = Number(s?.expenseCents || 0);
         income += inc;
         expense += exp;
+        const label = state.walletLabels.get(sourceWalletId) ?? friendlyWalletLabel(sourceWalletId);
 
         lines.push(`
           <div class="kpi" style="margin-top:8px;">
-            <div class="label">${escapeHtml(sourceWalletId)}</div>
+            <div class="label">${escapeHtml(label)}</div>
             <div class="value">${toBRL(inc - exp)}</div>
             <div class="muted">Receitas: ${toBRL(inc)} | Despesas: ${toBRL(exp)}</div>
           </div>
@@ -1671,12 +2024,12 @@
 
       coupleBreakdown.innerHTML = lines.length
         ? `<div class="muted">Quebra por fonte (somado no total acima):</div>${lines.join("")}`
-        : `<p class="muted">Relatório existe, mas sem fontes preenchidas.</p>`;
+        : `<p class="muted">Dados consolidados disponíveis, mas sem fontes preenchidas.</p>`;
 
       return { income, expense, balance: income - expense };
     } catch (e) {
-      setOpsError(`Erro ao ler reports do casal: ${e?.message ?? e}`);
-      coupleBreakdown.innerHTML = `<p class="err">${escapeHtml(e?.message ?? String(e))}</p>`;
+      setOpsError("Não foi possível carregar o consolidado agora. Tente novamente.");
+      coupleBreakdown.innerHTML = `<p class="err">Falha ao carregar o consolidado.</p>`;
       return { income: 0, expense: 0, balance: 0 };
     }
   }
@@ -1699,6 +2052,7 @@
         const amount = Number(t.amountCents || 0);
         if (t.type === "income") income += amount;
         else expense += amount;
+        const sourceLabel = t.sourceWalletId ? `Fonte: ${friendlyWalletLabel(t.sourceWalletId, state.walletLabels.get(t.sourceWalletId))}` : "";
 
         rows.push({
           id: d.id,
@@ -1707,16 +2061,17 @@
           note: t.note ?? "",
           type: t.type ?? "",
           amountCents: amount,
-          sourceLabel: t.sourceWalletId ? `fonte: ${t.sourceWalletId}` : ""
+          sourceLabel
         });
       }
 
-      renderTxnRows(rows, { allowDelete: false, isCoupleView: true, allowEdit: false });
+      state.currentRows = rows;
+      renderTxnRows(rows, { allowDelete: false, isCoupleView: true });
       coupleBreakdown.style.display = "none";
 
       return { income, expense, balance: income - expense };
     } catch (e) {
-      setOpsError(`Erro ao carregar detalhes do casal: ${e?.message ?? e}`);
+      setOpsError("Não foi possível carregar os detalhes do consolidado.");
       txnTable.innerHTML = "";
       return { income: 0, expense: 0, balance: 0 };
     }
@@ -1726,9 +2081,18 @@
     txnTable.innerHTML = "";
     txnStatus.textContent = "";
     setOpsError("");
-    state.txnCache = new Map();
+    state.currentRows = [];
+    renderDashboardMovements([]);
+    dashboardStatus.textContent = "";
 
-    const yyyyMM = yyyyMMFromMonthInput(monthInput.value);
+    let yyyyMM = yyyyMMFromMonthInput(monthInput.value);
+    if (!yyyyMM) {
+      yyyyMM = currentYYYYMM();
+      if (yyyyMM) {
+        monthInput.value = yyyyMM;
+        syncMonthLabel();
+      }
+    }
     if (!yyyyMM) { setOpsError("Selecione um mês válido."); return { income: 0, expense: 0, balance: 0 }; }
 
     const { start, end } = startEndForMonth(yyyyMM);
@@ -1739,12 +2103,16 @@
       if (state.coupleTab === "totals") {
         const totals = await loadCoupleTotals(yyyyMM);
         renderKPIs(totals.income, totals.expense);
-        txnStatus.textContent = "Totais carregados via reports (auto-sync).";
+        txnStatus.textContent = "Totais consolidados carregados.";
+        renderDashboardMovements([]);
+        dashboardStatus.textContent = "Use a aba Detalhes para ver os lançamentos.";
         return totals;
       } else {
         const totals = await loadCoupleDetails(startTS, endTS);
         renderKPIs(totals.income, totals.expense);
-        txnStatus.textContent = "Detalhes carregados via transactions_view (auto-sync).";
+        txnStatus.textContent = "Detalhes consolidados carregados.";
+        renderDashboardMovements(state.currentRows);
+        dashboardStatus.textContent = state.currentRows.length ? "Movimentações consolidadas do mês." : "Sem lançamentos neste mês.";
         return totals;
       }
     }
@@ -1790,13 +2158,16 @@
         });
       }
 
-      renderTxnRows(rows, { allowDelete: true, isCoupleView: false, allowEdit: true });
+      state.currentRows = rows;
+      renderDashboardMovements(rows);
+      renderTxnRows(rows, { allowDelete: true, isCoupleView: false });
       txnStatus.textContent = `Transações no mês: ${rows.length}`;
       renderKPIs(income, expense);
+      dashboardStatus.textContent = rows.length ? "Movimentações do mês selecionado." : "Sem lançamentos no mês.";
 
       return { income, expense, balance: income - expense };
     } catch (e) {
-      setOpsError(`Erro ao carregar transações: ${e?.message ?? e}`);
+      setOpsError("Não foi possível carregar suas movimentações. Tente novamente.");
       renderKPIs(0, 0);
       return { income: 0, expense: 0, balance: 0 };
     }
@@ -1809,12 +2180,31 @@
       state.categories.clear();
       txnCat.innerHTML = `<option value="">—</option>`;
       catTable.innerHTML = "";
-      catStatus.textContent = "Categorias: N/A na visão agregada.";
+      catStatus.textContent = "Categorias não disponíveis nesta carteira.";
     }
     await loadTransactionsForMonth();
   }
 
   // ===== Events =====
+
+  const openMonthPickerCurrent = () => {
+    const cur = currentYYYYMM() || yyyyMMFromDateStr(toISODateLocal(currentDateInTZ()));
+    if (cur) monthInput.value = cur;
+    syncMonthLabel();
+    reloadAll();
+  };
+
+  const openMonthPickerInline = () => {
+    if (!monthInput) return;
+    try {
+      if (typeof monthInput.showPicker === "function") {
+        monthInput.showPicker();
+        return;
+      }
+    } catch {}
+    monthInput.focus({ preventScroll: true });
+    monthInput.click();
+  };
 
   btnEmail.addEventListener("click", async () => {
     try {
@@ -1822,12 +2212,16 @@
       const email = $("email").value.trim().toLowerCase();
       const pass = $("pass").value;
 
-      if (!ALLOWED_EMAILS.has(email)) throw new Error("Este e-mail não está autorizado no VaultFlow-Dev.");
+      if (!ALLOWED_EMAILS.has(email)) throw new Error("Este e-mail não está autorizado.");
 
       await signInWithEmailAndPassword(auth, email, pass);
       setAuthMessage("Login OK.");
     } catch (e) {
-      setAuthMessage(e?.message ?? String(e), true);
+      const msg = e?.message ?? String(e);
+      const friendly = msg.toLowerCase().includes("autoriz")
+        ? msg
+        : "Não foi possível entrar. Confira seus dados e tente novamente.";
+      setAuthMessage(friendly, true);
     }
   });
 
@@ -1840,12 +2234,16 @@
 
       if (!ALLOWED_EMAILS.has(email)) {
         await signOut(auth);
-        throw new Error("Conta Google não autorizada no VaultFlow-Dev.");
+        throw new Error("Conta Google não autorizada.");
       }
 
       setAuthMessage("Login Google OK.");
     } catch (e) {
-      setAuthMessage(e?.message ?? String(e), true);
+      const msg = e?.message ?? String(e);
+      const friendly = msg.toLowerCase().includes("autoriz")
+        ? msg
+        : "Não foi possível entrar com Google agora. Tente novamente.";
+      setAuthMessage(friendly, true);
     }
   });
 
@@ -1853,24 +2251,35 @@
     await signOut(auth);
   });
 
-  btnReload.addEventListener("click", reloadAll);
   walletSelect.addEventListener("change", refreshWalletContext);
   monthInput.addEventListener("change", reloadAll);
+  monthInput.addEventListener("change", syncMonthLabel);
+
+  if (btnMonthPrev) btnMonthPrev.addEventListener("click", () => shiftMonth(-1));
+  if (btnMonthNext) btnMonthNext.addEventListener("click", () => shiftMonth(1));
+  if (btnMonthPicker) btnMonthPicker.addEventListener("click", openMonthPickerCurrent);
+  if (monthDisplay) monthDisplay.addEventListener("click", openMonthPickerInline);
 
   btnAddCat.addEventListener("click", addCategory);
   btnSeedCats.addEventListener("click", seedDefaultCategories);
   btnAddTxn.addEventListener("click", addTransaction);
-  btnRunDiag.addEventListener("click", async () => {
-    diagActionStatus.textContent = "Reavaliando...";
-    await runDiagnostics();
-  });
-  btnReconcile.addEventListener("click", reconcileMembershipsFromMembers);
+  txnType.addEventListener("change", syncOptionalFields);
+  cbInstallment.addEventListener("change", syncOptionalFields);
+  cbFinance.addEventListener("change", syncOptionalFields);
 
-  btnCloseEdit.addEventListener("click", () => { closeEditModal(); });
-  editModal.addEventListener("click", (e) => {
-    if (e.target === editModal) closeEditModal();
+  navButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const target = btn.getAttribute("data-page-target");
+      if (!target) return;
+      showPage(target);
+    });
   });
-  btnSaveEdit.addEventListener("click", updateTransactionPersonalAndSync);
+  if (sidebarToggle && appShell) {
+    sidebarToggle.addEventListener("click", () => {
+      const collapsed = appShell.classList.toggle("collapsed");
+      sidebarToggle.setAttribute("aria-pressed", collapsed ? "true" : "false");
+    });
+  }
 
   coupleTabs.addEventListener("click", async (e) => {
     const btn = e.target?.closest?.("button[data-tab]");
@@ -1880,14 +2289,17 @@
     btn.classList.add("active");
 
     state.coupleTab = btn.getAttribute("data-tab") || "totals";
+    syncCoupleTabs();
     await reloadAll();
   });
 
   (function initDates() {
-    const now = new Date();
-    const mm = String(now.getMonth() + 1).padStart(2, "0");
-    monthInput.value = `${now.getFullYear()}-${mm}`;
-    txnDate.value = toISODateLocal(now);
+    const cur = currentYYYYMM() || yyyyMMFromDateStr(toISODateLocal(currentDateInTZ()));
+    const nowLocal = currentDateInTZ();
+    if (cur) monthInput.value = cur;
+    txnDate.value = toISODateLocal(nowLocal);
+    syncMonthLabel();
+    syncOptionalFields();
   })();
 
   onAuthStateChanged(auth, async (user) => {
@@ -1899,39 +2311,48 @@
       if (!user) {
         btnLogout.style.display = "none";
         appGrid.style.display = "none";
+        me.textContent = "Aguardando login";
+        renderDashboardMovements([]);
+        if (authCard) authCard.style.display = "";
         return;
       }
 
       const email = (user.email ?? "").toLowerCase();
       if (!ALLOWED_EMAILS.has(email)) {
         await signOut(auth);
-        throw new Error("Usuário autenticado, mas não autorizado (allowlist).");
+        throw new Error("Usuário autenticado, mas não autorizado.");
       }
 
       state.user = user;
       state.email = email;
       state.uid = user.uid;
+      state.displayName = user.displayName ?? (user.email?.split("@")[0] ?? "Usuário");
 
       btnLogout.style.display = "";
       appGrid.style.display = "";
+      if (authCard) authCard.style.display = "none";
 
-      me.textContent = `${user.email}`;
-      uidLine.textContent = `uid: ${user.uid}`;
+      me.textContent = state.displayName;
 
       await ensureUserProfile(user);
       await ensureWalletMetaIfOwner(user);
       await ensureMembershipShortcutsFromMembers(user);
 
       const wallets = await loadWalletOptions(user);
-      if (!walletSelect.value && wallets.length > 0) walletSelect.value = wallets[0].walletId;
+      selectDefaultWallet(wallets);
 
       await refreshWalletContext();
+      showPage("dashboard");
 
       setAuthMessage("Sessão ativa.");
     } catch (e) {
-      setAppError(e?.message ?? String(e));
+      const raw = e?.message ?? "";
+      const friendly = raw.includes("Firebase") ? "Não foi possível iniciar a sessão. Tente novamente." : (raw || "Não foi possível iniciar a sessão. Tente novamente.");
+      setAppError(friendly);
     }
   });
+
+
 </script>
 
 </body>
