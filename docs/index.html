@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>VaultFlow</title>
+  
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
     :root {
@@ -337,6 +338,7 @@
     .app-shell.collapsed .nav-item::after { content: none; }
     }
   </style>
+
 </head>
 <body>
 <div class="app-shell">
@@ -827,6 +829,28 @@
   const appShell = document.querySelector(".app-shell");
   const sidebarToggle = $("sidebarToggle");
 
+  const diagWallet = $("diagWallet");
+  const diagRole = $("diagRole");
+  const diagType = $("diagType");
+  const diagMemberStatus = $("diagMemberStatus");
+  const diagMembershipStatus = $("diagMembershipStatus");
+  const diagActionStatus = $("diagActionStatus");
+  const diagError = $("diagError");
+  const btnRunDiag = $("btnRunDiag");
+  const btnReconcile = $("btnReconcile");
+
+  const editModal = $("editModal");
+  const editHelper = $("editHelper");
+  const editTxnDate = $("editTxnDate");
+  const editTxnType = $("editTxnType");
+  const editTxnCat = $("editTxnCat");
+  const editTxnAmount = $("editTxnAmount");
+  const editTxnNote = $("editTxnNote");
+  const btnCloseEdit = $("btnCloseEdit");
+  const btnSaveEdit = $("btnSaveEdit");
+  const editStatus = $("editStatus");
+  const editError = $("editError");
+
   const state = {
     user: null,
     email: null,
@@ -869,6 +893,11 @@
     const n = Number(clean);
     if (!Number.isFinite(n)) return null;
     return Math.round(n * 100);
+  }
+
+  function formatCentsToInputValue(cents) {
+    const v = Number(cents || 0) / 100;
+    return v.toFixed(2).replace(".", ",");
   }
 
   function yyyyMMFromMonthInput(value) {
@@ -1279,6 +1308,85 @@
     txnDate.value = toISODateLocal(now);
 
     await reloadAll();
+    await runDiagnostics();
+  }
+
+  async function runDiagnostics() {
+    diagError.textContent = "";
+
+    if (!state.walletId) {
+      diagError.textContent = "Selecione uma wallet para avaliar.";
+      return;
+    }
+
+    diagWallet.textContent = `${state.walletName} (${state.walletId})`;
+    diagRole.textContent = state.walletRole ?? "-";
+    diagType.textContent = state.walletType ?? "-";
+
+    try {
+      const memberRef = doc(db, "wallets", state.walletId, "members", state.uid);
+      const memberSnap = await getDoc(memberRef);
+      const memberRole = memberSnap.exists() ? (memberSnap.data()?.role ?? "-") : null;
+
+      const membershipRef = doc(db, "users", state.uid, "memberships", state.walletId);
+      const membershipSnap = await getDoc(membershipRef);
+      const membershipRole = membershipSnap.exists() ? (membershipSnap.data()?.role ?? "-") : null;
+
+      if (memberSnap.exists()) {
+        diagMemberStatus.textContent = `OK: wallets/${state.walletId}/members/${state.uid} (role: ${memberRole})`;
+      } else {
+        diagMemberStatus.textContent = `FALHA: wallets/${state.walletId}/members/${state.uid} ausente.`;
+      }
+
+      if (!membershipSnap.exists()) {
+        diagMembershipStatus.textContent = `FALHA: users/${state.uid}/memberships/${state.walletId} ausente.`;
+      } else if (memberRole && membershipRole && memberRole !== membershipRole) {
+        diagMembershipStatus.textContent = `FALHA: role divergente (members=${memberRole}, membership=${membershipRole}).`;
+      } else if (!memberSnap.exists() && membershipSnap.exists()) {
+        diagMembershipStatus.textContent = `FALHA: membership existe, mas usuário não está em members.`;
+      } else {
+        diagMembershipStatus.textContent = `OK: membership consistente (role: ${membershipRole ?? "-"}).`;
+      }
+    } catch (e) {
+      diagError.textContent = e?.message ?? String(e);
+    }
+  }
+
+  async function reconcileMembershipsFromMembers() {
+    diagError.textContent = "";
+    diagActionStatus.textContent = "Reconhecendo memberships...";
+    btnReconcile.disabled = true;
+
+    try {
+      for (const walletId of KNOWN_WALLETS) {
+        const memberRef = doc(db, "wallets", walletId, "members", state.uid);
+        const memberSnap = await getDoc(memberRef);
+        const membershipRef = doc(db, "users", state.uid, "memberships", walletId);
+        const membershipSnap = await getDoc(membershipRef);
+
+        if (!memberSnap.exists()) {
+          try { await deleteDoc(membershipRef); } catch {}
+          continue;
+        }
+
+        const role = memberSnap.data()?.role;
+        const payload = {
+          role,
+          updatedAt: serverTimestamp()
+        };
+
+        if (!membershipSnap.exists()) payload.createdAt = serverTimestamp();
+
+        await setDoc(membershipRef, payload, { merge: true });
+      }
+
+      diagActionStatus.textContent = "Reconciliado com base em wallets/*/members.";
+    } catch (e) {
+      diagError.textContent = e?.message ?? String(e);
+    } finally {
+      btnReconcile.disabled = false;
+      await runDiagnostics();
+    }
   }
 
   // ===== Categories =====
@@ -1286,12 +1394,14 @@
   async function loadCategories() {
     state.categories.clear();
     txnCat.innerHTML = "";
+    editTxnCat.innerHTML = "";
 
     if (isCoupleWallet()) {
       const opt = document.createElement("option");
       opt.value = "";
       opt.textContent = "—";
       txnCat.appendChild(opt);
+      editTxnCat.appendChild(opt.cloneNode(true));
       catTable.innerHTML = "";
       catStatus.textContent = "Categorias não disponíveis nesta carteira.";
       return;
@@ -1305,19 +1415,8 @@
       state.categories.set(d.id, { name: data.name, kind: data.kind });
     }
 
-    if (state.categories.size === 0) {
-      const opt = document.createElement("option");
-      opt.value = "";
-      opt.textContent = "Sem categorias (crie uma)";
-      txnCat.appendChild(opt);
-    } else {
-      for (const [id, c] of state.categories.entries()) {
-        const opt = document.createElement("option");
-        opt.value = id;
-        opt.textContent = c.name;
-        txnCat.appendChild(opt);
-      }
-    }
+    setCategoryOptions(txnCat);
+    setCategoryOptions(editTxnCat, editTxnCat.value);
 
     renderCategoriesTable();
     catStatus.textContent = `Categorias carregadas: ${state.categories.size}`;
@@ -1452,6 +1551,51 @@
     const nextExpense = clampNonNegative(curExpense + Number(deltaExpenseCents || 0));
 
     return { nextIncome, nextExpense };
+  }
+
+  async function prepareEditModal(txnId) {
+    editError.textContent = "";
+    editStatus.textContent = "";
+
+    if (!isPersonalWalletId(state.walletId)) {
+      editError.textContent = "Edição só é permitida em wallets pessoais.";
+      return;
+    }
+
+    let txn = state.txnCache.get(txnId);
+    if (!txn) {
+      try {
+        const snap = await getDoc(doc(db, "wallets", state.walletId, "transactions", txnId));
+        if (snap.exists()) {
+          const data = snap.data();
+          txn = {
+            id: txnId,
+            date: data.date?.toDate?.() ?? null,
+            amountCents: Number(data.amountCents || 0),
+            type: data.type ?? "expense",
+            categoryId: data.categoryId ?? "",
+            categoryName: data.categoryName ?? "",
+            note: data.note ?? ""
+          };
+        }
+      } catch (e) {
+        editError.textContent = e?.message ?? String(e);
+        return;
+      }
+    }
+
+    if (!txn) {
+      editError.textContent = "Transação não encontrada para edição.";
+      return;
+    }
+
+    if (txn.date) editTxnDate.value = toISODateLocal(txn.date);
+    editTxnType.value = txn.type || "expense";
+    setCategoryOptions(editTxnCat, txn.categoryId || "", txn.categoryName || "Categoria removida");
+    editTxnAmount.value = formatCentsToInputValue(txn.amountCents);
+    editTxnNote.value = txn.note || "";
+
+    openEditModal(txnId);
   }
 
   async function addTransaction() {
@@ -1653,9 +1797,154 @@
     }
   }
 
+  async function updateTransactionPersonalAndSync() {
+    editError.textContent = "";
+    editStatus.textContent = "";
+
+    if (!state.editingTxnId) { editError.textContent = "Nenhuma transação selecionada."; return; }
+    if (!isPersonalWalletId(state.walletId)) { editError.textContent = "Edição só é permitida em wallets pessoais."; return; }
+
+    const txnId = state.editingTxnId;
+    const dateStr = editTxnDate.value;
+    const type = editTxnType.value;
+    const catId = editTxnCat.value;
+    const amountCents = parseAmountToCents(editTxnAmount.value);
+    const note = (editTxnNote.value ?? "").trim();
+
+    if (!dateStr) { editError.textContent = "Informe a data."; return; }
+    if (!catId) { editError.textContent = "Selecione uma categoria."; return; }
+    if (amountCents == null || amountCents <= 0) { editError.textContent = "Informe um valor válido (maior que zero)."; return; }
+
+    const cat = state.categories.get(catId);
+    const categoryName = cat?.name ?? (editTxnCat.options[editTxnCat.selectedIndex]?.textContent ?? "");
+
+    const personalWalletId = state.walletId;
+    const shouldSyncToCouple = isPersonalWalletId(personalWalletId);
+
+    btnSaveEdit.disabled = true;
+    btnSaveEdit.textContent = "Salvando...";
+
+    try {
+      const dt = new Date(dateStr + "T00:00:00");
+      const ts = Timestamp.fromDate(dt);
+      const newMonth = yyyyMMFromDateStr(dateStr);
+      if (!newMonth) throw new Error("Data inválida.");
+
+      const personalTxnRef = doc(db, "wallets", personalWalletId, "transactions", txnId);
+      const viewRef = doc(db, "wallets", COUPLE_WALLET_ID, "transactions_view", `${personalWalletId}_${txnId}`);
+
+      await runTransaction(db, async (tx) => {
+        const txnSnap = await tx.get(personalTxnRef);
+        if (!txnSnap.exists()) throw new Error("Transação não encontrada.");
+
+        const existing = txnSnap.data();
+        const oldAmount = Number(existing.amountCents || 0);
+        const oldType = existing.type ?? "expense";
+        const oldMonth = yyyyMMFromTimestamp(existing.date);
+        if (!oldMonth) throw new Error("Data atual inválida na transação existente.");
+
+        let oldRepSnap = null;
+        let newRepSnap = null;
+        let oldReportRef = null;
+        let newReportRef = null;
+
+        if (shouldSyncToCouple) {
+          oldReportRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", oldMonth);
+          oldRepSnap = await tx.get(oldReportRef);
+
+          if (newMonth === oldMonth) {
+            newReportRef = oldReportRef;
+            newRepSnap = oldRepSnap;
+          } else {
+            newReportRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", newMonth);
+            newRepSnap = await tx.get(newReportRef);
+          }
+        }
+
+        tx.update(personalTxnRef, {
+          date: ts,
+          amountCents,
+          type,
+          categoryId: catId,
+          categoryName,
+          note,
+          updatedAt: serverTimestamp(),
+          updatedBy: state.uid
+        });
+
+        if (shouldSyncToCouple) {
+          tx.set(viewRef, {
+            sourceWalletId: personalWalletId,
+            sourceTxnId: txnId,
+            sourceUid: existing.sourceUid || state.uid,
+            date: ts,
+            amountCents,
+            type,
+            categoryId: catId,
+            categoryName,
+            note,
+            syncedAt: serverTimestamp()
+          }, { merge: true });
+
+          const oldIncome = oldType === "income" ? oldAmount : 0;
+          const oldExpense = oldType === "expense" ? oldAmount : 0;
+          const newIncome = type === "income" ? amountCents : 0;
+          const newExpense = type === "expense" ? amountCents : 0;
+
+          const applyReportUpdate = (repRef, repSnap, deltaIncome, deltaExpense) => {
+            const repExists = repSnap?.exists?.() ?? false;
+            const repData = repExists ? repSnap.data() : null;
+
+            const { nextIncome, nextExpense } = computeCoupleSourceNext(repData, personalWalletId, deltaIncome, deltaExpense);
+
+            const patch = {
+              month: repRef.id,
+              updatedAt: serverTimestamp(),
+              updatedBy: state.uid,
+              sources: {
+                [personalWalletId]: {
+                  incomeCents: nextIncome,
+                  expenseCents: nextExpense,
+                  updatedAt: serverTimestamp(),
+                  updatedBy: state.uid
+                }
+              }
+            };
+
+            const mergeFields = ["month", "updatedAt", "updatedBy", `sources.${personalWalletId}`];
+
+            if (!repExists) {
+              patch.createdAt = serverTimestamp();
+              patch.createdBy = state.uid;
+              mergeFields.push("createdAt", "createdBy");
+            }
+
+            tx.set(repRef, patch, { mergeFields });
+          };
+
+          if (newMonth === oldMonth) {
+            applyReportUpdate(oldReportRef, oldRepSnap, newIncome - oldIncome, newExpense - oldExpense);
+          } else {
+            applyReportUpdate(oldReportRef, oldRepSnap, -oldIncome, -oldExpense);
+            applyReportUpdate(newReportRef, newRepSnap, newIncome, newExpense);
+          }
+        }
+      });
+
+      editStatus.textContent = "Transação atualizada.";
+      closeEditModal();
+      await reloadAll();
+    } catch (e) {
+      editError.textContent = e?.message ?? String(e);
+    } finally {
+      btnSaveEdit.disabled = false;
+      btnSaveEdit.textContent = "Salvar alterações";
+    }
+  }
+
   // ===== Transactions list / Couple views =====
 
-  function renderTxnRows(rows, { allowDelete, isCoupleView }) {
+  function renderTxnRows(rows, { allowDelete, isCoupleView, allowEdit }) {
     txnTable.innerHTML = "";
 
     for (const r of rows) {
@@ -1682,6 +1971,15 @@
           const id = btn.getAttribute("data-del-txn");
           if (!confirm("Excluir esta transação? Isso também removerá do consolidado.")) return;
           await deleteTransactionPersonalAndSync(id);
+        });
+      });
+    }
+
+    if (allowEdit) {
+      txnTable.querySelectorAll("button[data-edit-txn]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-edit-txn");
+          await prepareEditModal(id);
         });
       });
     }
@@ -1843,6 +2141,17 @@
           id: d.id,
           date: t.date?.toDate?.() ?? null,
           categoryName: t.categoryName ?? "",
+          note: t.note ?? "",
+          type: t.type ?? "",
+          amountCents: amount,
+          categoryId: t.categoryId ?? ""
+        });
+
+        state.txnCache.set(d.id, {
+          id: d.id,
+          date: t.date?.toDate?.() ?? null,
+          categoryName: t.categoryName ?? "",
+          categoryId: t.categoryId ?? "",
           note: t.note ?? "",
           type: t.type ?? "",
           amountCents: amount
