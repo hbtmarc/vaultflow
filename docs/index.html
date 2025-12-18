@@ -4,69 +4,364 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>VaultFlow</title>
+  
   <style>
-    :root { color-scheme: light; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 24px; background:#fafafa; color:#111; }
-    h1,h2,h3 { margin: 0 0 10px; }
-    p { margin: 6px 0; }
-    .muted { color:#666; }
-    .ok { color:#0a7a2f; }
-    .err { color:#b00020; white-space:pre-wrap; }
-    .wrap { max-width: 1040px; margin: 0 auto; }
-    .grid { display:grid; gap:16px; }
-    .grid.cols2 { grid-template-columns: 1fr 1fr; }
-    .grid.cols3 { grid-template-columns: 1fr 1fr 1fr; }
-    @media (max-width: 980px) { .grid.cols2, .grid.cols3 { grid-template-columns: 1fr; } }
-    .card { background:#fff; border:1px solid #e6e6e6; border-radius:14px; padding:16px; box-shadow: 0 2px 10px rgba(0,0,0,.03); }
-    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
-    input, select { padding:10px; border-radius:10px; border:1px solid #d0d0d0; min-width:220px; background:#fff; }
-    input[type="month"], input[type="date"] { min-width: 170px; }
-    button { padding:10px 12px; border-radius:10px; border:1px solid #111; background:#111; color:#fff; cursor:pointer; }
-    button.secondary { background:#fff; color:#111; }
-    button.ghost { background:transparent; color:#111; border-color:#d0d0d0; }
-    button:disabled { opacity:.55; cursor:not-allowed; }
-    hr { border:none; border-top:1px solid #eee; margin:14px 0; }
-    .pill { display:inline-flex; padding:4px 10px; border:1px solid #ddd; border-radius:999px; font-size:12px; color:#333; background:#f7f7f7; }
-    .kpi { padding:12px; border-radius:12px; border:1px solid #eee; background:#fcfcfc; }
-    .kpi .label { font-size:12px; color:#666; }
-    .kpi .value { font-size:18px; font-weight:700; }
-    table { width:100%; border-collapse:collapse; }
-    th, td { border-bottom:1px solid #eee; padding:10px 8px; text-align:left; vertical-align:top; }
-    th { font-size:12px; color:#666; font-weight:600; }
-    td { font-size:14px; }
-    .right { text-align:right; }
-    .nowrap { white-space:nowrap; }
-    .tabs { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
-    .tab { padding:8px 12px; border-radius:999px; border:1px solid #ddd; background:#fff; cursor:pointer; font-size:13px; color:#111; }
-    .tab.active { border-color:#111; font-weight:600; }
-    .badge { font-size:12px; border-radius:8px; padding:3px 8px; border:1px solid #ddd; background:#fff; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; }
+    :root {
+      color-scheme: light;
+      --bg: #0f172a;
+      --surface: #0b1222;
+      --card: #0f172a;
+      --muted: #98a2b3;
+      --line: #1f2a44;
+      --primary: #7c3aed;
+      --primary-strong: #6d28d9;
+      --success: #22c55e;
+      --error: #ef4444;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    body {
+      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.12), transparent 30%),
+        radial-gradient(circle at 80% 0%, rgba(14, 165, 233, 0.18), transparent 28%),
+        linear-gradient(160deg, #0b1020 0%, #0f172a 50%, #0a0f1c 100%);
+      color: #f8fafc;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0 0 12px;
+      letter-spacing: -0.02em;
+    }
+
+    p {
+      margin: 6px 0;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .ok {
+      color: var(--success);
+    }
+
+    .err {
+      color: var(--error);
+      white-space: pre-wrap;
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 28px 46px;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid.cols2 {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .grid.cols3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    @media (max-width: 980px) {
+      .grid.cols2,
+      .grid.cols3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.86);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    input,
+    select {
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      min-width: 220px;
+      background: rgba(255, 255, 255, 0.02);
+      color: #e5e7eb;
+    }
+
+    input::placeholder,
+    select:invalid {
+      color: var(--muted);
+    }
+
+    input[type="month"],
+    input[type="date"] {
+      min-width: 170px;
+    }
+
+    button {
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      background: linear-gradient(120deg, var(--primary-strong), var(--primary));
+      color: #f8fafc;
+      cursor: pointer;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      box-shadow: 0 10px 30px rgba(124, 58, 237, 0.35);
+    }
+
+    button.secondary {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.1);
+      box-shadow: none;
+    }
+
+    button.ghost {
+      background: transparent;
+      border-color: rgba(255, 255, 255, 0.12);
+      color: #e5e7eb;
+      box-shadow: none;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      margin: 14px 0;
+    }
+
+    .pill {
+      display: inline-flex;
+      padding: 4px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      font-size: 12px;
+      color: #e5e7eb;
+      background: rgba(255, 255, 255, 0.04);
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill.dot::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      display: inline-block;
+    }
+
+    .kpi {
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: radial-gradient(circle at 0% 0%, rgba(124, 58, 237, 0.08), transparent 45%), rgba(255, 255, 255, 0.02);
+    }
+
+    .kpi .label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .kpi .value {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    td {
+      font-size: 14px;
+      color: #e5e7eb;
+    }
+
+    .right {
+      text-align: right;
+    }
+
+    .nowrap {
+      white-space: nowrap;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .tab {
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.02);
+      cursor: pointer;
+      font-size: 13px;
+      color: #e5e7eb;
+    }
+
+    .tab.active {
+      border-color: var(--primary);
+      background: rgba(124, 58, 237, 0.08);
+      font-weight: 700;
+    }
+
+    .badge {
+      font-size: 12px;
+      border-radius: 12px;
+      padding: 6px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      color: #e5e7eb;
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 10, 25, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal {
+      background: #0f172a;
+      border-radius: 16px;
+      padding: 16px;
+      max-width: 620px;
+      width: 100%;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(140deg, #22c55e, #0ea5e9);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: #0b1222;
+      box-shadow: 0 10px 40px rgba(14, 165, 233, 0.45);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
   </style>
+
 </head>
 <body>
 <div class="wrap">
-  <h1>VaultFlow (Dev)</h1>
-  <p class="muted">Auth + Firestore + Wallets + Casal (agregado) + Categorias + Transações + Dashboard</p>
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-badge">VF</div>
+      <div>
+        <h1>VaultFlow</h1>
+        <p class="muted">Controle financeiro seguro, multi-wallet e pronto para o casal.</p>
+      </div>
+    </div>
+    <div class="toolbar">
+      <span class="pill dot">Status ativo</span>
+      <span class="pill" id="envPill">vaultflow-dev-marc35</span>
+      <span class="pill" id="autoPill">Auto-sync Casal: ON</span>
+    </div>
+  </div>
 
-  <div class="card" id="authCard" style="margin-top:14px;">
-    <h2>Login</h2>
-    <div class="row">
+  <div class="card glass" id="authCard" style="margin-top:4px;">
+    <div class="row" style="justify-content: space-between; gap: 16px;">
+      <div>
+        <h2>Acesso</h2>
+        <p class="muted">Entre com email/senha ou Google para continuar.</p>
+      </div>
+      <div class="pill" id="authStatus" style="min-width: 160px; justify-content: center;">Aguardando login</div>
+    </div>
+    <div class="row" style="margin-top:10px;">
       <input id="email" type="email" placeholder="email" autocomplete="username" />
       <input id="pass" type="password" placeholder="senha" autocomplete="current-password" />
     </div>
     <div class="row" style="margin-top:12px;">
       <button id="btnEmail">Entrar com Email/Senha</button>
       <button id="btnGoogle" class="secondary">Entrar com Google</button>
-      <button id="btnLogout" class="secondary" style="display:none;">Sair</button>
-      <span class="pill" id="envPill">vaultflow-dev-marc35</span>
-      <span class="pill" id="autoPill">Auto-sync Casal: ON</span>
+      <button id="btnLogout" class="ghost" style="display:none;">Sair</button>
     </div>
-    <p id="authStatus" class="muted" style="margin-top:10px;"></p>
     <p id="authError" class="err"></p>
   </div>
 
   <div class="grid cols2" style="margin-top:16px; display:none;" id="appGrid">
-    <div class="card">
+    <div class="card glass">
       <h2>Contexto</h2>
       <div class="row">
         <div style="min-width: 320px;">
@@ -126,7 +421,7 @@
       <div id="coupleBreakdown" style="display:none; margin-top:10px;"></div>
     </div>
 
-    <div class="card">
+    <div class="card glass">
       <h2>Operações</h2>
 
       <div id="personalOps">
@@ -201,6 +496,54 @@
       <div class="muted" id="txnStatus" style="margin-top:10px;"></div>
       <p class="err" id="opsError"></p>
     </div>
+
+    <div class="card glass">
+      <h2>Diagnóstico</h2>
+      <p class="muted">Verifica consistência de memberships entre <span class="mono">wallets/*/members</span> e <span class="mono">users/*/memberships</span>.</p>
+      <div class="grid cols2" style="margin-top:10px;">
+        <div>
+          <div class="muted">Wallet atual</div>
+          <div id="diagWallet">-</div>
+          <div class="muted" style="margin-top:6px;">Role: <span class="mono" id="diagRole">-</span> | Tipo: <span class="mono" id="diagType">-</span></div>
+        </div>
+        <div>
+          <div class="muted">Status</div>
+          <div id="diagMemberStatus" class="mono">—</div>
+          <div id="diagMembershipStatus" class="mono" style="margin-top:4px;">—</div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px;">
+        <button id="btnRunDiag" class="secondary">Reavaliar</button>
+        <button id="btnReconcile" class="ghost">Reconciliar memberships</button>
+        <span class="muted" id="diagActionStatus"></span>
+      </div>
+      <p class="err" id="diagError"></p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="editModal">
+  <div class="modal">
+    <h3>Editar transação</h3>
+    <p class="muted" id="editHelper"></p>
+    <div class="row" style="margin-top:8px;">
+      <input id="editTxnDate" type="date" />
+      <select id="editTxnType">
+        <option value="expense">Despesa</option>
+        <option value="income">Receita</option>
+      </select>
+      <select id="editTxnCat"></select>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <input id="editTxnAmount" placeholder="Valor (ex: 35,90)" />
+      <input id="editTxnNote" placeholder="Observação (opcional)" style="min-width: 420px; flex:1;" />
+    </div>
+    <div class="row" style="margin-top:12px; justify-content:flex-end; gap:8px;">
+      <button id="btnCloseEdit" class="ghost">Cancelar</button>
+      <button id="btnSaveEdit">Salvar alterações</button>
+    </div>
+    <div class="muted" id="editStatus" style="margin-top:8px;"></div>
+    <p class="err" id="editError"></p>
   </div>
 </div>
 
@@ -314,6 +657,28 @@
   const appError = $("appError");
   const opsError = $("opsError");
 
+  const diagWallet = $("diagWallet");
+  const diagRole = $("diagRole");
+  const diagType = $("diagType");
+  const diagMemberStatus = $("diagMemberStatus");
+  const diagMembershipStatus = $("diagMembershipStatus");
+  const diagActionStatus = $("diagActionStatus");
+  const diagError = $("diagError");
+  const btnRunDiag = $("btnRunDiag");
+  const btnReconcile = $("btnReconcile");
+
+  const editModal = $("editModal");
+  const editHelper = $("editHelper");
+  const editTxnDate = $("editTxnDate");
+  const editTxnType = $("editTxnType");
+  const editTxnCat = $("editTxnCat");
+  const editTxnAmount = $("editTxnAmount");
+  const editTxnNote = $("editTxnNote");
+  const btnCloseEdit = $("btnCloseEdit");
+  const btnSaveEdit = $("btnSaveEdit");
+  const editStatus = $("editStatus");
+  const editError = $("editError");
+
   const state = {
     user: null,
     email: null,
@@ -323,7 +688,9 @@
     walletType: null,
     walletName: null,
     coupleTab: "totals",
-    categories: new Map() // catId -> {name, kind}
+    categories: new Map(), // catId -> {name, kind}
+    txnCache: new Map(),
+    editingTxnId: null
   };
 
   function setAuthMessage(msg, isError = false) {
@@ -352,6 +719,11 @@
     const n = Number(clean);
     if (!Number.isFinite(n)) return null;
     return Math.round(n * 100);
+  }
+
+  function formatCentsToInputValue(cents) {
+    const v = Number(cents || 0) / 100;
+    return v.toFixed(2).replace(".", ",");
   }
 
   function yyyyMMFromMonthInput(value) {
@@ -385,6 +757,33 @@
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   }
 
+  function setCategoryOptions(selectEl, selectedId = "", fallbackLabel = "") {
+    selectEl.innerHTML = "";
+
+    if (state.categories.size === 0) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "Sem categorias (crie uma)";
+      selectEl.appendChild(opt);
+    } else {
+      for (const [id, c] of state.categories.entries()) {
+        const opt = document.createElement("option");
+        opt.value = id;
+        opt.textContent = c.name;
+        selectEl.appendChild(opt);
+      }
+    }
+
+    if (selectedId && !state.categories.has(selectedId)) {
+      const opt = document.createElement("option");
+      opt.value = selectedId;
+      opt.textContent = fallbackLabel || `Categoria ${selectedId}`;
+      selectEl.appendChild(opt);
+    }
+
+    if (selectedId) selectEl.value = selectedId;
+  }
+
   function renderKPIs(incomeCents, expenseCents) {
     const bal = Number(incomeCents || 0) - Number(expenseCents || 0);
     kpiIncome.textContent = toBRL(incomeCents);
@@ -398,6 +797,21 @@
 
   function isPersonalWalletId(walletId) {
     return PERSONAL_WALLETS.has(walletId);
+  }
+
+  function openEditModal(txnId) {
+    state.editingTxnId = txnId;
+    editError.textContent = "";
+    editStatus.textContent = "";
+    editHelper.textContent = `Wallet: ${state.walletId} | ID: ${txnId}`;
+    editModal.style.display = "flex";
+  }
+
+  function closeEditModal() {
+    state.editingTxnId = null;
+    editModal.style.display = "none";
+    editStatus.textContent = "";
+    editError.textContent = "";
   }
 
   // ===== Bootstrap =====
@@ -571,6 +985,85 @@
     txnDate.value = toISODateLocal(now);
 
     await reloadAll();
+    await runDiagnostics();
+  }
+
+  async function runDiagnostics() {
+    diagError.textContent = "";
+
+    if (!state.walletId) {
+      diagError.textContent = "Selecione uma wallet para avaliar.";
+      return;
+    }
+
+    diagWallet.textContent = `${state.walletName} (${state.walletId})`;
+    diagRole.textContent = state.walletRole ?? "-";
+    diagType.textContent = state.walletType ?? "-";
+
+    try {
+      const memberRef = doc(db, "wallets", state.walletId, "members", state.uid);
+      const memberSnap = await getDoc(memberRef);
+      const memberRole = memberSnap.exists() ? (memberSnap.data()?.role ?? "-") : null;
+
+      const membershipRef = doc(db, "users", state.uid, "memberships", state.walletId);
+      const membershipSnap = await getDoc(membershipRef);
+      const membershipRole = membershipSnap.exists() ? (membershipSnap.data()?.role ?? "-") : null;
+
+      if (memberSnap.exists()) {
+        diagMemberStatus.textContent = `OK: wallets/${state.walletId}/members/${state.uid} (role: ${memberRole})`;
+      } else {
+        diagMemberStatus.textContent = `FALHA: wallets/${state.walletId}/members/${state.uid} ausente.`;
+      }
+
+      if (!membershipSnap.exists()) {
+        diagMembershipStatus.textContent = `FALHA: users/${state.uid}/memberships/${state.walletId} ausente.`;
+      } else if (memberRole && membershipRole && memberRole !== membershipRole) {
+        diagMembershipStatus.textContent = `FALHA: role divergente (members=${memberRole}, membership=${membershipRole}).`;
+      } else if (!memberSnap.exists() && membershipSnap.exists()) {
+        diagMembershipStatus.textContent = `FALHA: membership existe, mas usuário não está em members.`;
+      } else {
+        diagMembershipStatus.textContent = `OK: membership consistente (role: ${membershipRole ?? "-"}).`;
+      }
+    } catch (e) {
+      diagError.textContent = e?.message ?? String(e);
+    }
+  }
+
+  async function reconcileMembershipsFromMembers() {
+    diagError.textContent = "";
+    diagActionStatus.textContent = "Reconhecendo memberships...";
+    btnReconcile.disabled = true;
+
+    try {
+      for (const walletId of KNOWN_WALLETS) {
+        const memberRef = doc(db, "wallets", walletId, "members", state.uid);
+        const memberSnap = await getDoc(memberRef);
+        const membershipRef = doc(db, "users", state.uid, "memberships", walletId);
+        const membershipSnap = await getDoc(membershipRef);
+
+        if (!memberSnap.exists()) {
+          try { await deleteDoc(membershipRef); } catch {}
+          continue;
+        }
+
+        const role = memberSnap.data()?.role;
+        const payload = {
+          role,
+          updatedAt: serverTimestamp()
+        };
+
+        if (!membershipSnap.exists()) payload.createdAt = serverTimestamp();
+
+        await setDoc(membershipRef, payload, { merge: true });
+      }
+
+      diagActionStatus.textContent = "Reconciliado com base em wallets/*/members.";
+    } catch (e) {
+      diagError.textContent = e?.message ?? String(e);
+    } finally {
+      btnReconcile.disabled = false;
+      await runDiagnostics();
+    }
   }
 
   // ===== Categories =====
@@ -578,12 +1071,14 @@
   async function loadCategories() {
     state.categories.clear();
     txnCat.innerHTML = "";
+    editTxnCat.innerHTML = "";
 
     if (isCoupleWallet()) {
       const opt = document.createElement("option");
       opt.value = "";
       opt.textContent = "—";
       txnCat.appendChild(opt);
+      editTxnCat.appendChild(opt.cloneNode(true));
       catTable.innerHTML = "";
       catStatus.textContent = "Categorias: N/A na visão agregada.";
       return;
@@ -597,19 +1092,8 @@
       state.categories.set(d.id, { name: data.name, kind: data.kind });
     }
 
-    if (state.categories.size === 0) {
-      const opt = document.createElement("option");
-      opt.value = "";
-      opt.textContent = "Sem categorias (crie uma)";
-      txnCat.appendChild(opt);
-    } else {
-      for (const [id, c] of state.categories.entries()) {
-        const opt = document.createElement("option");
-        opt.value = id;
-        opt.textContent = c.name;
-        txnCat.appendChild(opt);
-      }
-    }
+    setCategoryOptions(txnCat);
+    setCategoryOptions(editTxnCat, editTxnCat.value);
 
     renderCategoriesTable();
     catStatus.textContent = `Categorias carregadas: ${state.categories.size}`;
@@ -716,6 +1200,51 @@
     const nextExpense = clampNonNegative(curExpense + Number(deltaExpenseCents || 0));
 
     return { nextIncome, nextExpense };
+  }
+
+  async function prepareEditModal(txnId) {
+    editError.textContent = "";
+    editStatus.textContent = "";
+
+    if (!isPersonalWalletId(state.walletId)) {
+      editError.textContent = "Edição só é permitida em wallets pessoais.";
+      return;
+    }
+
+    let txn = state.txnCache.get(txnId);
+    if (!txn) {
+      try {
+        const snap = await getDoc(doc(db, "wallets", state.walletId, "transactions", txnId));
+        if (snap.exists()) {
+          const data = snap.data();
+          txn = {
+            id: txnId,
+            date: data.date?.toDate?.() ?? null,
+            amountCents: Number(data.amountCents || 0),
+            type: data.type ?? "expense",
+            categoryId: data.categoryId ?? "",
+            categoryName: data.categoryName ?? "",
+            note: data.note ?? ""
+          };
+        }
+      } catch (e) {
+        editError.textContent = e?.message ?? String(e);
+        return;
+      }
+    }
+
+    if (!txn) {
+      editError.textContent = "Transação não encontrada para edição.";
+      return;
+    }
+
+    if (txn.date) editTxnDate.value = toISODateLocal(txn.date);
+    editTxnType.value = txn.type || "expense";
+    setCategoryOptions(editTxnCat, txn.categoryId || "", txn.categoryName || "Categoria removida");
+    editTxnAmount.value = formatCentsToInputValue(txn.amountCents);
+    editTxnNote.value = txn.note || "";
+
+    openEditModal(txnId);
   }
 
   async function addTransaction() {
@@ -916,9 +1445,154 @@
     }
   }
 
+  async function updateTransactionPersonalAndSync() {
+    editError.textContent = "";
+    editStatus.textContent = "";
+
+    if (!state.editingTxnId) { editError.textContent = "Nenhuma transação selecionada."; return; }
+    if (!isPersonalWalletId(state.walletId)) { editError.textContent = "Edição só é permitida em wallets pessoais."; return; }
+
+    const txnId = state.editingTxnId;
+    const dateStr = editTxnDate.value;
+    const type = editTxnType.value;
+    const catId = editTxnCat.value;
+    const amountCents = parseAmountToCents(editTxnAmount.value);
+    const note = (editTxnNote.value ?? "").trim();
+
+    if (!dateStr) { editError.textContent = "Informe a data."; return; }
+    if (!catId) { editError.textContent = "Selecione uma categoria."; return; }
+    if (amountCents == null || amountCents <= 0) { editError.textContent = "Informe um valor válido (maior que zero)."; return; }
+
+    const cat = state.categories.get(catId);
+    const categoryName = cat?.name ?? (editTxnCat.options[editTxnCat.selectedIndex]?.textContent ?? "");
+
+    const personalWalletId = state.walletId;
+    const shouldSyncToCouple = isPersonalWalletId(personalWalletId);
+
+    btnSaveEdit.disabled = true;
+    btnSaveEdit.textContent = "Salvando...";
+
+    try {
+      const dt = new Date(dateStr + "T00:00:00");
+      const ts = Timestamp.fromDate(dt);
+      const newMonth = yyyyMMFromDateStr(dateStr);
+      if (!newMonth) throw new Error("Data inválida.");
+
+      const personalTxnRef = doc(db, "wallets", personalWalletId, "transactions", txnId);
+      const viewRef = doc(db, "wallets", COUPLE_WALLET_ID, "transactions_view", `${personalWalletId}_${txnId}`);
+
+      await runTransaction(db, async (tx) => {
+        const txnSnap = await tx.get(personalTxnRef);
+        if (!txnSnap.exists()) throw new Error("Transação não encontrada.");
+
+        const existing = txnSnap.data();
+        const oldAmount = Number(existing.amountCents || 0);
+        const oldType = existing.type ?? "expense";
+        const oldMonth = yyyyMMFromTimestamp(existing.date);
+        if (!oldMonth) throw new Error("Data atual inválida na transação existente.");
+
+        let oldRepSnap = null;
+        let newRepSnap = null;
+        let oldReportRef = null;
+        let newReportRef = null;
+
+        if (shouldSyncToCouple) {
+          oldReportRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", oldMonth);
+          oldRepSnap = await tx.get(oldReportRef);
+
+          if (newMonth === oldMonth) {
+            newReportRef = oldReportRef;
+            newRepSnap = oldRepSnap;
+          } else {
+            newReportRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", newMonth);
+            newRepSnap = await tx.get(newReportRef);
+          }
+        }
+
+        tx.update(personalTxnRef, {
+          date: ts,
+          amountCents,
+          type,
+          categoryId: catId,
+          categoryName,
+          note,
+          updatedAt: serverTimestamp(),
+          updatedBy: state.uid
+        });
+
+        if (shouldSyncToCouple) {
+          tx.set(viewRef, {
+            sourceWalletId: personalWalletId,
+            sourceTxnId: txnId,
+            sourceUid: existing.sourceUid || state.uid,
+            date: ts,
+            amountCents,
+            type,
+            categoryId: catId,
+            categoryName,
+            note,
+            syncedAt: serverTimestamp()
+          }, { merge: true });
+
+          const oldIncome = oldType === "income" ? oldAmount : 0;
+          const oldExpense = oldType === "expense" ? oldAmount : 0;
+          const newIncome = type === "income" ? amountCents : 0;
+          const newExpense = type === "expense" ? amountCents : 0;
+
+          const applyReportUpdate = (repRef, repSnap, deltaIncome, deltaExpense) => {
+            const repExists = repSnap?.exists?.() ?? false;
+            const repData = repExists ? repSnap.data() : null;
+
+            const { nextIncome, nextExpense } = computeCoupleSourceNext(repData, personalWalletId, deltaIncome, deltaExpense);
+
+            const patch = {
+              month: repRef.id,
+              updatedAt: serverTimestamp(),
+              updatedBy: state.uid,
+              sources: {
+                [personalWalletId]: {
+                  incomeCents: nextIncome,
+                  expenseCents: nextExpense,
+                  updatedAt: serverTimestamp(),
+                  updatedBy: state.uid
+                }
+              }
+            };
+
+            const mergeFields = ["month", "updatedAt", "updatedBy", `sources.${personalWalletId}`];
+
+            if (!repExists) {
+              patch.createdAt = serverTimestamp();
+              patch.createdBy = state.uid;
+              mergeFields.push("createdAt", "createdBy");
+            }
+
+            tx.set(repRef, patch, { mergeFields });
+          };
+
+          if (newMonth === oldMonth) {
+            applyReportUpdate(oldReportRef, oldRepSnap, newIncome - oldIncome, newExpense - oldExpense);
+          } else {
+            applyReportUpdate(oldReportRef, oldRepSnap, -oldIncome, -oldExpense);
+            applyReportUpdate(newReportRef, newRepSnap, newIncome, newExpense);
+          }
+        }
+      });
+
+      editStatus.textContent = "Transação atualizada.";
+      closeEditModal();
+      await reloadAll();
+    } catch (e) {
+      editError.textContent = e?.message ?? String(e);
+    } finally {
+      btnSaveEdit.disabled = false;
+      btnSaveEdit.textContent = "Salvar alterações";
+    }
+  }
+
   // ===== Transactions list / Couple views =====
 
-  function renderTxnRows(rows, { allowDelete, isCoupleView }) {
+  function renderTxnRows(rows, { allowDelete, isCoupleView, allowEdit }) {
     txnTable.innerHTML = "";
 
     for (const r of rows) {
@@ -933,7 +1607,8 @@
         <td>${escapeHtml(r.note || "")}${isCoupleView ? `<div class="muted mono" style="margin-top:4px;">${escapeHtml(r.sourceLabel || "")}</div>` : ""}</td>
         <td class="right nowrap">${prefix} ${escapeHtml(display)}</td>
         <td class="right nowrap">
-          ${allowDelete ? `<button class="ghost" data-del-txn="${r.id}">Excluir</button>` : `<span class="muted">—</span>`}
+          ${allowEdit ? `<button class="ghost" data-edit-txn="${r.id}">Editar</button>` : ""}
+          ${allowDelete ? `<button class="ghost" data-del-txn="${r.id}" style="margin-left:6px;">Excluir</button>` : `<span class="muted">—</span>`}
         </td>
       `;
       txnTable.appendChild(tr);
@@ -945,6 +1620,15 @@
           const id = btn.getAttribute("data-del-txn");
           if (!confirm("Excluir esta transação? (Isso também removerá do Casal automaticamente)")) return;
           await deleteTransactionPersonalAndSync(id);
+        });
+      });
+    }
+
+    if (allowEdit) {
+      txnTable.querySelectorAll("button[data-edit-txn]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-edit-txn");
+          await prepareEditModal(id);
         });
       });
     }
@@ -1027,7 +1711,7 @@
         });
       }
 
-      renderTxnRows(rows, { allowDelete: false, isCoupleView: true });
+      renderTxnRows(rows, { allowDelete: false, isCoupleView: true, allowEdit: false });
       coupleBreakdown.style.display = "none";
 
       return { income, expense, balance: income - expense };
@@ -1042,6 +1726,7 @@
     txnTable.innerHTML = "";
     txnStatus.textContent = "";
     setOpsError("");
+    state.txnCache = new Map();
 
     const yyyyMM = yyyyMMFromMonthInput(monthInput.value);
     if (!yyyyMM) { setOpsError("Selecione um mês válido."); return { income: 0, expense: 0, balance: 0 }; }
@@ -1090,11 +1775,22 @@
           categoryName: t.categoryName ?? "",
           note: t.note ?? "",
           type: t.type ?? "",
+          amountCents: amount,
+          categoryId: t.categoryId ?? ""
+        });
+
+        state.txnCache.set(d.id, {
+          id: d.id,
+          date: t.date?.toDate?.() ?? null,
+          categoryName: t.categoryName ?? "",
+          categoryId: t.categoryId ?? "",
+          note: t.note ?? "",
+          type: t.type ?? "",
           amountCents: amount
         });
       }
 
-      renderTxnRows(rows, { allowDelete: true, isCoupleView: false });
+      renderTxnRows(rows, { allowDelete: true, isCoupleView: false, allowEdit: true });
       txnStatus.textContent = `Transações no mês: ${rows.length}`;
       renderKPIs(income, expense);
 
@@ -1164,6 +1860,17 @@
   btnAddCat.addEventListener("click", addCategory);
   btnSeedCats.addEventListener("click", seedDefaultCategories);
   btnAddTxn.addEventListener("click", addTransaction);
+  btnRunDiag.addEventListener("click", async () => {
+    diagActionStatus.textContent = "Reavaliando...";
+    await runDiagnostics();
+  });
+  btnReconcile.addEventListener("click", reconcileMembershipsFromMembers);
+
+  btnCloseEdit.addEventListener("click", () => { closeEditModal(); });
+  editModal.addEventListener("click", (e) => {
+    if (e.target === editModal) closeEditModal();
+  });
+  btnSaveEdit.addEventListener("click", updateTransactionPersonalAndSync);
 
   coupleTabs.addEventListener("click", async (e) => {
     const btn = e.target?.closest?.("button[data-tab]");
