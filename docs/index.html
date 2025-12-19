@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>VaultFlow</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f172a'/%3E%3Ctext x='50%25' y='54%25' text-anchor='middle' font-family='Space Grotesk,Arial' font-size='28' fill='%23ffffff'%3EVF%3C/text%3E%3C/svg%3E" />
   
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
@@ -336,7 +337,6 @@
     .app-shell.collapsed .nav-item .nav-label { display: none; }
     .app-shell.collapsed .nav-item .nav-icon { margin: 0; }
     .app-shell.collapsed .nav-item::after { content: none; }
-    }
   </style>
 
 </head>
@@ -542,6 +542,20 @@
                 <select id="txnCat"></select>
               </div>
             </div>
+            <div class="form-grid" id="creditTxnFields" style="margin-top:6px;" hidden>
+              <div>
+                <label for="txnCard">Cartão</label>
+                <select id="txnCard"></select>
+              </div>
+              <div>
+                <label for="txnPurchaseDate">Data da compra</label>
+                <input id="txnPurchaseDate" type="date" />
+              </div>
+              <div>
+                <label for="txnStatementMonth">Fatura</label>
+                <input id="txnStatementMonth" disabled />
+              </div>
+            </div>
 
             <div class="optional-block">
               <p class="optional-title">Opcionais</p>
@@ -678,6 +692,195 @@
             </div>
             <p class="muted">Use o menu para navegar. Seus dados sincronizam automaticamente.</p>
           </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Ferramentas</p>
+                <h3>Transacoes v2</h3>
+              </div>
+            </div>
+            <p class="muted">Aplica defaults v2 em transacoes pessoais e no consolidado.</p>
+            <div class="row">
+              <button id="btnMigrateTxnV2" class="ghost">Aplicar defaults (Transactions v2)</button>
+            </div>
+            <div class="muted" id="migrateStatus" style="margin-top:6px;"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Automacao</p>
+                <h3>Planos</h3>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div>
+                <label for="planTitle">Descricao</label>
+                <input id="planTitle" placeholder="Ex.: Aluguel" />
+              </div>
+              <div>
+                <label for="planType">Tipo</label>
+                <select id="planType">
+                  <option value="recurring">Recorrente mensal</option>
+                  <option value="installment">Parcelado</option>
+                  <option value="finance">Financiamento</option>
+                  <option value="credit_installment">Compra no cartao</option>
+                </select>
+              </div>
+              <div>
+                <label for="planTxnType">Natureza</label>
+                <select id="planTxnType">
+                  <option value="expense">Despesa</option>
+                  <option value="income">Receita</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-grid" style="margin-top:10px;">
+              <div>
+                <label for="planCategory">Categoria</label>
+                <select id="planCategory"></select>
+              </div>
+              <div id="planAmountEachWrap">
+                <label for="planAmountEach">Valor mensal</label>
+                <input id="planAmountEach" placeholder="Ex.: 350,00" />
+              </div>
+              <div id="planAmountTotalWrap">
+                <label for="planAmountTotal">Valor total</label>
+                <input id="planAmountTotal" placeholder="Ex.: 1200,00" />
+              </div>
+            </div>
+            <div class="form-grid" style="margin-top:10px;">
+              <div id="planMonthsWrap">
+                <label for="planMonthsTotal">Numero de meses</label>
+                <input id="planMonthsTotal" type="number" min="1" step="1" placeholder="Ex.: 12" />
+              </div>
+              <div>
+                <label for="planStartMonth">Mes inicial</label>
+                <input id="planStartMonth" type="month" />
+              </div>
+              <div id="planPaymentWrap">
+                <label for="planPaymentMethod">Forma de pagamento</label>
+                <select id="planPaymentMethod">
+                  <option value="pix">Pix</option>
+                  <option value="credito">Cartao de credito</option>
+                  <option value="debito">Cartao de debito</option>
+                  <option value="dinheiro">Dinheiro</option>
+                  <option value="transferencia">Transferencia</option>
+                  <option value="boleto">Boleto</option>
+                  <option value="outro">Outro</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-grid" id="planCardWrap" style="margin-top:10px;" hidden>
+              <div>
+                <label for="planCreditCard">Cartao</label>
+                <select id="planCreditCard"></select>
+              </div>
+              <div id="planPurchaseWrap" hidden>
+                <label for="planPurchaseDate">Data da compra</label>
+                <input id="planPurchaseDate" type="date" />
+              </div>
+            </div>
+            <div class="row">
+              <button id="btnCreatePlan">Gerar agora</button>
+            </div>
+            <div class="muted" id="planStatus" style="margin-top:6px;"></div>
+            <div class="table-shell" style="margin-top:12px; max-height: 260px; overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Plano</th>
+                    <th>Tipo</th>
+                    <th class="right nowrap">Valor</th>
+                    <th class="right nowrap">Inicio</th>
+                    <th>Status</th>
+                    <th class="right">Acoes</th>
+                  </tr>
+                </thead>
+                <tbody id="planTable"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Cartoes</p>
+                <h3>Cadastro</h3>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div>
+                <label for="cardName">Nome</label>
+                <input id="cardName" placeholder="Ex.: Nubank" />
+              </div>
+              <div>
+                <label for="cardClosingDay">Fechamento</label>
+                <input id="cardClosingDay" type="number" min="1" max="28" step="1" placeholder="Ex.: 10" />
+              </div>
+              <div>
+                <label for="cardDueDay">Vencimento</label>
+                <input id="cardDueDay" type="number" min="1" max="28" step="1" placeholder="Ex.: 20" />
+              </div>
+            </div>
+            <div class="row">
+              <button id="btnAddCard" class="ghost">Adicionar cartao</button>
+            </div>
+            <div class="muted" id="cardStatus" style="margin-top:6px;"></div>
+            <div class="table-shell" style="margin-top:12px; max-height: 220px; overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Cartao</th>
+                    <th class="right">Fechamento</th>
+                    <th class="right">Vencimento</th>
+                    <th>Status</th>
+                    <th class="right">Acoes</th>
+                  </tr>
+                </thead>
+                <tbody id="cardTable"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Cartao</p>
+                <h3>Faturas</h3>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div>
+                <label for="statementCard">Cartao</label>
+                <select id="statementCard"></select>
+              </div>
+            </div>
+            <div class="muted" id="statementStatus" style="margin-top:6px;"></div>
+            <div class="table-shell" style="margin-top:12px; max-height: 240px; overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Mes</th>
+                    <th class="right">Total</th>
+                    <th>Status</th>
+                    <th class="right">Acoes</th>
+                  </tr>
+                </thead>
+                <tbody id="statementTable"></tbody>
+              </table>
+            </div>
+            <div class="table-shell" style="margin-top:12px; max-height: 240px; overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Categoria</th>
+                    <th>Descricao</th>
+                    <th class="right">Valor</th>
+                  </tr>
+                </thead>
+                <tbody id="statementItemsTable"></tbody>
+              </table>
+            </div>
+          </div>
         </section>
       </section>
     </main>
@@ -808,6 +1011,10 @@
   const txnAmount = $("txnAmount");
   const txnNote = $("txnNote");
   const btnAddTxn = $("btnAddTxn");
+  const creditTxnFields = $("creditTxnFields");
+  const txnCard = $("txnCard");
+  const txnPurchaseDate = $("txnPurchaseDate");
+  const txnStatementMonth = $("txnStatementMonth");
 
   const cbRecurring = $("cbRecurring");
   const cbInstallment = $("cbInstallment");
@@ -838,6 +1045,41 @@
   const diagError = $("diagError");
   const btnRunDiag = $("btnRunDiag");
   const btnReconcile = $("btnReconcile");
+  const btnMigrateTxnV2 = $("btnMigrateTxnV2");
+  const migrateStatus = $("migrateStatus");
+
+  const planTitle = $("planTitle");
+  const planType = $("planType");
+  const planTxnType = $("planTxnType");
+  const planCategory = $("planCategory");
+  const planAmountEach = $("planAmountEach");
+  const planAmountTotal = $("planAmountTotal");
+  const planMonthsTotal = $("planMonthsTotal");
+  const planStartMonth = $("planStartMonth");
+  const planPaymentMethod = $("planPaymentMethod");
+  const planCreditCard = $("planCreditCard");
+  const planPurchaseDate = $("planPurchaseDate");
+  const planAmountEachWrap = $("planAmountEachWrap");
+  const planAmountTotalWrap = $("planAmountTotalWrap");
+  const planMonthsWrap = $("planMonthsWrap");
+  const planPaymentWrap = $("planPaymentWrap");
+  const planCardWrap = $("planCardWrap");
+  const planPurchaseWrap = $("planPurchaseWrap");
+  const btnCreatePlan = $("btnCreatePlan");
+  const planStatus = $("planStatus");
+  const planTable = $("planTable");
+
+  const cardName = $("cardName");
+  const cardClosingDay = $("cardClosingDay");
+  const cardDueDay = $("cardDueDay");
+  const btnAddCard = $("btnAddCard");
+  const cardStatus = $("cardStatus");
+  const cardTable = $("cardTable");
+
+  const statementCard = $("statementCard");
+  const statementStatus = $("statementStatus");
+  const statementTable = $("statementTable");
+  const statementItemsTable = $("statementItemsTable");
 
   const editModal = $("editModal");
   const editHelper = $("editHelper");
@@ -863,7 +1105,10 @@
     walletLabels: new Map(),
     coupleTab: "totals",
     categories: new Map(), // catId -> {name, kind}
-    currentRows: []
+    creditCards: new Map(), // cardId -> {name, closingDay, dueDay, status}
+    plans: new Map(), // planId -> plan data
+    currentRows: [],
+    txnCache: new Map()
   };
   Object.entries(FRIENDLY_WALLET_NAMES).forEach(([id, label]) => state.walletLabels.set(id, label));
 
@@ -898,6 +1143,186 @@
   function formatCentsToInputValue(cents) {
     const v = Number(cents || 0) / 100;
     return v.toFixed(2).replace(".", ",");
+  }
+
+  function parsePositiveInt(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n) || n <= 0) return null;
+    return Math.trunc(n);
+  }
+
+  function buildTxnV2Defaults(type = "expense", originalType = null) {
+    const baseType = type || "expense";
+    return {
+      originalType: originalType || baseType,
+      paymentMethod: "outro",
+      recurring: { isRecurring: false, cadence: "none" },
+      installment: { isInstallment: false, total: null, current: null },
+      finance: { isFinance: false, total: null, current: null }
+    };
+  }
+
+  function normalizeTxnV2(txn = {}) {
+    const baseType = txn.type ?? "expense";
+    const defaults = buildTxnV2Defaults(baseType, txn.originalType ?? baseType);
+    const paymentRaw = (txn.paymentMethod ?? "").trim();
+
+    return {
+      ...txn,
+      type: baseType,
+      originalType: txn.originalType ?? defaults.originalType,
+      paymentMethod: paymentRaw || defaults.paymentMethod,
+      recurring: {
+        isRecurring: Boolean(txn.recurring?.isRecurring),
+        cadence: txn.recurring?.cadence ?? (txn.recurring?.isRecurring ? "monthly" : defaults.recurring.cadence)
+      },
+      installment: {
+        isInstallment: Boolean(txn.installment?.isInstallment),
+        total: txn.installment?.total ?? defaults.installment.total,
+        current: txn.installment?.current ?? defaults.installment.current
+      },
+      finance: {
+        isFinance: Boolean(txn.finance?.isFinance),
+        total: txn.finance?.total ?? defaults.finance.total,
+        current: txn.finance?.current ?? defaults.finance.current
+      }
+    };
+  }
+
+  function buildTxnV2Payload(rawType, type) {
+    const defaults = buildTxnV2Defaults(type, rawType || type);
+    const paymentRaw = (txnPayment?.value ?? "").trim();
+    const paymentMethod = paymentRaw || defaults.paymentMethod;
+
+    const isRecurring = !!cbRecurring?.checked;
+    const recurring = {
+      isRecurring,
+      cadence: isRecurring ? "monthly" : defaults.recurring.cadence
+    };
+
+    const isInstallment = !!cbInstallment?.checked;
+    const installment = {
+      isInstallment,
+      total: isInstallment ? parsePositiveInt(installmentTotal?.value) : defaults.installment.total,
+      current: isInstallment ? parsePositiveInt(installmentCurrent?.value) : defaults.installment.current
+    };
+
+    const isFinance = !!cbFinance?.checked;
+    const finance = {
+      isFinance,
+      total: isFinance ? parsePositiveInt(financeTotal?.value) : defaults.finance.total,
+      current: isFinance ? parsePositiveInt(financeCurrent?.value) : defaults.finance.current
+    };
+
+    return {
+      originalType: defaults.originalType,
+      paymentMethod,
+      recurring,
+      installment,
+      finance
+    };
+  }
+
+  function buildTxnV2MergePatch(txn = {}) {
+    const baseType = txn.type ?? "expense";
+    const patch = {};
+
+    if (!txn.originalType) patch.originalType = baseType;
+
+    const paymentRaw = (txn.paymentMethod ?? "").trim();
+    if (!paymentRaw) patch.paymentMethod = "outro";
+
+    const recurringPatch = {};
+    if (txn.recurring?.isRecurring == null) recurringPatch.isRecurring = false;
+    if (txn.recurring?.cadence == null) recurringPatch.cadence = "none";
+    if (Object.keys(recurringPatch).length) patch.recurring = recurringPatch;
+
+    const installmentPatch = {};
+    if (txn.installment?.isInstallment == null) installmentPatch.isInstallment = false;
+    if (txn.installment?.total == null) installmentPatch.total = null;
+    if (txn.installment?.current == null) installmentPatch.current = null;
+    if (Object.keys(installmentPatch).length) patch.installment = installmentPatch;
+
+    const financePatch = {};
+    if (txn.finance?.isFinance == null) financePatch.isFinance = false;
+    if (txn.finance?.total == null) financePatch.total = null;
+    if (txn.finance?.current == null) financePatch.current = null;
+    if (Object.keys(financePatch).length) patch.finance = financePatch;
+
+    return patch;
+  }
+
+  function parseYYYYMM(yyyyMM) {
+    if (!/^\d{4}-\d{2}$/.test(yyyyMM || "")) return null;
+    const [y, m] = yyyyMM.split("-").map(Number);
+    if (!y || !m || m < 1 || m > 12) return null;
+    return { y, m };
+  }
+
+  function formatYYYYMM(y, m) {
+    const mm = String(m).padStart(2, "0");
+    return `${y}-${mm}`;
+  }
+
+  function addMonthsYYYYMM(yyyyMM, delta) {
+    const parsed = parseYYYYMM(yyyyMM);
+    if (!parsed) return null;
+    const total = parsed.y * 12 + (parsed.m - 1) + delta;
+    const y = Math.floor(total / 12);
+    const m = (total % 12) + 1;
+    return formatYYYYMM(y, m);
+  }
+
+  function compareYYYYMM(a, b) {
+    const pa = parseYYYYMM(a);
+    const pb = parseYYYYMM(b);
+    if (!pa || !pb) return 0;
+    const va = pa.y * 12 + (pa.m - 1);
+    const vb = pb.y * 12 + (pb.m - 1);
+    return va === vb ? 0 : (va < vb ? -1 : 1);
+  }
+
+  function monthDiff(startYYYYMM, endYYYYMM) {
+    const start = parseYYYYMM(startYYYYMM);
+    const end = parseYYYYMM(endYYYYMM);
+    if (!start || !end) return 0;
+    return (end.y - start.y) * 12 + (end.m - start.m);
+  }
+
+  function firstDateOfMonth(yyyyMM) {
+    const parsed = parseYYYYMM(yyyyMM);
+    if (!parsed) return null;
+    return new Date(parsed.y, parsed.m - 1, 1, 0, 0, 0);
+  }
+
+  function timestampFromYYYYMM(yyyyMM) {
+    const date = firstDateOfMonth(yyyyMM);
+    return date ? Timestamp.fromDate(date) : null;
+  }
+
+  function splitAmountByMonths(totalCents, monthsTotal) {
+    const total = Number(totalCents || 0);
+    const months = Number(monthsTotal || 0);
+    if (!Number.isFinite(total) || !Number.isFinite(months) || months <= 0) return [];
+    const base = Math.floor(total / months);
+    const remainder = total - base * months;
+    const amounts = [];
+    for (let i = 1; i <= months; i += 1) {
+      amounts.push(base + (i <= remainder ? 1 : 0));
+    }
+    return amounts;
+  }
+
+  function computeStatementMonth(purchaseDate, closingDay = 10) {
+    const d = purchaseDate instanceof Date ? purchaseDate : new Date(purchaseDate || Date.now());
+    const day = d.getDate();
+    let y = d.getFullYear();
+    let m = d.getMonth() + 1;
+    if (day > closingDay) {
+      m += 1;
+      if (m > 12) { m = 1; y += 1; }
+    }
+    return formatYYYYMM(y, m);
   }
 
   function yyyyMMFromMonthInput(value) {
@@ -1033,6 +1458,61 @@
 
     [installmentTotal, installmentCurrent].forEach((el) => { if (el) el.disabled = !showInstallment; });
     [financeTotal, financeCurrent].forEach((el) => { if (el) el.disabled = !showFinance; });
+  }
+
+  function syncCreditTxnFields() {
+    if (!creditTxnFields) return;
+    const isCredit = (txnPayment?.value === "credito");
+    creditTxnFields.hidden = !isCredit;
+    if (!isCredit) {
+      if (txnStatementMonth) txnStatementMonth.value = "";
+      return;
+    }
+
+    if (txnPurchaseDate && !txnPurchaseDate.value && txnDate?.value) {
+      txnPurchaseDate.value = txnDate.value;
+    }
+
+    const cardId = txnCard?.value || "";
+    if (!cardId) {
+      if (txnStatementMonth) txnStatementMonth.value = "";
+      return;
+    }
+    const closingDay = getCardClosingDay(cardId);
+    const purchaseDateStr = txnPurchaseDate?.value || txnDate?.value || "";
+    if (!purchaseDateStr) {
+      if (txnStatementMonth) txnStatementMonth.value = "";
+      return;
+    }
+
+    const purchaseDateObj = new Date(purchaseDateStr + "T00:00:00");
+    const statementMonth = computeStatementMonth(purchaseDateObj, closingDay);
+    if (txnStatementMonth) txnStatementMonth.value = statementMonth || "";
+  }
+
+  function syncPlanFields() {
+    if (!planType) return;
+    const type = planType.value;
+    const isRecurring = type === "recurring";
+    const isCredit = type === "credit_installment";
+
+    if (planAmountEachWrap) planAmountEachWrap.hidden = !isRecurring;
+    if (planAmountTotalWrap) planAmountTotalWrap.hidden = isRecurring;
+    if (planMonthsWrap) planMonthsWrap.hidden = isRecurring;
+
+    if (planPaymentWrap) planPaymentWrap.hidden = isCredit;
+    if (planPaymentMethod) {
+      if (isCredit) {
+        planPaymentMethod.value = "credito";
+        planPaymentMethod.disabled = true;
+      } else {
+        planPaymentMethod.disabled = false;
+        if (!planPaymentMethod.value) planPaymentMethod.value = "outro";
+      }
+    }
+
+    if (planCardWrap) planCardWrap.hidden = !isCredit;
+    if (planPurchaseWrap) planPurchaseWrap.hidden = !isCredit;
   }
 
   function syncCoupleTabs() {
@@ -1300,18 +1780,29 @@
 
     const disablePersonal = couple;
     [catName, catKind, btnAddCat, btnSeedCats].forEach((el) => el && (el.disabled = disablePersonal));
-    [txnDate, txnType, txnCat, txnAmount, txnNote, btnAddTxn].forEach((el) => el && (el.disabled = disablePersonal));
+    [txnDate, txnType, txnCat, txnAmount, txnNote, txnPayment, txnCard, txnPurchaseDate, btnAddTxn].forEach((el) => el && (el.disabled = disablePersonal));
+    [
+      planTitle, planType, planTxnType, planCategory, planAmountEach, planAmountTotal, planMonthsTotal,
+      planStartMonth, planPaymentMethod, planCreditCard, planPurchaseDate, btnCreatePlan
+    ].forEach((el) => el && (el.disabled = disablePersonal));
+    [cardName, cardClosingDay, cardDueDay, btnAddCard, statementCard].forEach((el) => el && (el.disabled = disablePersonal));
     if (catStatus) catStatus.textContent = disablePersonal ? "Categorias não disponíveis nesta visão." : "";
     if (disablePersonal && txnStatus) txnStatus.textContent = "Visão consolidada em modo leitura.";
+    if (disablePersonal && planStatus) planStatus.textContent = "Planos não disponíveis nesta visão.";
+    if (disablePersonal && cardStatus) cardStatus.textContent = "Cartões não disponíveis nesta visão.";
 
     const now = new Date();
     txnDate.value = toISODateLocal(now);
 
     await reloadAll();
-    await runDiagnostics();
+    await loadCreditCards();
+    await loadPlans();
   }
 
   async function runDiagnostics() {
+    if (!diagError || !diagWallet || !diagRole || !diagType || !diagMemberStatus || !diagMembershipStatus) {
+      return;
+    }
     diagError.textContent = "";
 
     if (!state.walletId) {
@@ -1353,6 +1844,9 @@
   }
 
   async function reconcileMembershipsFromMembers() {
+    if (!btnReconcile || !diagActionStatus || !diagError) {
+      return;
+    }
     diagError.textContent = "";
     diagActionStatus.textContent = "Reconhecendo memberships...";
     btnReconcile.disabled = true;
@@ -1385,25 +1879,61 @@
       diagError.textContent = e?.message ?? String(e);
     } finally {
       btnReconcile.disabled = false;
-      await runDiagnostics();
     }
   }
 
   // ===== Categories =====
 
+  function setCategoryOptions(selectEl, selectedId = "", fallbackLabel = "") {
+    if (!selectEl) return;
+    selectEl.innerHTML = "";
+    const entries = Array.from(state.categories.entries())
+      .map(([id, c]) => ({ id, ...c }))
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+
+    if (entries.length == 0) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "Sem categorias";
+      selectEl.appendChild(opt);
+      return;
+    }
+
+    let hasSelected = false;
+    for (const c of entries) {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = c.name;
+      if (selectedId && selectedId == c.id) hasSelected = true;
+      selectEl.appendChild(opt);
+    }
+
+    if (selectedId && hasSelected) {
+      selectEl.value = selectedId;
+    } else if (fallbackLabel) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = fallbackLabel;
+      selectEl.appendChild(opt);
+      selectEl.value = "";
+    }
+  }
+
   async function loadCategories() {
     state.categories.clear();
-    txnCat.innerHTML = "";
-    editTxnCat.innerHTML = "";
+    if (txnCat) txnCat.innerHTML = "";
+    if (editTxnCat) editTxnCat.innerHTML = "";
+    if (planCategory) planCategory.innerHTML = "";
 
     if (isCoupleWallet()) {
       const opt = document.createElement("option");
       opt.value = "";
-      opt.textContent = "—";
-      txnCat.appendChild(opt);
-      editTxnCat.appendChild(opt.cloneNode(true));
-      catTable.innerHTML = "";
-      catStatus.textContent = "Categorias não disponíveis nesta carteira.";
+      opt.textContent = "-";
+      if (txnCat) txnCat.appendChild(opt);
+      if (editTxnCat) editTxnCat.appendChild(opt.cloneNode(true));
+      if (planCategory) planCategory.appendChild(opt.cloneNode(true));
+      if (catTable) catTable.innerHTML = "";
+      if (catStatus) catStatus.textContent = "Categorias n?o dispon?veis nesta carteira.";
       return;
     }
 
@@ -1416,13 +1946,15 @@
     }
 
     setCategoryOptions(txnCat);
-    setCategoryOptions(editTxnCat, editTxnCat.value);
+    if (editTxnCat) setCategoryOptions(editTxnCat, editTxnCat.value);
+    if (planCategory) setCategoryOptions(planCategory, planCategory.value);
 
     renderCategoriesTable();
-    catStatus.textContent = `Categorias carregadas: ${state.categories.size}`;
+    if (catStatus) catStatus.textContent = `Categorias carregadas: ${state.categories.size}`;
   }
 
-  function renderCategoriesTable() {
+function renderCategoriesTable() {
+    if (!catTable) return;
     catTable.innerHTML = "";
     const entries = Array.from(state.categories.entries())
       .map(([id, c]) => ({ id, ...c }))
@@ -1553,7 +2085,1263 @@
     return { nextIncome, nextExpense };
   }
 
+  function friendlyPlanType(type) {
+    switch (type) {
+      case "recurring": return "Recorrente";
+      case "installment": return "Parcelado";
+      case "finance": return "Financiamento";
+      case "credit_installment": return "Cartao parcelado";
+      default: return "Plano";
+    }
+  }
+
+  function friendlyPlanStatus(status) {
+    switch (status) {
+      case "active": return "Ativo";
+      case "paused": return "Pausado";
+      case "canceled": return "Cancelado";
+      case "completed": return "Concluido";
+      default: return "Ativo";
+    }
+  }
+
+  function friendlyTxnStatus(status) {
+    if (status === "paid") return "Pago";
+    if (status === "skipped") return "Pulado";
+    if (status === "scheduled") return "Agendado";
+    return "";
+  }
+
+  function statementSignedAmount(amountCents, type) {
+    const amt = Number(amountCents || 0);
+    return (type === "income") ? -amt : amt;
+  }
+
+  function getStatementKey(txn = {}) {
+    if (txn.paymentMethod !== "credito") return null;
+    if (!txn.creditCardId || !txn.statementMonth) return null;
+    return { cardId: txn.creditCardId, month: txn.statementMonth };
+  }
+
+  function getStatementRef(walletId, cardId, month) {
+    return doc(db, "wallets", walletId, "credit_cards", cardId, "statements", month);
+  }
+
+  function getCardClosingDay(cardId) {
+    const card = state.creditCards.get(cardId);
+    const closing = Number(card?.closingDay ?? 0);
+    if (Number.isFinite(closing) && closing >= 1 && closing <= 28) return closing;
+    return 10;
+  }
+
+  // ===== Credit Cards =====
+
+  async function loadCreditCards() {
+    state.creditCards.clear();
+    if (txnCard) txnCard.innerHTML = "";
+    if (planCreditCard) planCreditCard.innerHTML = "";
+    if (statementCard) statementCard.innerHTML = "";
+
+    if (isCoupleWallet()) {
+      setCreditCardOptions(txnCard, "", "Nao disponivel");
+      setCreditCardOptions(planCreditCard, "", "Nao disponivel");
+      setCreditCardOptions(statementCard, "", "Nao disponivel");
+      if (cardTable) cardTable.innerHTML = "";
+      if (cardStatus) cardStatus.textContent = "Cartoes nao disponiveis nesta carteira.";
+      return;
+    }
+
+    try {
+      const colRef = collection(db, "wallets", state.walletId, "credit_cards");
+      const snaps = await getDocs(colRef);
+      for (const d of snaps.docs) {
+        const data = d.data();
+        state.creditCards.set(d.id, {
+          name: data.name ?? "Cartao",
+          closingDay: Number(data.closingDay || 0),
+          dueDay: Number(data.dueDay || 0),
+          status: data.status ?? "active"
+        });
+      }
+      setCreditCardOptions(txnCard, txnCard?.value || "");
+      setCreditCardOptions(planCreditCard, planCreditCard?.value || "");
+      setCreditCardOptions(statementCard, statementCard?.value || "");
+      renderCardTable();
+      if (cardStatus) cardStatus.textContent = state.creditCards.size ? "" : "Nenhum cartao cadastrado.";
+      syncCreditTxnFields();
+      syncPlanFields();
+      if (statementCard) await loadStatements();
+    } catch (e) {
+      if (cardStatus) cardStatus.textContent = "Nao foi possivel carregar cartoes.";
+    }
+  }
+
+  function renderCardTable() {
+    if (!cardTable) return;
+    cardTable.innerHTML = "";
+    const entries = Array.from(state.creditCards.entries())
+      .map(([id, c]) => ({ id, ...c }))
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+
+    for (const c of entries) {
+      const statusLabel = c.status === "active" ? "Ativo" : "Inativo";
+      const actionLabel = c.status === "active" ? "Desativar" : "Ativar";
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${escapeHtml(c.name)}</td>
+        <td class="right">${c.closingDay || "-"}</td>
+        <td class="right">${c.dueDay || "-"}</td>
+        <td><span class="badge">${statusLabel}</span></td>
+        <td class="right actions">
+          <button class="ghost" data-toggle-card="${c.id}">${actionLabel}</button>
+        </td>
+      `;
+      cardTable.appendChild(tr);
+    }
+
+    cardTable.querySelectorAll("button[data-toggle-card]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-toggle-card");
+        await toggleCardStatus(id);
+      });
+    });
+  }
+
+  async function addCreditCard() {
+    if (!cardName || !cardClosingDay || !cardDueDay || !cardStatus) return;
+    cardStatus.textContent = "";
+    if (!isPersonalWalletId(state.walletId)) {
+      cardStatus.textContent = "Selecione uma carteira pessoal.";
+      return;
+    }
+
+    const name = (cardName.value ?? "").trim();
+    const closingDay = parsePositiveInt(cardClosingDay.value);
+    const dueDay = parsePositiveInt(cardDueDay.value);
+
+    if (!name) { cardStatus.textContent = "Informe o nome do cartao."; return; }
+    if (!closingDay || closingDay < 1 || closingDay > 28) { cardStatus.textContent = "Fechamento invalido."; return; }
+    if (!dueDay || dueDay < 1 || dueDay > 28) { cardStatus.textContent = "Vencimento invalido."; return; }
+
+    try {
+      await addDoc(collection(db, "wallets", state.walletId, "credit_cards"), {
+        name,
+        closingDay,
+        dueDay,
+        status: "active",
+        createdAt: serverTimestamp(),
+        createdBy: state.uid,
+        updatedAt: serverTimestamp(),
+        updatedBy: state.uid
+      });
+      cardName.value = "";
+      cardClosingDay.value = "";
+      cardDueDay.value = "";
+      await loadCreditCards();
+    } catch (e) {
+      console.error("addCreditCard failed", e);
+      cardStatus.textContent = "Nao foi possivel salvar o cartao. Verifique sua permissao.";
+    }
+  }
+
+  async function toggleCardStatus(cardId) {
+    if (!cardId) return;
+    const current = state.creditCards.get(cardId);
+    const nextStatus = current?.status === "active" ? "inactive" : "active";
+    try {
+      await setDoc(doc(db, "wallets", state.walletId, "credit_cards", cardId), {
+        status: nextStatus,
+        updatedAt: serverTimestamp(),
+        updatedBy: state.uid
+      }, { merge: true });
+      await loadCreditCards();
+    } catch {
+      if (cardStatus) cardStatus.textContent = "Nao foi possivel atualizar o cartao.";
+    }
+  }
+
+  async function loadStatements() {
+    if (!statementTable || !statementItemsTable || !statementStatus) return;
+    statementTable.innerHTML = "";
+    statementItemsTable.innerHTML = "";
+
+    const cardId = statementCard?.value;
+    if (!cardId) {
+      statementStatus.textContent = "Selecione um cartao para ver as faturas.";
+      return;
+    }
+
+    try {
+      const colRef = collection(db, "wallets", state.walletId, "credit_cards", cardId, "statements");
+      const snaps = await getDocs(colRef);
+      const entries = snaps.docs.map(d => {
+        const data = d.data();
+        return {
+          id: d.id,
+          month: data.month ?? d.id,
+          totalCents: Number(data.totalCents || 0),
+          status: data.status ?? "open",
+          paidAt: data.paidAt ?? null
+        };
+      }).sort((a, b) => compareYYYYMM(b.month, a.month));
+
+      if (!entries.length) {
+        statementStatus.textContent = "Sem faturas para este cartao.";
+        return;
+      }
+
+      statementStatus.textContent = "";
+
+      for (const s of entries) {
+        const statusLabel = s.status === "paid" ? "Pago" : "Aberta";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${escapeHtml(s.month)}</td>
+          <td class="right">${toBRL(s.totalCents)}</td>
+          <td><span class="badge">${statusLabel}</span></td>
+          <td class="right actions">
+            <button class="ghost" data-view-statement="${s.month}">Ver itens</button>
+            ${s.status !== "paid" ? `<button class="ghost" data-pay-statement="${s.month}">Marcar paga</button>` : ""}
+          </td>
+        `;
+        statementTable.appendChild(tr);
+      }
+
+      statementTable.querySelectorAll("button[data-view-statement]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const month = btn.getAttribute("data-view-statement");
+          await loadStatementItems(cardId, month);
+        });
+      });
+
+      statementTable.querySelectorAll("button[data-pay-statement]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const month = btn.getAttribute("data-pay-statement");
+          await markStatementPaid(cardId, month);
+        });
+      });
+    } catch {
+      statementStatus.textContent = "Nao foi possivel carregar as faturas.";
+    }
+  }
+
+  async function loadStatementItems(cardId, month) {
+    if (!statementItemsTable) return;
+    statementItemsTable.innerHTML = "";
+    if (!cardId || !month) return;
+
+    try {
+      const qRef = query(
+        collection(db, "wallets", state.walletId, "transactions"),
+        where("creditCardId", "==", cardId),
+        where("statementMonth", "==", month),
+        orderBy("date", "desc")
+      );
+      const snaps = await getDocs(qRef);
+      if (snaps.empty) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="4" class="muted">Sem itens nesta fatura.</td>`;
+        statementItemsTable.appendChild(tr);
+        return;
+      }
+      for (const d of snaps.docs) {
+        const t = normalizeTxnV2(d.data());
+        const tr = document.createElement("tr");
+        const dt = t.date?.toDate?.() ? toISODateLocal(t.date.toDate()) : "-";
+        tr.innerHTML = `
+          <td class="nowrap">${escapeHtml(dt)}</td>
+          <td>${escapeHtml(t.categoryName || "-")}</td>
+          <td>${escapeHtml(t.note || "")}</td>
+          <td class="right">${toBRL(Math.abs(Number(t.amountCents || 0)))}</td>
+        `;
+        statementItemsTable.appendChild(tr);
+      }
+    } catch {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td colspan="4" class="muted">Nao foi possivel carregar os itens.</td>`;
+      statementItemsTable.appendChild(tr);
+    }
+  }
+
+  async function markStatementPaid(cardId, month) {
+    if (!cardId || !month) return;
+    try {
+      await setDoc(getStatementRef(state.walletId, cardId, month), {
+        status: "paid",
+        paidAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        updatedBy: state.uid
+      }, { merge: true });
+      await loadStatements();
+    } catch {
+      if (statementStatus) statementStatus.textContent = "Nao foi possivel atualizar a fatura.";
+    }
+  }
+
+  // ===== Plans =====
+
+  async function loadPlans() {
+    state.plans.clear();
+    if (planTable) planTable.innerHTML = "";
+
+    if (isCoupleWallet()) {
+      if (planStatus) planStatus.textContent = "Planos disponiveis apenas em carteiras pessoais.";
+      return;
+    }
+
+    try {
+      const colRef = collection(db, "wallets", state.walletId, "plans");
+      const snaps = await getDocs(colRef);
+      for (const d of snaps.docs) {
+        state.plans.set(d.id, d.data());
+      }
+      renderPlansTable();
+      if (planStatus) planStatus.textContent = state.plans.size ? "" : "Nenhum plano cadastrado.";
+    } catch {
+      if (planStatus) planStatus.textContent = "Nao foi possivel carregar os planos.";
+    }
+  }
+
+  function renderPlansTable() {
+    if (!planTable) return;
+    planTable.innerHTML = "";
+    const entries = Array.from(state.plans.entries())
+      .map(([id, p]) => ({ id, ...p }))
+      .sort((a, b) => (a.title ?? "").localeCompare(b.title ?? ""));
+
+    for (const p of entries) {
+      const typeLabel = friendlyPlanType(p.type);
+      const statusKey = p.status || "active";
+      const statusLabel = friendlyPlanStatus(statusKey);
+      const amountLabel = p.type === "recurring"
+        ? toBRL(p.amountEachCents || 0)
+        : `${toBRL(p.amountTotalCents || 0)} / ${p.monthsTotal || "-"}`;
+      const generated = p.generatedThrough ? `Gerado ate ${p.generatedThrough}` : "Sem geracao";
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${escapeHtml(p.title || "Plano")}${generated ? `<div class="muted" style="margin-top:4px;">${escapeHtml(generated)}</div>` : ""}</td>
+        <td>${escapeHtml(typeLabel)}</td>
+        <td class="right nowrap">${escapeHtml(amountLabel)}</td>
+        <td class="right nowrap">${escapeHtml(p.startMonth || "-")}</td>
+        <td><span class="badge">${escapeHtml(statusLabel)}</span></td>
+        <td class="right actions">
+          <button class="ghost" data-plan-generate="${p.id}">${p.type === "recurring" ? "Gerar +12" : "Gerar"}</button>
+          ${statusKey === "paused" ? `<button class="ghost" data-plan-resume="${p.id}">Retomar</button>` : ""}
+          ${statusKey === "active" ? `<button class="ghost" data-plan-pause="${p.id}">Pausar</button>` : ""}
+          ${statusKey !== "canceled" ? `<button class="ghost" data-plan-cancel="${p.id}">Cancelar</button>` : ""}
+        </td>
+      `;
+      planTable.appendChild(tr);
+    }
+
+    planTable.querySelectorAll("button[data-plan-generate]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-plan-generate");
+        await generatePlanById(id);
+      });
+    });
+    planTable.querySelectorAll("button[data-plan-resume]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-plan-resume");
+        await updatePlanStatus(id, "active");
+      });
+    });
+    planTable.querySelectorAll("button[data-plan-pause]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-plan-pause");
+        await updatePlanStatus(id, "paused");
+      });
+    });
+    planTable.querySelectorAll("button[data-plan-cancel]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-plan-cancel");
+        if (!confirm("Cancelar este plano?")) return;
+        await updatePlanStatus(id, "canceled");
+      });
+    });
+  }
+
+  async function updatePlanStatus(planId, status) {
+    if (!planId) return;
+    try {
+      await setDoc(doc(db, "wallets", state.walletId, "plans", planId), {
+        status,
+        updatedAt: serverTimestamp(),
+        updatedBy: state.uid
+      }, { merge: true });
+      await loadPlans();
+    } catch {
+      if (planStatus) planStatus.textContent = "Nao foi possivel atualizar o plano.";
+    }
+  }
+
+  async function getPlan(planId) {
+    const ref = doc(db, "wallets", state.walletId, "plans", planId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return null;
+    return { id: planId, ...snap.data() };
+  }
+
+  function buildPlanNote(plan, index, total) {
+    const base = plan.title || plan.categoryName || "Plano";
+    if (total && index) return `${base} (${index}/${total})`;
+    return base;
+  }
+
+  function buildPlanV2Fields(plan, index, total) {
+    const baseType = plan.txnType || "expense";
+    const v2 = buildTxnV2Defaults(baseType, baseType);
+
+    if (plan.type === "recurring") {
+      v2.recurring = { isRecurring: true, cadence: "monthly" };
+    } else if (plan.type === "installment" || plan.type === "credit_installment") {
+      v2.installment = { isInstallment: true, total, current: index };
+    } else if (plan.type === "finance") {
+      v2.finance = { isFinance: true, total, current: index };
+    }
+
+    v2.paymentMethod = plan.paymentMethod || v2.paymentMethod;
+    return v2;
+  }
+
+  async function createPlanFromTxnForm({
+    planMode,
+    dateStr,
+    type,
+    catId,
+    categoryName,
+    amountCents,
+    note,
+    paymentMethod
+  }) {
+    if (!planMode) return;
+    if (txnStatus) txnStatus.textContent = "";
+    if (!isPersonalWalletId(state.walletId)) {
+      setOpsError("Planos so podem ser criados em carteiras pessoais.");
+      return;
+    }
+
+    const title = note || categoryName || "Plano";
+    let startMonth = yyyyMMFromDateStr(dateStr);
+    if (!startMonth) {
+      setOpsError("Informe um mes valido.");
+      return;
+    }
+
+    let monthsTotal = null;
+    let amountTotalCents = amountCents;
+    let amountEachCents = amountCents;
+
+    if (planMode === "installment" || planMode === "credit_installment") {
+      monthsTotal = parsePositiveInt(installmentTotal?.value);
+      if (!monthsTotal) {
+        setOpsError("Informe o numero de parcelas.");
+        return;
+      }
+      amountEachCents = Math.floor(amountTotalCents / monthsTotal);
+    } else if (planMode === "finance") {
+      monthsTotal = parsePositiveInt(financeTotal?.value);
+      if (!monthsTotal) {
+        setOpsError("Informe o numero de parcelas.");
+        return;
+      }
+      amountEachCents = Math.floor(amountTotalCents / monthsTotal);
+    }
+
+    if (planMode === "finance" && paymentMethod === "credito") {
+      setOpsError("Financiamento nao usa cartao de credito.");
+      return;
+    }
+
+    let creditCardId = null;
+    let purchaseDate = null;
+    let statementStartMonth = null;
+
+    if (planMode === "credit_installment" || (planMode === "recurring" && paymentMethod === "credito")) {
+      creditCardId = txnCard?.value || "";
+      if (!creditCardId) {
+        setOpsError("Selecione um cartao.");
+        return;
+      }
+      const purchaseDateStr = txnPurchaseDate?.value || dateStr;
+      const purchaseDateObj = new Date(purchaseDateStr + "T00:00:00");
+      purchaseDate = Timestamp.fromDate(purchaseDateObj);
+      const closingDay = getCardClosingDay(creditCardId);
+      statementStartMonth = computeStatementMonth(purchaseDateObj, closingDay);
+      if (planMode === "credit_installment" && statementStartMonth) {
+        startMonth = statementStartMonth;
+      }
+    }
+
+    btnAddTxn.disabled = true;
+    btnAddTxn.textContent = "Gerando...";
+
+    try {
+      const planRef = doc(collection(db, "wallets", state.walletId, "plans"));
+      const planPayment = planMode === "credit_installment" ? "credito" : (paymentMethod || "outro");
+      const payload = {
+        type: planMode,
+        title,
+        walletId: state.walletId,
+        txnType: type,
+        categoryId: catId,
+        categoryName,
+        amountTotalCents,
+        amountEachCents,
+        startMonth,
+        monthsTotal: monthsTotal ?? null,
+        generatedThrough: null,
+        status: "active",
+        paymentMethod: planPayment,
+        creditCardId: creditCardId || null,
+        statementStartMonth: statementStartMonth || null,
+        purchaseDate: purchaseDate || null,
+        paidCount: monthsTotal ? 0 : null,
+        remainingCount: monthsTotal ? monthsTotal : null,
+        createdAt: serverTimestamp(),
+        createdBy: state.uid,
+        updatedAt: serverTimestamp(),
+        updatedBy: state.uid
+      };
+
+      await setDoc(planRef, payload);
+
+      if (planMode === "recurring") await generateRecurring(planRef.id, payload);
+      else if (planMode === "installment") await generateInstallments(planRef.id, payload);
+      else if (planMode === "finance") await generateFinance(planRef.id, payload);
+      else if (planMode === "credit_installment") await generateCreditInstallments(planRef.id, payload);
+
+      txnAmount.value = "";
+      txnNote.value = "";
+      if (txnPayment) txnPayment.value = "";
+      if (txnCard) txnCard.value = "";
+      if (txnStatementMonth) txnStatementMonth.value = "";
+      cbRecurring.checked = false;
+      cbInstallment.checked = false;
+      cbFinance.checked = false;
+      syncOptionalFields();
+      syncCreditTxnFields();
+
+      txnStatus.textContent = "Plano gerado com sucesso.";
+      await loadPlans();
+      await reloadAll();
+    } catch (e) {
+      console.error("createPlanFromTxnForm failed", e);
+      setOpsError("Nao foi possivel gerar o plano. Verifique sua permissao.");
+    } finally {
+      btnAddTxn.disabled = false;
+      btnAddTxn.textContent = "Adicionar";
+    }
+  }
+
+  async function createPlanAndGenerate() {
+    if (!btnCreatePlan || !planStatus) return;
+    planStatus.textContent = "";
+
+    if (!isPersonalWalletId(state.walletId)) {
+      planStatus.textContent = "Planos so podem ser criados em carteiras pessoais.";
+      return;
+    }
+
+    const type = planType?.value || "recurring";
+    const title = (planTitle?.value ?? "").trim();
+    const txnKind = planTxnType?.value || "expense";
+    const categoryId = planCategory?.value || "";
+    const cat = state.categories.get(categoryId);
+    const categoryName = cat?.name ?? (planCategory?.options[planCategory.selectedIndex]?.textContent ?? "");
+
+    if (!title) { planStatus.textContent = "Informe a descricao do plano."; return; }
+    if (!categoryId) { planStatus.textContent = "Selecione uma categoria."; return; }
+
+    let amountTotalCents = null;
+    let amountEachCents = null;
+    let monthsTotal = null;
+
+    if (type === "recurring") {
+      amountEachCents = parseAmountToCents(planAmountEach?.value);
+      if (!amountEachCents || amountEachCents <= 0) { planStatus.textContent = "Informe o valor mensal."; return; }
+      amountTotalCents = amountEachCents;
+    } else {
+      amountTotalCents = parseAmountToCents(planAmountTotal?.value);
+      monthsTotal = parsePositiveInt(planMonthsTotal?.value);
+      if (!amountTotalCents || amountTotalCents <= 0) { planStatus.textContent = "Informe o valor total."; return; }
+      if (!monthsTotal || monthsTotal <= 0) { planStatus.textContent = "Informe o numero de meses."; return; }
+      amountEachCents = Math.floor(amountTotalCents / monthsTotal);
+    }
+
+    let startMonth = yyyyMMFromMonthInput(planStartMonth?.value);
+    if (!startMonth) startMonth = currentYYYYMM();
+    if (!startMonth) { planStatus.textContent = "Informe o mes inicial."; return; }
+
+    let paymentMethod = planPaymentMethod?.value || "outro";
+    let creditCardId = null;
+    let purchaseDate = null;
+    let statementStartMonth = null;
+
+    if (type === "credit_installment") {
+      paymentMethod = "credito";
+      creditCardId = planCreditCard?.value || "";
+      if (!creditCardId) { planStatus.textContent = "Selecione um cartao."; return; }
+
+      const purchaseDateStr = planPurchaseDate?.value || "";
+      if (!purchaseDateStr) { planStatus.textContent = "Informe a data da compra."; return; }
+      const purchaseDateObj = new Date(purchaseDateStr + "T00:00:00");
+      purchaseDate = Timestamp.fromDate(purchaseDateObj);
+      const closingDay = getCardClosingDay(creditCardId);
+      statementStartMonth = computeStatementMonth(purchaseDateObj, closingDay);
+    }
+
+    btnCreatePlan.disabled = true;
+    btnCreatePlan.textContent = "Gerando...";
+
+    try {
+      const planRef = doc(collection(db, "wallets", state.walletId, "plans"));
+      const payload = {
+        type,
+        title,
+        walletId: state.walletId,
+        txnType: txnKind,
+        categoryId,
+        categoryName,
+        amountTotalCents,
+        amountEachCents,
+        startMonth,
+        monthsTotal: monthsTotal ?? null,
+        generatedThrough: null,
+        status: "active",
+        paymentMethod,
+        creditCardId: creditCardId || null,
+        statementStartMonth: statementStartMonth || null,
+        purchaseDate: purchaseDate || null,
+        paidCount: monthsTotal ? 0 : null,
+        remainingCount: monthsTotal ? monthsTotal : null,
+        createdAt: serverTimestamp(),
+        createdBy: state.uid,
+        updatedAt: serverTimestamp(),
+        updatedBy: state.uid
+      };
+
+      await setDoc(planRef, payload);
+
+      if (type === "recurring") await generateRecurring(planRef.id, payload);
+      else if (type === "installment") await generateInstallments(planRef.id, payload);
+      else if (type === "finance") await generateFinance(planRef.id, payload);
+      else if (type === "credit_installment") await generateCreditInstallments(planRef.id, payload);
+
+      planTitle.value = "";
+      planAmountEach.value = "";
+      planAmountTotal.value = "";
+      planMonthsTotal.value = "";
+      syncPlanFields();
+      planStatus.textContent = "Plano gerado com sucesso.";
+      await loadPlans();
+      await reloadAll();
+    } catch (e) {
+      console.error("createPlanAndGenerate failed", e);
+      planStatus.textContent = "Nao foi possivel gerar o plano. Verifique sua permissao.";
+    } finally {
+      btnCreatePlan.disabled = false;
+      btnCreatePlan.textContent = "Gerar agora";
+    }
+  }
+
+  async function generatePlanById(planId) {
+    if (!planId) return;
+    const plan = await getPlan(planId);
+    if (!plan) return;
+    if (plan.status === "canceled") {
+      if (planStatus) planStatus.textContent = "Plano cancelado.";
+      return;
+    }
+    if (plan.status === "paused") {
+      if (planStatus) planStatus.textContent = "Plano pausado.";
+      return;
+    }
+    if (plan.type === "recurring") await generateRecurring(planId, plan);
+    else if (plan.type === "installment") await generateInstallments(planId, plan);
+    else if (plan.type === "finance") await generateFinance(planId, plan);
+    else if (plan.type === "credit_installment") await generateCreditInstallments(planId, plan);
+    await loadPlans();
+    await reloadAll();
+  }
+
+  async function ensureGeneratedUpTo(planId, targetMonth) {
+    const plan = await getPlan(planId);
+    if (!plan || plan.type !== "recurring") return;
+
+    if (plan.status !== "active") {
+      if (planStatus) planStatus.textContent = "Plano pausado ou cancelado.";
+      return;
+    }
+
+    let current = plan.generatedThrough ? addMonthsYYYYMM(plan.generatedThrough, 1) : plan.startMonth;
+    if (!current || !targetMonth) return;
+
+    let lastGenerated = null;
+    while (compareYYYYMM(current, targetMonth) <= 0) {
+      const index = monthDiff(plan.startMonth, current) + 1;
+      const txnId = `r_${planId}_${current}`;
+      const v2 = buildPlanV2Fields(plan, index, null);
+      let creditFields = {};
+      if (plan.paymentMethod === "credito" && plan.creditCardId) {
+        const baseDay = plan.purchaseDate?.toDate?.().getDate?.() ?? 1;
+        const parsed = parseYYYYMM(current);
+        if (parsed) {
+          const day = Math.min(baseDay, 28);
+          const purchaseDateObj = new Date(parsed.y, parsed.m - 1, day);
+          const closingDay = getCardClosingDay(plan.creditCardId);
+          const statementMonth = computeStatementMonth(purchaseDateObj, closingDay);
+          creditFields = {
+            creditCardId: plan.creditCardId,
+            statementMonth,
+            purchaseDate: Timestamp.fromDate(purchaseDateObj)
+          };
+        }
+      }
+      const payload = {
+        date: timestampFromYYYYMM(current),
+        amountCents: plan.amountEachCents || 0,
+        type: plan.txnType || "expense",
+        categoryId: plan.categoryId,
+        categoryName: plan.categoryName,
+        note: buildPlanNote(plan, index, null),
+        ...v2,
+        planId,
+        planType: plan.type,
+        occurrenceIndex: index,
+        occurrenceTotal: null,
+        ...creditFields,
+        status: "scheduled"
+      };
+      await createTxnWithDerivations(payload, { walletId: plan.walletId, txnId });
+      lastGenerated = current;
+      current = addMonthsYYYYMM(current, 1);
+    }
+
+    if (lastGenerated) {
+      await setDoc(doc(db, "wallets", plan.walletId, "plans", planId), {
+        generatedThrough: lastGenerated,
+        updatedAt: serverTimestamp(),
+        updatedBy: state.uid
+      }, { merge: true });
+    }
+  }
+
+  async function generateRecurring(planId, planOverride = null) {
+    const plan = planOverride || await getPlan(planId);
+    if (!plan) return;
+    const start = plan.generatedThrough ? addMonthsYYYYMM(plan.generatedThrough, 1) : plan.startMonth;
+    if (!start) return;
+    const target = addMonthsYYYYMM(start, 11);
+    await ensureGeneratedUpTo(planId, target);
+  }
+
+  async function generateInstallments(planId, planOverride = null) {
+    const plan = planOverride || await getPlan(planId);
+    if (!plan || !plan.monthsTotal) return;
+    if (plan.status !== "active") return;
+
+    const amounts = splitAmountByMonths(plan.amountTotalCents || 0, plan.monthsTotal);
+    let lastMonth = null;
+
+    for (let i = 1; i <= plan.monthsTotal; i += 1) {
+      const month = addMonthsYYYYMM(plan.startMonth, i - 1);
+      const txnId = `p_${planId}_${String(i).padStart(2, "0")}`;
+      const v2 = buildPlanV2Fields(plan, i, plan.monthsTotal);
+      const payload = {
+        date: timestampFromYYYYMM(month),
+        amountCents: amounts[i - 1] ?? plan.amountEachCents ?? 0,
+        type: plan.txnType || "expense",
+        categoryId: plan.categoryId,
+        categoryName: plan.categoryName,
+        note: buildPlanNote(plan, i, plan.monthsTotal),
+        ...v2,
+        planId,
+        planType: plan.type,
+        occurrenceIndex: i,
+        occurrenceTotal: plan.monthsTotal,
+        status: "scheduled"
+      };
+      await createTxnWithDerivations(payload, { walletId: plan.walletId, txnId });
+      lastMonth = month;
+    }
+
+    if (lastMonth) {
+      await setDoc(doc(db, "wallets", plan.walletId, "plans", planId), {
+        generatedThrough: lastMonth,
+        updatedAt: serverTimestamp(),
+        updatedBy: state.uid
+      }, { merge: true });
+    }
+  }
+
+  async function generateFinance(planId, planOverride = null) {
+    const plan = planOverride || await getPlan(planId);
+    if (!plan || !plan.monthsTotal) return;
+    if (plan.status !== "active") return;
+
+    const amounts = splitAmountByMonths(plan.amountTotalCents || 0, plan.monthsTotal);
+    let lastMonth = null;
+
+    for (let i = 1; i <= plan.monthsTotal; i += 1) {
+      const month = addMonthsYYYYMM(plan.startMonth, i - 1);
+      const txnId = `f_${planId}_${String(i).padStart(2, "0")}`;
+      const v2 = buildPlanV2Fields(plan, i, plan.monthsTotal);
+      const payload = {
+        date: timestampFromYYYYMM(month),
+        amountCents: amounts[i - 1] ?? plan.amountEachCents ?? 0,
+        type: plan.txnType || "expense",
+        categoryId: plan.categoryId,
+        categoryName: plan.categoryName,
+        note: buildPlanNote(plan, i, plan.monthsTotal),
+        ...v2,
+        planId,
+        planType: plan.type,
+        occurrenceIndex: i,
+        occurrenceTotal: plan.monthsTotal,
+        status: "scheduled"
+      };
+      await createTxnWithDerivations(payload, { walletId: plan.walletId, txnId });
+      lastMonth = month;
+    }
+
+    if (lastMonth) {
+      await setDoc(doc(db, "wallets", plan.walletId, "plans", planId), {
+        generatedThrough: lastMonth,
+        updatedAt: serverTimestamp(),
+        updatedBy: state.uid
+      }, { merge: true });
+    }
+  }
+
+  async function generateCreditInstallments(planId, planOverride = null) {
+    const plan = planOverride || await getPlan(planId);
+    if (!plan || !plan.monthsTotal) return;
+    if (plan.status !== "active") return;
+    if (!plan.creditCardId || !plan.statementStartMonth) return;
+
+    const amounts = splitAmountByMonths(plan.amountTotalCents || 0, plan.monthsTotal);
+    let lastMonth = null;
+
+    for (let i = 1; i <= plan.monthsTotal; i += 1) {
+      const statementMonth = addMonthsYYYYMM(plan.statementStartMonth, i - 1);
+      const txnId = `cc_${planId}_${statementMonth}`;
+      const v2 = buildPlanV2Fields(plan, i, plan.monthsTotal);
+      v2.paymentMethod = "credito";
+      const payload = {
+        date: timestampFromYYYYMM(statementMonth),
+        amountCents: amounts[i - 1] ?? plan.amountEachCents ?? 0,
+        type: plan.txnType || "expense",
+        categoryId: plan.categoryId,
+        categoryName: plan.categoryName,
+        note: buildPlanNote(plan, i, plan.monthsTotal),
+        ...v2,
+        planId,
+        planType: plan.type,
+        occurrenceIndex: i,
+        occurrenceTotal: plan.monthsTotal,
+        status: "scheduled",
+        creditCardId: plan.creditCardId,
+        statementMonth,
+        purchaseDate: plan.purchaseDate || null
+      };
+      await createTxnWithDerivations(payload, { walletId: plan.walletId, txnId });
+      lastMonth = statementMonth;
+    }
+
+    if (lastMonth) {
+      await setDoc(doc(db, "wallets", plan.walletId, "plans", planId), {
+        generatedThrough: lastMonth,
+        updatedAt: serverTimestamp(),
+        updatedBy: state.uid
+      }, { merge: true });
+    }
+  }
+
+  // ===== Transactions write (derivations) =====
+
+  async function createTxnWithDerivations(txnPayload, { walletId = state.walletId, txnId = null } = {}) {
+    const personalWalletId = walletId;
+    const shouldSyncToCouple = isPersonalWalletId(personalWalletId);
+
+    const personalCol = collection(db, "wallets", personalWalletId, "transactions");
+    const personalRef = txnId ? doc(personalCol, txnId) : doc(personalCol);
+    const realTxnId = personalRef.id;
+    const viewRef = doc(db, "wallets", COUPLE_WALLET_ID, "transactions_view", `${personalWalletId}_${realTxnId}`);
+
+    const month = yyyyMMFromTimestamp(txnPayload.date);
+    if (!month) throw new Error("Data invalida.");
+
+    const reportRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", month);
+
+    const needsStatement = txnPayload.paymentMethod === "credito" && txnPayload.creditCardId && txnPayload.statementMonth;
+    const statementRef = needsStatement ? getStatementRef(personalWalletId, txnPayload.creditCardId, txnPayload.statementMonth) : null;
+
+    await runTransaction(db, async (tx) => {
+      const txnSnap = await tx.get(personalRef);
+      if (txnSnap.exists()) return;
+
+      let repSnap = null;
+      let repData = null;
+      let repExists = false;
+      let stmtSnap = null;
+
+      if (shouldSyncToCouple) {
+        repSnap = await tx.get(reportRef);
+        repExists = repSnap.exists();
+        repData = repExists ? repSnap.data() : null;
+      }
+
+      if (needsStatement && statementRef) {
+        stmtSnap = await tx.get(statementRef);
+      }
+
+      const basePayload = {
+        ...txnPayload,
+        createdAt: serverTimestamp(),
+        createdBy: state.uid
+      };
+
+      tx.set(personalRef, basePayload, { merge: true });
+
+      if (shouldSyncToCouple) {
+        tx.set(viewRef, {
+          ...basePayload,
+          sourceWalletId: personalWalletId,
+          sourceTxnId: realTxnId,
+          sourceUid: state.uid,
+          syncedAt: serverTimestamp()
+        }, { merge: true });
+
+        const deltaIncome = (txnPayload.type === "income") ? Number(txnPayload.amountCents || 0) : 0;
+        const deltaExpense = (txnPayload.type === "expense") ? Number(txnPayload.amountCents || 0) : 0;
+
+        const { nextIncome, nextExpense } = computeCoupleSourceNext(repData, personalWalletId, deltaIncome, deltaExpense);
+
+        const reportPatch = {
+          month,
+          updatedAt: serverTimestamp(),
+          updatedBy: state.uid,
+          sources: {
+            [personalWalletId]: {
+              incomeCents: nextIncome,
+              expenseCents: nextExpense,
+              updatedAt: serverTimestamp(),
+              updatedBy: state.uid
+            }
+          }
+        };
+
+        const mergeFields = ["month", "updatedAt", "updatedBy", `sources.${personalWalletId}`];
+        if (!repExists) {
+          reportPatch.createdAt = serverTimestamp();
+          reportPatch.createdBy = state.uid;
+          mergeFields.push("createdAt", "createdBy");
+        }
+        tx.set(reportRef, reportPatch, { mergeFields });
+      }
+
+      if (needsStatement && statementRef) {
+        const currentTotal = Number(stmtSnap?.data()?.totalCents || 0);
+        const delta = statementSignedAmount(txnPayload.amountCents, txnPayload.type);
+        const nextTotal = currentTotal + delta;
+        const patch = {
+          month: txnPayload.statementMonth,
+          totalCents: nextTotal,
+          updatedAt: serverTimestamp(),
+          updatedBy: state.uid
+        };
+        if (!stmtSnap?.exists?.()) {
+          patch.status = "open";
+          patch.paidAt = null;
+          patch.createdAt = serverTimestamp();
+          patch.createdBy = state.uid;
+        }
+        tx.set(statementRef, patch, { merge: true });
+      }
+    });
+  }
+
+  async function updateTxnWithDerivations(txnId, updates, { walletId = state.walletId } = {}) {
+    const personalWalletId = walletId;
+    const shouldSyncToCouple = isPersonalWalletId(personalWalletId);
+    const personalRef = doc(db, "wallets", personalWalletId, "transactions", txnId);
+    const viewRef = doc(db, "wallets", COUPLE_WALLET_ID, "transactions_view", `${personalWalletId}_${txnId}`);
+
+    await runTransaction(db, async (tx) => {
+      const txnSnap = await tx.get(personalRef);
+      if (!txnSnap.exists()) throw new Error("Transacao nao encontrada.");
+
+      const existingRaw = txnSnap.data();
+      const existing = normalizeTxnV2(existingRaw);
+      const nextRaw = { ...existingRaw, ...updates };
+      const next = normalizeTxnV2(nextRaw);
+
+      const oldAmount = Number(existing.amountCents || 0);
+      const newAmount = Number(next.amountCents || 0);
+      const oldType = existing.type ?? "expense";
+      const newType = next.type ?? "expense";
+      const oldMonth = yyyyMMFromTimestamp(existing.date);
+      const newMonth = yyyyMMFromTimestamp(next.date);
+      if (!oldMonth || !newMonth) throw new Error("Data invalida.");
+
+      let oldRepSnap = null;
+      let newRepSnap = null;
+      let oldReportRef = null;
+      let newReportRef = null;
+
+      if (shouldSyncToCouple) {
+        oldReportRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", oldMonth);
+        oldRepSnap = await tx.get(oldReportRef);
+        if (newMonth === oldMonth) {
+          newReportRef = oldReportRef;
+          newRepSnap = oldRepSnap;
+        } else {
+          newReportRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", newMonth);
+          newRepSnap = await tx.get(newReportRef);
+        }
+      }
+
+      const oldStmtKey = getStatementKey(existing);
+      const newStmtKey = getStatementKey(next);
+      let oldStmtSnap = null;
+      let newStmtSnap = null;
+      let oldStmtRef = null;
+      let newStmtRef = null;
+
+      if (oldStmtKey) {
+        oldStmtRef = getStatementRef(personalWalletId, oldStmtKey.cardId, oldStmtKey.month);
+        oldStmtSnap = await tx.get(oldStmtRef);
+      }
+      if (newStmtKey) {
+        newStmtRef = getStatementRef(personalWalletId, newStmtKey.cardId, newStmtKey.month);
+        if (!oldStmtKey || oldStmtKey.cardId !== newStmtKey.cardId || oldStmtKey.month !== newStmtKey.month) {
+          newStmtSnap = await tx.get(newStmtRef);
+        } else {
+          newStmtSnap = oldStmtSnap;
+        }
+      }
+
+      tx.set(personalRef, {
+        ...updates,
+        updatedAt: serverTimestamp(),
+        updatedBy: state.uid
+      }, { merge: true });
+
+      if (shouldSyncToCouple) {
+        tx.set(viewRef, {
+          ...next,
+          sourceWalletId: personalWalletId,
+          sourceTxnId: txnId,
+          sourceUid: existing.sourceUid || state.uid,
+          syncedAt: serverTimestamp()
+        }, { merge: true });
+
+        const oldIncome = oldType === "income" ? oldAmount : 0;
+        const oldExpense = oldType === "expense" ? oldAmount : 0;
+        const newIncome = newType === "income" ? newAmount : 0;
+        const newExpense = newType === "expense" ? newAmount : 0;
+
+        const applyReportUpdate = (repRef, repSnap, deltaIncome, deltaExpense) => {
+          const repExists = repSnap?.exists?.() ?? false;
+          const repData = repExists ? repSnap.data() : null;
+          const { nextIncome, nextExpense } = computeCoupleSourceNext(repData, personalWalletId, deltaIncome, deltaExpense);
+
+          const patch = {
+            month: repRef.id,
+            updatedAt: serverTimestamp(),
+            updatedBy: state.uid,
+            sources: {
+              [personalWalletId]: {
+                incomeCents: nextIncome,
+                expenseCents: nextExpense,
+                updatedAt: serverTimestamp(),
+                updatedBy: state.uid
+              }
+            }
+          };
+          const mergeFields = ["month", "updatedAt", "updatedBy", `sources.${personalWalletId}`];
+          if (!repExists) {
+            patch.createdAt = serverTimestamp();
+            patch.createdBy = state.uid;
+            mergeFields.push("createdAt", "createdBy");
+          }
+          tx.set(repRef, patch, { mergeFields });
+        };
+
+        if (newMonth === oldMonth) {
+          applyReportUpdate(oldReportRef, oldRepSnap, newIncome - oldIncome, newExpense - oldExpense);
+        } else {
+          applyReportUpdate(oldReportRef, oldRepSnap, -oldIncome, -oldExpense);
+          applyReportUpdate(newReportRef, newRepSnap, newIncome, newExpense);
+        }
+      }
+
+      const applyStatementUpdate = (stmtRef, stmtSnap, delta) => {
+        if (!stmtRef || !delta) return;
+        const currentTotal = Number(stmtSnap?.data()?.totalCents || 0);
+        const nextTotal = currentTotal + delta;
+        const patch = {
+          month: stmtRef.id,
+          totalCents: nextTotal,
+          updatedAt: serverTimestamp(),
+          updatedBy: state.uid
+        };
+        if (!stmtSnap?.exists?.()) {
+          patch.status = "open";
+          patch.paidAt = null;
+          patch.createdAt = serverTimestamp();
+          patch.createdBy = state.uid;
+        }
+        tx.set(stmtRef, patch, { merge: true });
+      };
+
+      const oldSigned = statementSignedAmount(oldAmount, oldType);
+      const newSigned = statementSignedAmount(newAmount, newType);
+
+      if (oldStmtRef && newStmtRef && oldStmtRef.path === newStmtRef.path) {
+        const delta = newSigned - oldSigned;
+        applyStatementUpdate(oldStmtRef, oldStmtSnap, delta);
+      } else {
+        if (oldStmtRef) applyStatementUpdate(oldStmtRef, oldStmtSnap, -oldSigned);
+        if (newStmtRef) applyStatementUpdate(newStmtRef, newStmtSnap, newSigned);
+      }
+    });
+  }
+
+  async function deleteTxnWithDerivations(txnId, { walletId = state.walletId } = {}) {
+    const personalWalletId = walletId;
+    if (!isPersonalWalletId(personalWalletId)) return;
+    const personalRef = doc(db, "wallets", personalWalletId, "transactions", txnId);
+    const viewRef = doc(db, "wallets", COUPLE_WALLET_ID, "transactions_view", `${personalWalletId}_${txnId}`);
+
+    await runTransaction(db, async (tx) => {
+      const txnSnap = await tx.get(personalRef);
+      if (!txnSnap.exists()) return;
+
+      const existing = normalizeTxnV2(txnSnap.data());
+      const amount = Number(existing.amountCents || 0);
+      const type = existing.type ?? "expense";
+      const month = yyyyMMFromTimestamp(existing.date);
+      if (!month) return;
+
+      let repSnap = null;
+      let repData = null;
+      let repExists = false;
+      const reportRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", month);
+
+      if (isPersonalWalletId(personalWalletId)) {
+        repSnap = await tx.get(reportRef);
+        repExists = repSnap.exists();
+        repData = repExists ? repSnap.data() : null;
+      }
+
+      const stmtKey = getStatementKey(existing);
+      const stmtRef = stmtKey ? getStatementRef(personalWalletId, stmtKey.cardId, stmtKey.month) : null;
+      const stmtSnap = stmtRef ? await tx.get(stmtRef) : null;
+
+      tx.delete(personalRef);
+      tx.delete(viewRef);
+
+      const deltaIncome = (type === "income") ? -amount : 0;
+      const deltaExpense = (type === "expense") ? -amount : 0;
+
+      if (repData || repExists) {
+        const { nextIncome, nextExpense } = computeCoupleSourceNext(repData, personalWalletId, deltaIncome, deltaExpense);
+        const reportPatch = {
+          month,
+          updatedAt: serverTimestamp(),
+          updatedBy: state.uid,
+          sources: {
+            [personalWalletId]: {
+              incomeCents: nextIncome,
+              expenseCents: nextExpense,
+              updatedAt: serverTimestamp(),
+              updatedBy: state.uid
+            }
+          }
+        };
+        const mergeFields = ["month", "updatedAt", "updatedBy", `sources.${personalWalletId}`];
+        if (!repExists) {
+          reportPatch.createdAt = serverTimestamp();
+          reportPatch.createdBy = state.uid;
+          mergeFields.push("createdAt", "createdBy");
+        }
+        tx.set(reportRef, reportPatch, { mergeFields });
+      }
+
+      if (stmtRef) {
+        const currentTotal = Number(stmtSnap?.data()?.totalCents || 0);
+        const delta = -statementSignedAmount(amount, type);
+        const nextTotal = currentTotal + delta;
+        const patch = {
+          month: stmtRef.id,
+          totalCents: nextTotal,
+          updatedAt: serverTimestamp(),
+          updatedBy: state.uid
+        };
+        if (!stmtSnap?.exists?.()) {
+          patch.status = "open";
+          patch.paidAt = null;
+          patch.createdAt = serverTimestamp();
+          patch.createdBy = state.uid;
+        }
+        tx.set(stmtRef, patch, { merge: true });
+      }
+    });
+  }
+
+  async function markOccurrencePaid(txnId) {
+    if (!isPersonalWalletId(state.walletId)) return;
+    const personalRef = doc(db, "wallets", state.walletId, "transactions", txnId);
+    const viewRef = doc(db, "wallets", COUPLE_WALLET_ID, "transactions_view", `${state.walletId}_${txnId}`);
+
+    await runTransaction(db, async (tx) => {
+      const txnSnap = await tx.get(personalRef);
+      if (!txnSnap.exists()) return;
+      const txn = txnSnap.data();
+      if (txn.status === "paid") return;
+
+      tx.set(personalRef, {
+        status: "paid",
+        paidAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        updatedBy: state.uid
+      }, { merge: true });
+
+      tx.set(viewRef, {
+        status: "paid",
+        paidAt: serverTimestamp(),
+        syncedAt: serverTimestamp()
+      }, { merge: true });
+
+      if (txn.planId) {
+        const planRef = doc(db, "wallets", state.walletId, "plans", txn.planId);
+        const planSnap = await tx.get(planRef);
+        if (planSnap.exists()) {
+          const plan = planSnap.data();
+          const monthsTotal = Number(plan.monthsTotal || 0);
+          const paidCount = Number(plan.paidCount || 0) + 1;
+          const patch = {
+            paidCount,
+            updatedAt: serverTimestamp(),
+            updatedBy: state.uid
+          };
+          if (monthsTotal) {
+            patch.remainingCount = Math.max(0, monthsTotal - paidCount);
+            if (paidCount >= monthsTotal) patch.status = "completed";
+          }
+          tx.set(planRef, patch, { merge: true });
+        }
+      }
+    });
+  }
+
   async function prepareEditModal(txnId) {
+    if (!editModal || !editTxnDate || !editTxnType || !editTxnCat || !editTxnAmount || !editTxnNote || !editStatus || !editError) {
+      return;
+    }
     editError.textContent = "";
     editStatus.textContent = "";
 
@@ -1567,7 +3355,7 @@
       try {
         const snap = await getDoc(doc(db, "wallets", state.walletId, "transactions", txnId));
         if (snap.exists()) {
-          const data = snap.data();
+          const data = normalizeTxnV2(snap.data());
           txn = {
             id: txnId,
             date: data.date?.toDate?.() ?? null,
@@ -1602,7 +3390,7 @@
     setOpsError("");
 
     if (isCoupleWallet()) {
-      setOpsError("Esta visão consolidada é somente leitura. Lance receitas e despesas em uma carteira pessoal.");
+      setOpsError("Esta visao consolidada e somente leitura. Lance receitas e despesas em uma carteira pessoal.");
       return;
     }
 
@@ -1611,12 +3399,13 @@
 
     const rawType = txnType.value;
     const type = rawType === "reserve" ? "expense" : rawType;
+    const txnV2 = buildTxnV2Payload(rawType, type);
     const catId = txnCat.value;
     if (!catId) { setOpsError("Selecione uma categoria."); return; }
 
     const amountCents = parseAmountToCents(txnAmount.value);
     if (amountCents == null || amountCents <= 0) {
-      setOpsError("Informe um valor válido (maior que zero).");
+      setOpsError("Informe um valor valido (maior que zero).");
       return;
     }
 
@@ -1624,8 +3413,50 @@
     const cat = state.categories.get(catId);
     const categoryName = cat?.name ?? "";
 
+    const wantsRecurring = !!cbRecurring?.checked;
+    const wantsInstallment = !!cbInstallment?.checked;
+    const wantsFinance = !!cbFinance?.checked;
+
+    if ((wantsInstallment && wantsFinance) || (wantsRecurring && (wantsInstallment || wantsFinance))) {
+      setOpsError("Escolha apenas uma opcao de plano.");
+      return;
+    }
+
+    let planMode = "";
+    if (wantsFinance) planMode = "finance";
+    else if (wantsInstallment) planMode = (txnV2.paymentMethod === "credito" ? "credit_installment" : "installment");
+    else if (wantsRecurring) planMode = "recurring";
+
+    if (planMode) {
+      await createPlanFromTxnForm({
+        planMode,
+        dateStr,
+        type,
+        catId,
+        categoryName,
+        amountCents,
+        note,
+        paymentMethod: txnV2.paymentMethod
+      });
+      return;
+    }
+
     const personalWalletId = state.walletId;
-    const shouldSyncToCouple = isPersonalWalletId(personalWalletId);
+
+    let creditCardId = null;
+    let statementMonth = null;
+    let purchaseDate = null;
+
+    if (txnV2.paymentMethod === "credito") {
+      creditCardId = txnCard?.value || "";
+      if (!creditCardId) { setOpsError("Selecione um cartao."); return; }
+
+      const purchaseDateStr = txnPurchaseDate?.value || dateStr;
+      const purchaseDateObj = new Date(purchaseDateStr + "T00:00:00");
+      const closingDay = getCardClosingDay(creditCardId);
+      statementMonth = computeStatementMonth(purchaseDateObj, closingDay);
+      purchaseDate = Timestamp.fromDate(purchaseDateObj);
+    }
 
     btnAddTxn.disabled = true;
     btnAddTxn.textContent = "Salvando...";
@@ -1633,10 +3464,6 @@
     try {
       const dt = new Date(dateStr + "T00:00:00");
       const ts = Timestamp.fromDate(dt);
-      const yyyyMM = yyyyMMFromDateStr(dateStr);
-
-      const personalCol = collection(db, "wallets", personalWalletId, "transactions");
-      const newRef = doc(personalCol); // gera ID já
 
       const txnPayload = {
         date: ts,
@@ -1645,82 +3472,25 @@
         categoryId: catId,
         categoryName,
         note,
-        createdAt: serverTimestamp(),
-        createdBy: state.uid
+        ...txnV2,
+        creditCardId,
+        statementMonth,
+        purchaseDate
       };
 
-      const viewId = `${personalWalletId}_${newRef.id}`;
-      const viewRef = doc(db, "wallets", COUPLE_WALLET_ID, "transactions_view", viewId);
-
-      const reportRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", yyyyMM);
-
-      await runTransaction(db, async (tx) => {
-        // ===== READS FIRST =====
-        let repSnap = null;
-        let repData = null;
-        let repExists = false;
-
-        if (shouldSyncToCouple) {
-          repSnap = await tx.get(reportRef);
-          repExists = repSnap.exists();
-          repData = repExists ? repSnap.data() : null;
-        }
-
-        // ===== WRITES AFTER READS =====
-        tx.set(newRef, txnPayload);
-
-        if (shouldSyncToCouple) {
-          tx.set(viewRef, {
-            sourceWalletId: personalWalletId,
-            sourceTxnId: newRef.id,
-            sourceUid: state.uid,
-            date: ts,
-            amountCents,
-            type,
-            categoryId: catId,
-            categoryName,
-            note,
-            syncedAt: serverTimestamp()
-          }, { merge: true });
-
-          const deltaIncome = (type === "income") ? amountCents : 0;
-          const deltaExpense = (type === "expense") ? amountCents : 0;
-
-          const { nextIncome, nextExpense } = computeCoupleSourceNext(repData, personalWalletId, deltaIncome, deltaExpense);
-
-          const reportPatch = {
-            month: yyyyMM,
-            updatedAt: serverTimestamp(),
-            updatedBy: state.uid,
-            sources: {
-              [personalWalletId]: {
-                incomeCents: nextIncome,
-                expenseCents: nextExpense,
-                updatedAt: serverTimestamp(),
-                updatedBy: state.uid
-              }
-            }
-          };
-
-          const mergeFields = ["month", "updatedAt", "updatedBy", `sources.${personalWalletId}`];
-
-          // só cria createdAt/createdBy se ainda não existe
-          if (!repExists) {
-            reportPatch.createdAt = serverTimestamp();
-            reportPatch.createdBy = state.uid;
-            mergeFields.push("createdAt", "createdBy");
-          }
-
-          tx.set(reportRef, reportPatch, { mergeFields });
-        }
-      });
+      await createTxnWithDerivations(txnPayload, { walletId: personalWalletId });
 
       txnAmount.value = "";
       txnNote.value = "";
+      if (txnPayment) txnPayment.value = "";
+      if (txnCard) txnCard.value = "";
+      if (txnStatementMonth) txnStatementMonth.value = "";
+      syncCreditTxnFields();
 
       await reloadAll();
     } catch (e) {
-      setOpsError("Não foi possível salvar a transação. Tente novamente.");
+      console.error("addTransaction failed", e);
+      setOpsError("Nao foi possivel salvar a transacao. Tente novamente.");
     } finally {
       btnAddTxn.disabled = false;
       btnAddTxn.textContent = "Adicionar";
@@ -1736,73 +3506,23 @@
       return;
     }
 
-    const personalTxnRef = doc(db, "wallets", personalWalletId, "transactions", txnId);
-    const viewRef = doc(db, "wallets", COUPLE_WALLET_ID, "transactions_view", `${personalWalletId}_${txnId}`);
-
     try {
-      await runTransaction(db, async (tx) => {
-        // ===== READS FIRST =====
-        const txnSnap = await tx.get(personalTxnRef);
-        if (!txnSnap.exists()) return;
-
-        const t = txnSnap.data();
-        const amount = Number(t.amountCents || 0);
-        const type = t.type ?? "expense";
-        const yyyyMM = yyyyMMFromTimestamp(t.date);
-
-        const reportRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", yyyyMM);
-        const repSnap = await tx.get(reportRef);
-        const repExists = repSnap.exists();
-        const repData = repExists ? repSnap.data() : null;
-
-        // ===== WRITES AFTER READS =====
-        tx.delete(personalTxnRef);
-        tx.delete(viewRef);
-
-        // atualiza totals do casal (decremento)
-        const deltaIncome = (type === "income") ? -amount : 0;
-        const deltaExpense = (type === "expense") ? -amount : 0;
-
-        const { nextIncome, nextExpense } = computeCoupleSourceNext(repData, personalWalletId, deltaIncome, deltaExpense);
-
-        const reportPatch = {
-          month: yyyyMM,
-          updatedAt: serverTimestamp(),
-          updatedBy: state.uid,
-          sources: {
-            [personalWalletId]: {
-              incomeCents: nextIncome,
-              expenseCents: nextExpense,
-              updatedAt: serverTimestamp(),
-              updatedBy: state.uid
-            }
-          }
-        };
-
-        const mergeFields = ["month", "updatedAt", "updatedBy", `sources.${personalWalletId}`];
-
-        // se report não existia (situação rara), cria sem quebrar
-        if (!repExists) {
-          reportPatch.createdAt = serverTimestamp();
-          reportPatch.createdBy = state.uid;
-          mergeFields.push("createdAt", "createdBy");
-        }
-
-        tx.set(reportRef, reportPatch, { mergeFields });
-      });
-
+      await deleteTxnWithDerivations(txnId, { walletId: personalWalletId });
       await reloadAll();
     } catch (e) {
-      setOpsError("Não foi possível excluir a transação. Tente novamente.");
+      setOpsError("Nao foi possivel excluir a transacao. Tente novamente.");
     }
   }
 
   async function updateTransactionPersonalAndSync() {
+    if (!editModal || !editTxnDate || !editTxnType || !editTxnCat || !editTxnAmount || !editTxnNote || !btnSaveEdit || !editError || !editStatus) {
+      return;
+    }
     editError.textContent = "";
     editStatus.textContent = "";
 
-    if (!state.editingTxnId) { editError.textContent = "Nenhuma transação selecionada."; return; }
-    if (!isPersonalWalletId(state.walletId)) { editError.textContent = "Edição só é permitida em wallets pessoais."; return; }
+    if (!state.editingTxnId) { editError.textContent = "Nenhuma transacao selecionada."; return; }
+    if (!isPersonalWalletId(state.walletId)) { editError.textContent = "Edicao so e permitida em wallets pessoais."; return; }
 
     const txnId = state.editingTxnId;
     const dateStr = editTxnDate.value;
@@ -1813,13 +3533,10 @@
 
     if (!dateStr) { editError.textContent = "Informe a data."; return; }
     if (!catId) { editError.textContent = "Selecione uma categoria."; return; }
-    if (amountCents == null || amountCents <= 0) { editError.textContent = "Informe um valor válido (maior que zero)."; return; }
+    if (amountCents == null || amountCents <= 0) { editError.textContent = "Informe um valor valido (maior que zero)."; return; }
 
     const cat = state.categories.get(catId);
     const categoryName = cat?.name ?? (editTxnCat.options[editTxnCat.selectedIndex]?.textContent ?? "");
-
-    const personalWalletId = state.walletId;
-    const shouldSyncToCouple = isPersonalWalletId(personalWalletId);
 
     btnSaveEdit.disabled = true;
     btnSaveEdit.textContent = "Salvando...";
@@ -1827,122 +3544,28 @@
     try {
       const dt = new Date(dateStr + "T00:00:00");
       const ts = Timestamp.fromDate(dt);
-      const newMonth = yyyyMMFromDateStr(dateStr);
-      if (!newMonth) throw new Error("Data inválida.");
 
-      const personalTxnRef = doc(db, "wallets", personalWalletId, "transactions", txnId);
-      const viewRef = doc(db, "wallets", COUPLE_WALLET_ID, "transactions_view", `${personalWalletId}_${txnId}`);
+      await updateTxnWithDerivations(txnId, {
+        date: ts,
+        amountCents,
+        type,
+        categoryId: catId,
+        categoryName,
+        note
+      }, { walletId: state.walletId });
 
-      await runTransaction(db, async (tx) => {
-        const txnSnap = await tx.get(personalTxnRef);
-        if (!txnSnap.exists()) throw new Error("Transação não encontrada.");
-
-        const existing = txnSnap.data();
-        const oldAmount = Number(existing.amountCents || 0);
-        const oldType = existing.type ?? "expense";
-        const oldMonth = yyyyMMFromTimestamp(existing.date);
-        if (!oldMonth) throw new Error("Data atual inválida na transação existente.");
-
-        let oldRepSnap = null;
-        let newRepSnap = null;
-        let oldReportRef = null;
-        let newReportRef = null;
-
-        if (shouldSyncToCouple) {
-          oldReportRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", oldMonth);
-          oldRepSnap = await tx.get(oldReportRef);
-
-          if (newMonth === oldMonth) {
-            newReportRef = oldReportRef;
-            newRepSnap = oldRepSnap;
-          } else {
-            newReportRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", newMonth);
-            newRepSnap = await tx.get(newReportRef);
-          }
-        }
-
-        tx.update(personalTxnRef, {
-          date: ts,
-          amountCents,
-          type,
-          categoryId: catId,
-          categoryName,
-          note,
-          updatedAt: serverTimestamp(),
-          updatedBy: state.uid
-        });
-
-        if (shouldSyncToCouple) {
-          tx.set(viewRef, {
-            sourceWalletId: personalWalletId,
-            sourceTxnId: txnId,
-            sourceUid: existing.sourceUid || state.uid,
-            date: ts,
-            amountCents,
-            type,
-            categoryId: catId,
-            categoryName,
-            note,
-            syncedAt: serverTimestamp()
-          }, { merge: true });
-
-          const oldIncome = oldType === "income" ? oldAmount : 0;
-          const oldExpense = oldType === "expense" ? oldAmount : 0;
-          const newIncome = type === "income" ? amountCents : 0;
-          const newExpense = type === "expense" ? amountCents : 0;
-
-          const applyReportUpdate = (repRef, repSnap, deltaIncome, deltaExpense) => {
-            const repExists = repSnap?.exists?.() ?? false;
-            const repData = repExists ? repSnap.data() : null;
-
-            const { nextIncome, nextExpense } = computeCoupleSourceNext(repData, personalWalletId, deltaIncome, deltaExpense);
-
-            const patch = {
-              month: repRef.id,
-              updatedAt: serverTimestamp(),
-              updatedBy: state.uid,
-              sources: {
-                [personalWalletId]: {
-                  incomeCents: nextIncome,
-                  expenseCents: nextExpense,
-                  updatedAt: serverTimestamp(),
-                  updatedBy: state.uid
-                }
-              }
-            };
-
-            const mergeFields = ["month", "updatedAt", "updatedBy", `sources.${personalWalletId}`];
-
-            if (!repExists) {
-              patch.createdAt = serverTimestamp();
-              patch.createdBy = state.uid;
-              mergeFields.push("createdAt", "createdBy");
-            }
-
-            tx.set(repRef, patch, { mergeFields });
-          };
-
-          if (newMonth === oldMonth) {
-            applyReportUpdate(oldReportRef, oldRepSnap, newIncome - oldIncome, newExpense - oldExpense);
-          } else {
-            applyReportUpdate(oldReportRef, oldRepSnap, -oldIncome, -oldExpense);
-            applyReportUpdate(newReportRef, newRepSnap, newIncome, newExpense);
-          }
-        }
-      });
-
-      editStatus.textContent = "Transação atualizada.";
+      editStatus.textContent = "Transacao atualizada.";
       closeEditModal();
       await reloadAll();
     } catch (e) {
       editError.textContent = e?.message ?? String(e);
     } finally {
       btnSaveEdit.disabled = false;
-      btnSaveEdit.textContent = "Salvar alterações";
+      btnSaveEdit.textContent = "Salvar alteracoes";
     }
   }
 
-  // ===== Transactions list / Couple views =====
+// ===== Transactions list / Couple views =====
 
   function renderTxnRows(rows, { allowDelete, isCoupleView, allowEdit }) {
     txnTable.innerHTML = "";
@@ -1951,15 +3574,31 @@
       const dt = r.date ? toISODateLocal(r.date) : "-";
       const display = toBRL(Math.abs(r.amountCents));
       const prefix = (r.type === "income") ? "+" : "-";
+      const metaParts = [];
+      if (r.planType) metaParts.push(friendlyPlanType(r.planType));
+      if (r.occurrenceIndex && r.occurrenceTotal) metaParts.push(`${r.occurrenceIndex}/${r.occurrenceTotal}`);
+      const statusLabel = friendlyTxnStatus(r.status);
+      if (statusLabel) metaParts.push(statusLabel);
+      if (r.paymentMethod === "credito" && r.statementMonth) metaParts.push(`Fatura ${r.statementMonth}`);
+      const extraParts = [];
+      if (isCoupleView && r.sourceLabel) extraParts.push(r.sourceLabel);
+      if (metaParts.length) extraParts.push(metaParts.join(" · "));
+      const extraLine = extraParts.length
+        ? `<div class="muted" style="margin-top:4px;">${escapeHtml(extraParts.join(" | "))}</div>`
+        : "";
+      const canPay = allowDelete && !isCoupleView
+        && r.status && r.status !== "paid"
+        && ["installment", "finance", "credit_installment"].includes(r.planType);
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td class="nowrap">${escapeHtml(dt)}</td>
           <td>${escapeHtml(r.categoryName || "-")}</td>
-          <td>${escapeHtml(r.note || "")}${isCoupleView ? `<div class="muted" style="margin-top:4px;">${escapeHtml(r.sourceLabel || "")}</div>` : ""}</td>
+          <td>${escapeHtml(r.note || "")}${extraLine}</td>
           <td class="right nowrap">${prefix} ${escapeHtml(display)}</td>
           <td class="right nowrap">
-            ${allowDelete ? `<button class="ghost" data-del-txn="${r.id}">Excluir</button>` : `<span class="muted">–</span>`}
+            ${allowDelete ? `<button class="ghost" data-del-txn="${r.id}">Excluir</button>` : `<span class="muted">-</span>`}
+            ${canPay ? `<button class="ghost" data-pay-txn="${r.id}" style="margin-left:6px;">Marcar paga</button>` : ""}
           </td>
         `;
       txnTable.appendChild(tr);
@@ -1980,6 +3619,16 @@
         btn.addEventListener("click", async () => {
           const id = btn.getAttribute("data-edit-txn");
           await prepareEditModal(id);
+        });
+      });
+    }
+
+    if (allowDelete) {
+      txnTable.querySelectorAll("button[data-pay-txn]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-pay-txn");
+          await markOccurrencePaid(id);
+          await reloadAll();
         });
       });
     }
@@ -2048,12 +3697,13 @@
       let income = 0, expense = 0;
 
       for (const d of snaps.docs) {
-        const t = d.data();
+        const t = normalizeTxnV2(d.data());
         const amount = Number(t.amountCents || 0);
         if (t.type === "income") income += amount;
         else expense += amount;
         const sourceLabel = t.sourceWalletId ? `Fonte: ${friendlyWalletLabel(t.sourceWalletId, state.walletLabels.get(t.sourceWalletId))}` : "";
 
+        const status = t.status ?? (t.planId ? "scheduled" : "");
         rows.push({
           id: d.id,
           date: t.date?.toDate?.() ?? null,
@@ -2061,7 +3711,14 @@
           note: t.note ?? "",
           type: t.type ?? "",
           amountCents: amount,
-          sourceLabel
+          sourceLabel,
+          planId: t.planId ?? "",
+          planType: t.planType ?? "",
+          occurrenceIndex: t.occurrenceIndex ?? null,
+          occurrenceTotal: t.occurrenceTotal ?? null,
+          status,
+          paymentMethod: t.paymentMethod ?? "",
+          statementMonth: t.statementMonth ?? ""
         });
       }
 
@@ -2132,11 +3789,12 @@
       const rows = [];
 
       for (const d of snaps.docs) {
-        const t = d.data();
+        const t = normalizeTxnV2(d.data());
         const amount = Number(t.amountCents || 0);
         if (t.type === "income") income += amount;
         else expense += amount;
 
+        const status = t.status ?? (t.planId ? "scheduled" : "");
         rows.push({
           id: d.id,
           date: t.date?.toDate?.() ?? null,
@@ -2144,7 +3802,15 @@
           note: t.note ?? "",
           type: t.type ?? "",
           amountCents: amount,
-          categoryId: t.categoryId ?? ""
+          categoryId: t.categoryId ?? "",
+          planId: t.planId ?? "",
+          planType: t.planType ?? "",
+          occurrenceIndex: t.occurrenceIndex ?? null,
+          occurrenceTotal: t.occurrenceTotal ?? null,
+          status,
+          paymentMethod: t.paymentMethod ?? "",
+          creditCardId: t.creditCardId ?? "",
+          statementMonth: t.statementMonth ?? ""
         });
 
         state.txnCache.set(d.id, {
@@ -2154,7 +3820,19 @@
           categoryId: t.categoryId ?? "",
           note: t.note ?? "",
           type: t.type ?? "",
-          amountCents: amount
+          amountCents: amount,
+          originalType: t.originalType ?? "",
+          paymentMethod: t.paymentMethod ?? "outro",
+          recurring: t.recurring ?? { isRecurring: false, cadence: "none" },
+          installment: t.installment ?? { isInstallment: false, total: null, current: null },
+          finance: t.finance ?? { isFinance: false, total: null, current: null },
+          planId: t.planId ?? "",
+          planType: t.planType ?? "",
+          occurrenceIndex: t.occurrenceIndex ?? null,
+          occurrenceTotal: t.occurrenceTotal ?? null,
+          status,
+          creditCardId: t.creditCardId ?? "",
+          statementMonth: t.statementMonth ?? ""
         });
       }
 
@@ -2171,6 +3849,90 @@
       renderKPIs(0, 0);
       return { income: 0, expense: 0, balance: 0 };
     }
+  }
+
+  function setCreditCardOptions(selectEl, selectedId = "", emptyLabel = "Sem cartoes") {
+    if (!selectEl) return;
+    selectEl.innerHTML = "";
+    const entries = Array.from(state.creditCards.entries())
+      .map(([id, c]) => ({ id, ...c }))
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+
+    if (entries.length === 0) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = emptyLabel;
+      selectEl.appendChild(opt);
+      return;
+    }
+
+    let hasSelected = false;
+    for (const c of entries) {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = c.name;
+      if (selectedId && selectedId === c.id) hasSelected = true;
+      selectEl.appendChild(opt);
+    }
+
+    if (selectedId && hasSelected) selectEl.value = selectedId;
+  }
+
+  function listPersonalWalletsForMigration() {
+    const ids = new Set(PERSONAL_WALLETS);
+    const byEmail = USER_PERSONAL_WALLET[state.email];
+    if (byEmail) ids.add(byEmail);
+    return Array.from(ids);
+  }
+
+  async function migrateTxnV2Defaults() {
+    if (!btnMigrateTxnV2 || !migrateStatus) return;
+    migrateStatus.textContent = "Aplicando defaults v2...";
+    const originalLabel = btnMigrateTxnV2.textContent;
+    btnMigrateTxnV2.disabled = true;
+    btnMigrateTxnV2.textContent = "Aplicando...";
+
+    let scanned = 0;
+    let updated = 0;
+    let failures = 0;
+
+    const personalWallets = listPersonalWalletsForMigration();
+    for (const walletId of personalWallets) {
+      try {
+        migrateStatus.textContent = `Varredura: ${walletId}...`;
+        const colRef = collection(db, "wallets", walletId, "transactions");
+        const snaps = await getDocs(colRef);
+        for (const snap of snaps.docs) {
+          scanned += 1;
+          const patch = buildTxnV2MergePatch(snap.data());
+          if (Object.keys(patch).length === 0) continue;
+          await setDoc(snap.ref, patch, { merge: true });
+          updated += 1;
+        }
+      } catch {
+        failures += 1;
+      }
+    }
+
+    try {
+      migrateStatus.textContent = "Varredura: casal...";
+      const viewCol = collection(db, "wallets", COUPLE_WALLET_ID, "transactions_view");
+      const snaps = await getDocs(viewCol);
+      for (const snap of snaps.docs) {
+        scanned += 1;
+        const patch = buildTxnV2MergePatch(snap.data());
+        if (Object.keys(patch).length === 0) continue;
+        await setDoc(snap.ref, patch, { merge: true });
+        updated += 1;
+      }
+    } catch {
+      failures += 1;
+    }
+
+    const extra = failures ? ` (${failures} com erro)` : "";
+    migrateStatus.textContent = `Defaults aplicados: ${updated} de ${scanned} transacoes${extra}.`;
+    btnMigrateTxnV2.disabled = false;
+    btnMigrateTxnV2.textContent = originalLabel;
   }
 
   async function reloadAll() {
@@ -2263,9 +4025,21 @@
   btnAddCat.addEventListener("click", addCategory);
   btnSeedCats.addEventListener("click", seedDefaultCategories);
   btnAddTxn.addEventListener("click", addTransaction);
+  if (btnMigrateTxnV2) btnMigrateTxnV2.addEventListener("click", migrateTxnV2Defaults);
   txnType.addEventListener("change", syncOptionalFields);
   cbInstallment.addEventListener("change", syncOptionalFields);
   cbFinance.addEventListener("change", syncOptionalFields);
+  if (txnPayment) txnPayment.addEventListener("change", syncCreditTxnFields);
+  if (txnCard) txnCard.addEventListener("change", syncCreditTxnFields);
+  if (txnPurchaseDate) txnPurchaseDate.addEventListener("change", syncCreditTxnFields);
+  if (txnDate) txnDate.addEventListener("change", syncCreditTxnFields);
+  if (planType) planType.addEventListener("change", syncPlanFields);
+  if (planPaymentMethod) planPaymentMethod.addEventListener("change", syncPlanFields);
+  if (planCreditCard) planCreditCard.addEventListener("change", syncPlanFields);
+  if (planPurchaseDate) planPurchaseDate.addEventListener("change", syncPlanFields);
+  if (btnCreatePlan) btnCreatePlan.addEventListener("click", createPlanAndGenerate);
+  if (btnAddCard) btnAddCard.addEventListener("click", addCreditCard);
+  if (statementCard) statementCard.addEventListener("change", loadStatements);
 
   navButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -2298,8 +4072,14 @@
     const nowLocal = currentDateInTZ();
     if (cur) monthInput.value = cur;
     txnDate.value = toISODateLocal(nowLocal);
+    if (txnPurchaseDate) txnPurchaseDate.value = toISODateLocal(nowLocal);
+    if (planStartMonth && cur) planStartMonth.value = cur;
+    if (planPurchaseDate) planPurchaseDate.value = toISODateLocal(nowLocal);
+    if (planPaymentMethod) planPaymentMethod.value = "outro";
     syncMonthLabel();
     syncOptionalFields();
+    syncCreditTxnFields();
+    syncPlanFields();
   })();
 
   onAuthStateChanged(auth, async (user) => {
