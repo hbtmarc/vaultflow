@@ -1,4 +1,11 @@
 <!doctype html>
+<!--
+Manual tests:
+- Criar recorrente dia 18 -> ocorrencias nos proximos meses no dia 18 (ou ultimo dia do mes quando nao existir).
+- Lista do mes mostra ocorrencias corretas via monthKey.
+- Recorrente agendado mostra icone e nao exibe texto "Recorrente | Agendado".
+- Criar receita parcelada 4500 em 3x -> 3 ocorrencias income de 1500 nos meses seguintes.
+-->
 <html lang="pt-br">
 <head>
   <meta charset="utf-8" />
@@ -226,6 +233,50 @@
     .panel-footer { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     .auth-card { display: grid; gap: 12px; border: 1px solid #dbeafe; background: linear-gradient(135deg, #ffffff, #f8fbff); }
     .auth-grid { display: grid; gap: 10px; }
+    [hidden] { display: none !important; }
+    .view { display: none; min-height: 100vh; }
+    .view.active { display: block; }
+    .view.auth-view.active { display: grid; }
+    .auth-view { place-items: center; min-height: 100vh; padding: 36px 20px; }
+    .auth-shell { width: min(520px, 100%); display: grid; gap: 18px; }
+    .auth-panel { padding: 24px; }
+    .auth-brand { display: flex; align-items: center; gap: 12px; }
+    .auth-title { font-size: 26px; font-weight: 700; letter-spacing: -0.4px; }
+    .auth-sub { color: var(--muted); font-size: 14px; }
+    .auth-form { display: grid; gap: 12px; }
+    .auth-actions { display: grid; gap: 10px; margin-top: 0; }
+    .auth-links { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 13px; }
+    .link-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      color: var(--accent);
+      cursor: pointer;
+      font: inherit;
+      font-weight: 600;
+    }
+    .link-btn:disabled { color: var(--muted); cursor: not-allowed; }
+    .auth-loading { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+    .auth-loading[hidden] { display: none !important; }
+    .loading-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 18px 20px;
+      display: grid;
+      place-items: center;
+      gap: 10px;
+    }
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #cbd5f5;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
     label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
     input, select, textarea {
@@ -281,7 +332,7 @@
     .tab { padding: 8px 12px; border-radius: 10px; border: 1px solid transparent; background: transparent; cursor: pointer; font-size: 13px; color: var(--text); font-weight: 600; }
     .tab.active { background: #fff; border-color: var(--border); box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08); }
     .info-note { background: #f8fafc; border: 1px dashed var(--border); border-radius: 12px; padding: 10px 12px; color: var(--muted); margin: 6px 0 2px; }
-    .table-shell { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: #fff; }
+    .table-shell { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: #fff; position: relative; }
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: 12px 12px; border-bottom: 1px solid var(--border); text-align: left; }
     th { font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
@@ -290,6 +341,12 @@
     .right { text-align: right; }
     .nowrap { white-space: nowrap; }
     .table-shell.large { max-height: 420px; overflow: auto; }
+    .table-shell thead th {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 2;
+    }
     .sort-btn {
       background: none;
       border: 0;
@@ -307,6 +364,14 @@
     .sort-indicator { font-size: 11px; color: var(--muted); min-width: 24px; text-align: right; display: inline-flex; align-items: center; justify-content: flex-end; }
     .sort-indicator svg { width: 16px; height: 16px; display: block; }
     .sort-btn.active .sort-indicator { color: var(--text); }
+    .recurring-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .recurring-icon svg { width: 18px; height: 18px; display: block; }
     .gallery-head {
       display: grid;
       grid-template-columns: 1.5fr 0.8fr 0.7fr;
@@ -338,6 +403,13 @@
     .category-title { font-weight: 700; }
     .category-actions { display: flex; gap: 6px; }
     .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; align-items: end; }
+    .login-fields {
+      grid-template-columns: 1fr 1fr;
+      column-gap: 16px;
+      row-gap: 12px;
+    }
+    .login-fields > div { min-width: 0; }
+    .login-fields input { width: 100%; min-width: 0; }
     .chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
     .divider { height: 1px; background: var(--border); margin: 14px 0; }
     .list-panel { padding-bottom: 10px; grid-column: 1 / -1; }
@@ -369,6 +441,27 @@
     .option-label { font-weight: 700; }
     .option-sub { font-size: 12px; color: var(--muted); }
     .option-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      z-index: 60;
+    }
+    .modal-card {
+      width: min(560px, 100%);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: #fff;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      display: grid;
+      gap: 12px;
+    }
+    .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .modal-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
     @media (max-width: 1180px) {
       .app-shell { grid-template-columns: 1fr; }
       .sidebar { position: relative; height: auto; border-right: none; }
@@ -379,6 +472,9 @@
       .topbar, .panel-header { flex-direction: column; align-items: flex-start; }
       .content { padding: 0 18px 24px; }
       .card, .panel { padding: 16px; }
+    }
+    @media (max-width: 640px) {
+      .login-fields { grid-template-columns: 1fr; }
     }
     .app-shell.collapsed .brand-text,
     .app-shell.collapsed .nav-item .nav-label,
@@ -411,6 +507,58 @@
 
 </head>
 <body>
+<section id="view-loading" class="view auth-view active">
+  <div class="loading-card">
+    <div class="spinner"></div>
+    <div class="muted">Carregando...</div>
+  </div>
+</section>
+
+<section id="view-login" class="view auth-view" hidden>
+  <div class="auth-shell">
+    <section class="card auth-card auth-panel" id="authCard">
+      <div class="auth-brand">
+        <div class="logo">VF</div>
+        <div>
+          <div class="brand-name">VaultFlow</div>
+          <div class="brand-sub">Fintech control</div>
+        </div>
+      </div>
+      <div class="auth-head">
+        <div class="auth-title">Entrar</div>
+        <div class="auth-sub">Acesse sua conta para continuar.</div>
+      </div>
+      <form id="loginForm" class="auth-form">
+        <div class="form-grid login-fields">
+          <div>
+            <label for="email">E-mail</label>
+            <input id="email" type="email" placeholder="seu@email.com" autocomplete="username" />
+          </div>
+          <div>
+            <label for="pass">Senha</label>
+            <input id="pass" type="password" placeholder="********" autocomplete="current-password" />
+          </div>
+        </div>
+        <div class="auth-actions">
+          <button id="btnEmail" type="submit">Entrar com email e senha</button>
+          <button id="btnGoogle" class="secondary" type="button">Entrar com Google</button>
+        </div>
+      </form>
+      <div class="auth-links">
+        <button id="btnForgot" class="link-btn" type="button">Esqueci minha senha</button>
+        <button id="btnCreate" class="link-btn" type="button" disabled hidden>Criar conta</button>
+      </div>
+      <div class="auth-loading" id="authLoading" hidden>
+        <div class="spinner"></div>
+        <div id="authLoadingText">Entrando...</div>
+      </div>
+      <p id="authStatus" class="muted"></p>
+      <p id="authError" class="err"></p>
+    </section>
+  </div>
+</section>
+
+<section id="view-app" class="view" hidden>
 <div class="app-shell">
   <aside class="sidebar">
     <div class="sidebar-top">
@@ -477,34 +625,7 @@
     </header>
 
     <main class="content">
-      <section class="card auth-card" id="authCard">
-        <div class="panel-header" style="margin-bottom:0;">
-          <div>
-            <p class="eyebrow">Acesso</p>
-            <h2>Entrar</h2>
-          </div>
-          <p id="authStatus" class="muted"></p>
-        </div>
-        <div class="auth-grid">
-          <div class="form-grid">
-            <div>
-              <label for="email">E-mail</label>
-              <input id="email" type="email" placeholder="seu@email.com" autocomplete="username" />
-            </div>
-            <div>
-              <label for="pass">Senha</label>
-              <input id="pass" type="password" placeholder="********" autocomplete="current-password" />
-            </div>
-          </div>
-          <div class="row">
-            <button id="btnEmail">Entrar com e-mail</button>
-            <button id="btnGoogle" class="secondary">Google</button>
-          </div>
-        </div>
-        <p id="authError" class="err"></p>
-      </section>
-
-      <section class="app-grid" id="appGrid" style="display:none;">
+      <section class="app-grid" id="appGrid">
         <section class="page active" id="page-dashboard">
           <p class="err" id="appError"></p>
           <div class="panel">
@@ -1029,6 +1150,52 @@
   </div>
 </div>
 
+  <div id="editModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle" aria-describedby="editHelper" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3 id="editModalTitle">Editar transacao</h3>
+          <p class="muted" id="editHelper">Atualize os dados da transacao.</p>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div>
+          <label for="editTxnDate">Data</label>
+          <input id="editTxnDate" type="date" />
+        </div>
+        <div>
+          <label for="editTxnType">Tipo</label>
+          <select id="editTxnType">
+            <option value="expense">Despesa</option>
+            <option value="income">Receita</option>
+            <option value="reserve">Reserva</option>
+          </select>
+        </div>
+        <div>
+          <label for="editTxnCat">Categoria</label>
+          <select id="editTxnCat"></select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div>
+          <label for="editTxnAmount">Valor</label>
+          <input id="editTxnAmount" placeholder="Ex.: 35,90" />
+        </div>
+        <div>
+          <label for="editTxnNote">Descricao</label>
+          <input id="editTxnNote" placeholder="Observacao" />
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="btnCloseEdit" class="secondary" type="button">Cancelar</button>
+        <button id="btnSaveEdit" type="button">Salvar alteracoes</button>
+      </div>
+      <p class="muted" id="editStatus"></p>
+      <p class="err" id="editError"></p>
+    </div>
+  </div>
+</section>
+
 <script type="module">
 
 
@@ -1041,7 +1208,8 @@
     signInWithEmailAndPassword,
     GoogleAuthProvider,
     signInWithPopup,
-    signOut
+    signOut,
+    sendPasswordResetEmail
   } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
   import {
@@ -1100,13 +1268,20 @@
 
   const $ = (id) => document.getElementById(id);
 
+  const viewLogin = $("view-login");
+  const viewApp = $("view-app");
+  const viewLoading = $("view-loading");
   const btnEmail = $("btnEmail");
   const btnGoogle = $("btnGoogle");
   const btnLogout = $("btnLogout");
+  const btnForgot = $("btnForgot");
+  const btnCreate = $("btnCreate");
+  const loginForm = $("loginForm");
   const authCard = $("authCard");
-
   const authStatus = $("authStatus");
   const authError = $("authError");
+  const authLoading = $("authLoading");
+  const authLoadingText = $("authLoadingText");
 
   const appGrid = $("appGrid");
   const pageTitle = $("pageTitle");
@@ -1262,6 +1437,7 @@
     activeStatementMonth: null,
     statementItemsCache: [],
     statementItemsMonth: null,
+    editingTxnId: null,
     sort: {
       transactions: { key: "date", dir: "desc" },
       categories: { key: "name", dir: "asc" },
@@ -1271,14 +1447,192 @@
       statementItems: { key: "date", dir: "asc" }
     }
   };
+  let authReady = false;
+  let appReady = false;
+  let lastAppHash = "#/app/dashboard";
   Object.entries(FRIENDLY_WALLET_NAMES).forEach(([id, label]) => state.walletLabels.set(id, label));
 
   function setAuthMessage(msg, isError = false) {
-    authStatus.textContent = isError ? "" : msg;
-    authError.textContent = isError ? msg : "";
+    if (authStatus) authStatus.textContent = isError ? "" : msg;
+    if (authError) authError.textContent = isError ? msg : "";
   }
   function setAppError(msg = "") { appError.textContent = msg; }
   function setOpsError(msg = "") { opsError.textContent = msg; }
+
+  function formatMonthKey(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    return `${y}-${m}`;
+  }
+
+  function alignDateToMonthKey(baseDate, monthKey) {
+    if (!(baseDate instanceof Date) || Number.isNaN(baseDate.getTime())) return baseDate;
+    if (!monthKey) return baseDate;
+    const [yearStr, monthStr] = monthKey.split("-");
+    const year = Number(yearStr);
+    const month = Number(monthStr);
+    if (!year || !month) return baseDate;
+    const day = baseDate.getDate();
+    const lastDay = new Date(year, month, 0).getDate();
+    return new Date(year, month - 1, Math.min(day, lastDay));
+  }
+
+  function addMonthsPreserveDay(baseDate, offset) {
+    if (!(baseDate instanceof Date) || Number.isNaN(baseDate.getTime())) return baseDate;
+    const day = baseDate.getDate();
+    const target = new Date(baseDate.getFullYear(), baseDate.getMonth() + offset, 1);
+    const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+    target.setDate(Math.min(day, lastDay));
+    return target;
+  }
+
+  function addMonthsToMonthKey(monthKey, offset) {
+    if (!monthKey) return "";
+    const [yearStr, monthStr] = monthKey.split("-");
+    const year = Number(yearStr);
+    const month = Number(monthStr);
+    if (!year || !month) return "";
+    const target = new Date(year, month - 1 + Number(offset || 0), 1);
+    return formatMonthKey(target);
+  }
+
+  function splitCents(totalCents, count) {
+    const total = Number(totalCents || 0);
+    const qty = Math.max(1, Number(count || 1));
+    const base = Math.floor(total / qty);
+    const remainder = total - base * qty;
+    return Array.from({ length: qty }, (_, idx) => base + (idx < remainder ? 1 : 0));
+  }
+
+  function normalizeTxn(txn) {
+    const normalized = normalizeTxnV2(txn);
+    if (!normalized || typeof normalized !== "object") return normalized;
+    if (normalized.monthKey) return normalized;
+    const dateVal = normalized.date?.toDate?.() ?? normalized.date;
+    if (dateVal instanceof Date && !Number.isNaN(dateVal.getTime())) {
+      normalized.monthKey = formatMonthKey(dateVal);
+      return normalized;
+    }
+    if (normalized.statementMonth) {
+      normalized.monthKey = normalized.statementMonth;
+    }
+    return normalized;
+  }
+
+  function withMonthKey(txnData) {
+    if (!txnData || typeof txnData !== "object") return txnData;
+    if (txnData.monthKey) return txnData;
+    const dateVal = txnData.date?.toDate?.() ?? txnData.date;
+    if (dateVal instanceof Date && !Number.isNaN(dateVal.getTime())) {
+      return { ...txnData, monthKey: formatMonthKey(dateVal) };
+    }
+    return { ...txnData };
+  }
+
+  function getPlanBaseDate(plan) {
+    if (!plan || typeof plan !== "object") return null;
+    const startDate = plan.startDate?.toDate?.() ?? plan.startDate;
+    if (startDate instanceof Date && !Number.isNaN(startDate.getTime())) return startDate;
+    const startMonth = plan.startMonth || "";
+    const startDay = Number(plan.startDay || 1);
+    if (!startMonth) return null;
+    const [yearStr, monthStr] = startMonth.split("-");
+    const year = Number(yearStr);
+    const month = Number(monthStr);
+    if (!year || !month) return null;
+    const lastDay = new Date(year, month, 0).getDate();
+    return new Date(year, month - 1, Math.min(startDay || 1, lastDay));
+  }
+
+  function setView(viewKey) {
+    const map = { login: viewLogin, app: viewApp, loading: viewLoading };
+    Object.entries(map).forEach(([key, el]) => {
+      if (!el) return;
+      const active = key === viewKey;
+      el.hidden = !active;
+      el.classList.toggle("active", active);
+    });
+  }
+
+  function navigate(hash, { replace = false } = {}) {
+    const next = hash.startsWith("#") ? hash : `#${hash}`;
+    if (location.hash === next) return;
+    if (replace) {
+      location.replace(next);
+    } else {
+      location.hash = next;
+    }
+  }
+
+  function parseRoute() {
+    const hash = location.hash || "";
+    if (hash === "#/app" || hash === "#/app/") {
+      return { view: "app", page: "dashboard" };
+    }
+    if (hash.startsWith("#/app/")) {
+      const parts = hash.split("/");
+      return { view: "app", page: parts[2] || "dashboard" };
+    }
+    if (hash.startsWith("#/login")) return { view: "login" };
+    return { view: "login" };
+  }
+
+  function renderRoute() {
+    if (!authReady) {
+      setView("loading");
+      return;
+    }
+    const route = parseRoute();
+    if (!state.user) {
+      if (route.view !== "login") {
+        navigate("#/login", { replace: true });
+        return;
+      }
+      setView("login");
+      setAuthLoading(false);
+      return;
+    }
+    if (route.view !== "app") {
+      navigate(lastAppHash || "#/app/dashboard", { replace: true });
+      return;
+    }
+    const pageKey = pages?.[route.page] ? route.page : "dashboard";
+    if (route.page !== pageKey) {
+      navigate(`#/app/${pageKey}`, { replace: true });
+      return;
+    }
+    lastAppHash = `#/app/${pageKey}`;
+    setView("app");
+    showPage(pageKey);
+  }
+
+  function setAuthLoading(isLoading, message = "") {
+    if (btnEmail) btnEmail.disabled = isLoading;
+    if (btnGoogle) btnGoogle.disabled = isLoading;
+    if (btnForgot) btnForgot.disabled = isLoading;
+    if (authLoading) authLoading.hidden = !isLoading;
+    if (authLoadingText && message) authLoadingText.textContent = message;
+    if (message) setAuthMessage(message, false);
+  }
+
+  function getAuthErrorMessage(err) {
+    const code = err?.code || "";
+    if (code === "auth/user-not-found") return "Usuario nao encontrado.";
+    if (code === "auth/wrong-password") return "Senha incorreta.";
+    if (code === "auth/invalid-credential") return "Credenciais invalidas.";
+    if (code === "auth/invalid-email") return "E-mail invalido.";
+    if (code === "auth/too-many-requests") return "Muitas tentativas. Aguarde e tente novamente.";
+    if (code === "auth/popup-blocked") return "Popup bloqueado. Permita popups e tente novamente.";
+    if (code === "auth/popup-closed-by-user") return "Popup fechado antes de concluir.";
+    if (code === "auth/cancelled-popup-request") return "Popup cancelado. Tente novamente.";
+    return "Nao foi possivel entrar. Confira seus dados e tente novamente.";
+  }
+
+  function getDisplayName(user) {
+    const fallback = (user?.email || "").split("@")[0] || "Usuario";
+    return user?.displayName || fallback;
+  }
 
   function escapeHtml(s) {
     return String(s ?? "")
@@ -1602,20 +1956,20 @@
 
   function syncOptionalFields() {
     const isExpense = txnType.value === "expense";
+    const isIncome = txnType.value === "income";
+    const allowInstallment = isExpense || isIncome;
 
-    if (cardInstallment) cardInstallment.hidden = !isExpense;
+    if (cardInstallment) cardInstallment.hidden = !allowInstallment;
     if (cardFinance) cardFinance.hidden = !isExpense;
 
-    if (!isExpense) {
-      cbInstallment.checked = false;
-      cbFinance.checked = false;
-    }
+    if (!allowInstallment && cbInstallment) cbInstallment.checked = false;
+    if (!isExpense && cbFinance) cbFinance.checked = false;
 
-    const showInstallment = isExpense && cbInstallment.checked;
+    const showInstallment = allowInstallment && cbInstallment.checked;
     const showFinance = isExpense && cbFinance.checked;
 
-    installmentFields.hidden = !showInstallment;
-    financeFields.hidden = !showFinance;
+    if (installmentFields) installmentFields.hidden = !showInstallment;
+    if (financeFields) financeFields.hidden = !showFinance;
 
     [installmentTotal, installmentCurrent].forEach((el) => { if (el) el.disabled = !showInstallment; });
     [financeTotal, financeCurrent].forEach((el) => { if (el) el.disabled = !showFinance; });
@@ -1726,6 +2080,120 @@
     });
 
     if (pageTitle) pageTitle.textContent = titles[key] ?? "VaultFlow";
+  }
+
+  async function loginEmailPassword() {
+    try {
+      setAuthMessage("");
+      const email = ($("email")?.value ?? "").trim().toLowerCase();
+      const pass = $("pass")?.value ?? "";
+      if (!email || !pass) {
+        setAuthMessage("Informe email e senha.", true);
+        return;
+      }
+      if (!ALLOWED_EMAILS.has(email)) {
+        setAuthMessage("Este email nao esta autorizado.", true);
+        return;
+      }
+      setAuthLoading(true, "Entrando...");
+      await signInWithEmailAndPassword(auth, email, pass);
+      setAuthMessage("Login OK.");
+    } catch (e) {
+      setAuthMessage(getAuthErrorMessage(e), true);
+    } finally {
+      setAuthLoading(false);
+    }
+  }
+
+  async function loginGoogle() {
+    try {
+      setAuthMessage("");
+      setAuthLoading(true, "Abrindo Google...");
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const email = (result.user.email ?? "").toLowerCase();
+      if (!ALLOWED_EMAILS.has(email)) {
+        await signOut(auth);
+        throw new Error("Email nao autorizado.");
+      }
+      setAuthMessage("Login Google OK.");
+    } catch (e) {
+      const msg = e?.message?.toLowerCase?.() || "";
+      if (msg.includes("autoriz")) {
+        setAuthMessage("Conta Google nao autorizada.", true);
+      } else {
+        setAuthMessage(getAuthErrorMessage(e), true);
+      }
+    } finally {
+      setAuthLoading(false);
+    }
+  }
+
+  async function resetPassword() {
+    try {
+      setAuthMessage("");
+      const email = ($("email")?.value ?? "").trim().toLowerCase();
+      if (!email) {
+        setAuthMessage("Informe seu email para recuperar a senha.", true);
+        return;
+      }
+      if (!ALLOWED_EMAILS.has(email)) {
+        setAuthMessage("Este email nao esta autorizado.", true);
+        return;
+      }
+      setAuthLoading(true, "Enviando link...");
+      await sendPasswordResetEmail(auth, email);
+      setAuthMessage("Email de recuperacao enviado.");
+    } catch (e) {
+      setAuthMessage("Nao foi possivel enviar o link. Tente novamente.", true);
+    } finally {
+      setAuthLoading(false);
+    }
+  }
+
+  async function logout() {
+    await signOut(auth);
+    navigate("#/login", { replace: true });
+  }
+
+  function resetSessionState() {
+    state.user = null;
+    state.email = null;
+    state.uid = null;
+    state.displayName = "";
+    state.editingTxnId = null;
+    appReady = false;
+    if (btnLogout) btnLogout.style.display = "none";
+    if (me) me.textContent = "Aguardando login";
+    renderDashboardMovements([]);
+    if (editModal) editModal.hidden = true;
+  }
+
+  async function bootstrapUser(user) {
+    if (!user) return;
+    const email = (user.email ?? "").toLowerCase();
+    if (!ALLOWED_EMAILS.has(email)) {
+      await signOut(auth);
+      throw new Error("Email nao autorizado.");
+    }
+
+    if (appReady && state.uid === user.uid) return;
+
+    state.user = user;
+    state.email = email;
+    state.uid = user.uid;
+    state.displayName = getDisplayName(user);
+    if (me) me.textContent = state.displayName;
+    if (btnLogout) btnLogout.style.display = "";
+
+    await ensureUserProfile(user);
+    await ensureWalletMetaIfOwner(user);
+    await ensureMembershipShortcutsFromMembers(user);
+
+    const wallets = await loadWalletOptions(user);
+    selectDefaultWallet(wallets);
+    await refreshWalletContext();
+    appReady = true;
   }
 
   // ===== Bootstrap =====
@@ -2301,6 +2769,7 @@ function renderCategoriesTable() {
   const SORT_ICON_DESC = '<svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4.75 2a1 1 0 1 0 0 2H8L3.95 9.4a1 1 0 0 0 .8 1.6H10a1 1 0 1 0 0-2H6.75l4.05-5.4A1 1 0 0 0 10 2H4.75Zm2.284 10a1 1 0 0 1 .945.673l2.794 8.069a1 1 0 0 1-1.89.654l-.412-1.189H5.598l-.412 1.19a1 1 0 0 1-1.89-.655l2.793-8.07A1 1 0 0 1 7.034 12Zm0 4.057-.744 2.15h1.488l-.744-2.15Zm5.26.236a1 1 0 0 1 1.413 0L16 18.586V3a1 1 0 1 1 2 0v15.586l2.294-2.293a1 1 0 0 1 1.414 1.414l-4 4a1 1 0 0 1-1.415 0l-4-4a1 1 0 0 1 0-1.414Z" fill="#222F3D"/></svg>';
   const ICON_EDIT = '<svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13.94 5 19 10.06 9.062 20a2.25 2.25 0 0 1-.999.58l-5.116 1.395a.75.75 0 0 1-.92-.921l1.395-5.116a2.25 2.25 0 0 1 .58-.999L13.938 5Zm7.09-2.03a3.578 3.578 0 0 1 0 5.06l-.97.97L15 3.94l.97-.97a3.578 3.578 0 0 1 5.06 0Z" fill="#222F3D"/></svg>';
   const ICON_DELETE = '<svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21.5 6a1 1 0 0 1-.883.993L20.5 7h-.845l-1.231 12.52A2.75 2.75 0 0 1 15.687 22H8.313a2.75 2.75 0 0 1-2.737-2.48L4.345 7H3.5a1 1 0 0 1 0-2h5a3.5 3.5 0 1 1 7 0h5a1 1 0 0 1 1 1Zm-7.25 3.25a.75.75 0 0 0-.743.648L13.5 10v7l.007.102a.75.75 0 0 0 1.486 0L15 17v-7l-.007-.102a.75.75 0 0 0-.743-.648Zm-4.5 0a.75.75 0 0 0-.743.648L9 10v7l.007.102a.75.75 0 0 0 1.486 0L10.5 17v-7l-.007-.102a.75.75 0 0 0-.743-.648ZM12 3.5A1.5 1.5 0 0 0 10.5 5h3A1.5 1.5 0 0 0 12 3.5Z" fill="#C0382B"/></svg>';
+  const ICON_RECURRING = '<svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16.052 5.029a1 1 0 0 0 .189 1.401 7.002 7.002 0 0 1-3.157 12.487l.709-.71a1 1 0 0 0-1.414-1.414l-2.5 2.5a1 1 0 0 0 0 1.414l2.5 2.5a1 1 0 0 0 1.414-1.414l-.843-.842A9.001 9.001 0 0 0 17.453 4.84a1 1 0 0 0-1.401.189Zm-1.93-1.736-2.5-2.5a1 1 0 0 0-1.498 1.32l.083.094.843.843a9.001 9.001 0 0 0-4.778 15.892A1 1 0 0 0 7.545 17.4a7.002 7.002 0 0 1 3.37-12.316l-.708.709a1 1 0 0 0 1.32 1.497l.094-.083 2.5-2.5a1 1 0 0 0 .083-1.32l-.083-.094Z" fill="#212121"/></svg>';
 
   const SORT_ACCESSORS = {
     transactions: {
@@ -2387,7 +2856,7 @@ function renderCategoriesTable() {
   function refreshTableForSort(tableId) {
     switch (tableId) {
       case "transactions":
-        renderTxnRows(state.currentRows, { allowDelete: !isCoupleWallet(), isCoupleView: isCoupleWallet() && state.coupleTab === "details", allowEdit: false });
+        renderTxnRows(state.currentRows, { allowDelete: !isCoupleWallet(), isCoupleView: isCoupleWallet() && state.coupleTab === "details", allowEdit: !isCoupleWallet() });
         break;
       case "categories":
         renderCategoriesTable();
@@ -2690,7 +3159,8 @@ function renderCategoriesTable() {
       const closingDay = getCardClosingDay(cardId);
 
       for (const d of snaps.docs) {
-        const t = normalizeTxnV2(d.data());
+        const t = normalizeTxn(d.data());
+        const docMonthKey = t.monthKey || formatMonthKey(t.date?.toDate?.() ?? t.date);
         let month = t.statementMonth;
         if (!month) {
           const baseDate = t.purchaseDate?.toDate?.() ?? t.date?.toDate?.();
@@ -3309,7 +3779,8 @@ function renderCategoriesTable() {
       const planRef = doc(collection(db, "wallets", state.walletId, "plans"));
       const planPayment = planMode === "credit_installment" ? "credito" : (paymentMethod || "outro");
       const payload = {
-        type: planMode,
+      type: planMode,
+      txnType: type,
         title,
         walletId: state.walletId,
         txnType: type,
@@ -3317,7 +3788,9 @@ function renderCategoriesTable() {
         categoryName,
         amountTotalCents,
         amountEachCents,
-        startMonth,
+      startMonth,
+      startDay: new Date(dateStr + "T00:00:00").getDate(),
+      startDate: Timestamp.fromDate(new Date(dateStr + "T00:00:00")),
         monthsTotal: monthsTotal ?? null,
         generatedThrough: null,
         status: "active",
@@ -3691,6 +4164,7 @@ function renderCategoriesTable() {
   // ===== Transactions write (derivations) =====
 
   async function createTxnWithDerivations(txnPayload, { walletId = state.walletId, txnId = null } = {}) {
+    txnPayload = withMonthKey(txnPayload);
     const personalWalletId = walletId;
     const shouldSyncToCouple = isPersonalWalletId(personalWalletId);
 
@@ -3699,7 +4173,7 @@ function renderCategoriesTable() {
     const realTxnId = personalRef.id;
     const viewRef = doc(db, "wallets", COUPLE_WALLET_ID, "transactions_view", `${personalWalletId}_${realTxnId}`);
 
-    const month = yyyyMMFromTimestamp(txnPayload.date);
+    const month = txnPayload.monthKey || yyyyMMFromTimestamp(txnPayload.date);
     if (!month) throw new Error("Data invalida.");
 
     const reportRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", month);
@@ -3811,8 +4285,8 @@ function renderCategoriesTable() {
       const newAmount = Number(next.amountCents || 0);
       const oldType = existing.type ?? "expense";
       const newType = next.type ?? "expense";
-      const oldMonth = yyyyMMFromTimestamp(existing.date);
-      const newMonth = yyyyMMFromTimestamp(next.date);
+      const oldMonth = existing.monthKey || yyyyMMFromTimestamp(existing.date);
+      const newMonth = next.monthKey || yyyyMMFromTimestamp(next.date);
       if (!oldMonth || !newMonth) throw new Error("Data invalida.");
 
       let oldRepSnap = null;
@@ -3949,10 +4423,10 @@ function renderCategoriesTable() {
       const txnSnap = await tx.get(personalRef);
       if (!txnSnap.exists()) return;
 
-      const existing = normalizeTxnV2(txnSnap.data());
+      const existing = normalizeTxn(txnSnap.data());
       const amount = Number(existing.amountCents || 0);
       const type = existing.type ?? "expense";
-      const month = yyyyMMFromTimestamp(existing.date);
+      const month = existing.monthKey || yyyyMMFromTimestamp(existing.date);
       if (!month) return;
 
       let repSnap = null;
@@ -4113,6 +4587,19 @@ function renderCategoriesTable() {
     });
   }
 
+  function openEditModal(txnId) {
+    if (!editModal) return;
+    state.editingTxnId = txnId;
+    editModal.hidden = false;
+    if (editTxnDate) editTxnDate.focus({ preventScroll: true });
+  }
+
+  function closeEditModal() {
+    if (!editModal) return;
+    editModal.hidden = true;
+    state.editingTxnId = null;
+  }
+
   async function prepareEditModal(txnId) {
     if (!editModal || !editTxnDate || !editTxnType || !editTxnCat || !editTxnAmount || !editTxnNote || !editStatus || !editError) {
       return;
@@ -4130,7 +4617,7 @@ function renderCategoriesTable() {
       try {
         const snap = await getDoc(doc(db, "wallets", state.walletId, "transactions", txnId));
         if (snap.exists()) {
-          const data = normalizeTxnV2(snap.data());
+          const data = normalizeTxn(snap.data());
           txn = {
             id: txnId,
             date: data.date?.toDate?.() ?? null,
@@ -4159,6 +4646,157 @@ function renderCategoriesTable() {
     editTxnNote.value = txn.note || "";
 
     openEditModal(txnId);
+  }
+
+  async function createPlanFromTxnFormV2({ planMode, dateStr, type, catId, categoryName, amountCents, note, paymentMethod }) {
+    setOpsError("");
+
+    if (!isPersonalWalletId(state.walletId)) {
+      setOpsError("Planos so podem ser criados em carteiras pessoais.");
+      return;
+    }
+
+    const baseDate = new Date(dateStr + "T00:00:00");
+    if (Number.isNaN(baseDate.getTime())) {
+      setOpsError("Informe uma data valida.");
+      return;
+    }
+
+    let monthsTotal = 0;
+    if (planMode === "recurring") {
+      monthsTotal = 12;
+    } else if (planMode === "installment" || planMode === "credit_installment") {
+      monthsTotal = Number(installmentTotal?.value || 0);
+    } else if (planMode === "finance") {
+      monthsTotal = Number(financeTotal?.value || 0);
+    }
+
+    if (!monthsTotal || monthsTotal < 1) {
+      setOpsError("Informe o total de parcelas.");
+      return;
+    }
+
+    const startMonth = formatMonthKey(baseDate);
+    const planTitleValue = (note || categoryName || "Plano").trim();
+    const amounts = planMode === "recurring" ? [] : splitCents(amountCents, monthsTotal);
+    const amountEachCents = planMode === "recurring" ? amountCents : (amounts[0] ?? amountCents);
+
+    let creditCardId = "";
+    let purchaseDate = null;
+    let statementStartMonth = "";
+    if (paymentMethod === "credito") {
+      creditCardId = txnCard?.value || "";
+      if (!creditCardId) {
+        setOpsError("Selecione um cartao.");
+        return;
+      }
+      const purchaseDateStr = txnPurchaseDate?.value || dateStr;
+      const purchaseDateObj = new Date(purchaseDateStr + "T00:00:00");
+      const closingDay = getCardClosingDay(creditCardId);
+      statementStartMonth = computeStatementMonth(purchaseDateObj, closingDay);
+      purchaseDate = Timestamp.fromDate(purchaseDateObj);
+    }
+
+    btnAddTxn.disabled = true;
+    btnAddTxn.textContent = "Gerando...";
+
+    try {
+      const planPayload = {
+        type: planMode,
+        txnType: type,
+        title: planTitleValue,
+        walletId: state.walletId,
+        categoryId: catId,
+        categoryName,
+        amountTotalCents: amountCents,
+        amountEachCents,
+        startMonth,
+        startDay: baseDate.getDate(),
+        startDate: Timestamp.fromDate(baseDate),
+        monthsTotal,
+        generatedThrough: startMonth,
+        status: "active",
+        paymentMethod: paymentMethod || "outro",
+        creditCardId: creditCardId || null,
+        createdAt: serverTimestamp(),
+        createdBy: state.uid,
+        updatedAt: serverTimestamp(),
+        updatedBy: state.uid
+      };
+
+      const planRef = await addDoc(collection(db, "wallets", state.walletId, "plans"), planPayload);
+      const planId = planRef.id;
+      const occurrenceTotal = monthsTotal;
+
+      for (let idx = 0; idx < monthsTotal; idx += 1) {
+        const occurrenceIndex = idx + 1;
+        let occurrenceDate = addMonthsPreserveDay(baseDate, idx);
+        let statementMonth = "";
+
+        if (planMode === "credit_installment" && statementStartMonth) {
+          statementMonth = addMonthsToMonthKey(statementStartMonth, idx);
+          occurrenceDate = alignDateToMonthKey(baseDate, statementMonth);
+        }
+
+        const monthKey = formatMonthKey(occurrenceDate);
+        const txnId = planMode === "recurring"
+          ? `r_${planId}_${monthKey}`
+          : planMode === "finance"
+            ? `f_${planId}_${String(occurrenceIndex).padStart(2, "0")}`
+            : planMode === "credit_installment"
+              ? `cc_${planId}_${monthKey}`
+              : `p_${planId}_${String(occurrenceIndex).padStart(2, "0")}`;
+
+        const amountForOccurrence = planMode === "recurring"
+          ? amountCents
+          : (amounts[idx] ?? amountEachCents);
+
+        const txnPayload = {
+          date: Timestamp.fromDate(occurrenceDate),
+          monthKey,
+          amountCents: amountForOccurrence,
+          type,
+          categoryId: catId,
+          categoryName,
+          note,
+          planId,
+          planType: planMode,
+          occurrenceIndex,
+          occurrenceTotal,
+          status: "scheduled",
+          paymentMethod: paymentMethod || "outro",
+          creditCardId: statementMonth ? creditCardId : null,
+          statementMonth: statementMonth || null,
+          purchaseDate,
+          originalType: type,
+          recurring: { isRecurring: planMode === "recurring", cadence: planMode === "recurring" ? "monthly" : "none" },
+          installment: { isInstallment: planMode === "installment" || planMode === "credit_installment", total: occurrenceTotal, current: occurrenceIndex },
+          finance: { isFinance: planMode === "finance", total: occurrenceTotal, current: occurrenceIndex }
+        };
+
+        await createTxnWithDerivations(txnPayload, { walletId: state.walletId, txnId });
+      }
+
+      if (planMode === "recurring") {
+        const generatedThrough = formatMonthKey(addMonthsPreserveDay(baseDate, monthsTotal - 1));
+        await setDoc(planRef, { generatedThrough, updatedAt: serverTimestamp(), updatedBy: state.uid }, { merge: true });
+      }
+
+      txnAmount.value = "";
+      txnNote.value = "";
+      if (txnPayment) txnPayment.value = "";
+      if (txnCard) txnCard.value = "";
+      if (txnStatementMonth) txnStatementMonth.value = "";
+      syncCreditTxnFields();
+
+      await reloadAll();
+    } catch (e) {
+      console.error("createPlanFromTxnFormV2 failed", e);
+      setOpsError("Nao foi possivel gerar o plano. Tente novamente.");
+    } finally {
+      btnAddTxn.disabled = false;
+      btnAddTxn.textContent = "Adicionar";
+    }
   }
 
   async function addTransaction() {
@@ -4203,7 +4841,7 @@ function renderCategoriesTable() {
     else if (wantsRecurring) planMode = "recurring";
 
     if (planMode) {
-      await createPlanFromTxnForm({
+      await createPlanFromTxnFormV2({
         planMode,
         dateStr,
         type,
@@ -4237,15 +4875,14 @@ function renderCategoriesTable() {
     btnAddTxn.textContent = "Salvando...";
 
     try {
-      const dt = new Date(dateStr + "T00:00:00");
-      let ts = Timestamp.fromDate(dt);
-      if (statementMonth) {
-        const stmtTs = timestampFromYYYYMM(statementMonth);
-        if (stmtTs) ts = stmtTs;
-      }
+      const baseDate = new Date(dateStr + "T00:00:00");
+      const dateForTxn = statementMonth ? alignDateToMonthKey(baseDate, statementMonth) : baseDate;
+      const ts = Timestamp.fromDate(dateForTxn);
+      const monthKey = formatMonthKey(dateForTxn);
 
       const txnPayload = {
         date: ts,
+        monthKey,
         amountCents,
         type,
         categoryId: catId,
@@ -4346,9 +4983,11 @@ function renderCategoriesTable() {
     try {
       const dt = new Date(dateStr + "T00:00:00");
       const ts = Timestamp.fromDate(dt);
+      const monthKey = formatMonthKey(dt);
 
       await updateTxnWithDerivations(txnId, {
         date: ts,
+        monthKey,
         amountCents,
         type,
         categoryId: catId,
@@ -4379,10 +5018,13 @@ function renderCategoriesTable() {
       const display = toBRL(Math.abs(r.amountCents));
       const prefix = (r.type === "income") ? "+" : "-";
       const metaParts = [];
-      if (r.planType) metaParts.push(friendlyPlanType(r.planType));
+      const isRecurring = !!(r.recurring?.isRecurring || r.planType === "recurring");
+      const isScheduled = !r.status || r.status === "scheduled";
+      const showRecurringIcon = isRecurring && isScheduled;
+      if (r.planType && !(showRecurringIcon && r.planType === "recurring")) metaParts.push(friendlyPlanType(r.planType));
       if (r.occurrenceIndex && r.occurrenceTotal) metaParts.push(`${r.occurrenceIndex}/${r.occurrenceTotal}`);
       const statusLabel = friendlyTxnStatus(r.status);
-      if (statusLabel) metaParts.push(statusLabel);
+      if (statusLabel && !(showRecurringIcon && statusLabel.toLowerCase().includes("agend"))) metaParts.push(statusLabel);
       if (r.paymentMethod === "credito" && r.statementMonth) metaParts.push(`Fatura ${r.statementMonth}`);
       const extraParts = [];
       if (isCoupleView && r.sourceLabel) extraParts.push(r.sourceLabel);
@@ -4390,6 +5032,7 @@ function renderCategoriesTable() {
       const extraLine = extraParts.length
         ? `<div class="muted" style="margin-top:4px;">${escapeHtml(extraParts.join(" | "))}</div>`
         : "";
+      const recurringIcon = showRecurringIcon ? `<span class="recurring-icon" aria-label="Recorrente">${ICON_RECURRING}</span>` : "";
       const canPay = allowDelete && !isCoupleView
         && r.status && r.status !== "paid"
         && ["installment", "finance", "credit_installment"].includes(r.planType);
@@ -4403,12 +5046,13 @@ function renderCategoriesTable() {
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${escapeHtml(r.note || "-")}${extraLine}</td>
+        <td>${recurringIcon}${escapeHtml(r.note || "-")}${extraLine}</td>
         <td>${escapeHtml(paymentLabel)}</td>
         <td>${escapeHtml(r.categoryName || "-")}</td>
         <td class="nowrap">${escapeHtml(dt)}</td>
         <td class="right nowrap">${prefix} ${escapeHtml(display)}</td>
         <td class="right nowrap">
+          ${allowEdit ? `<button class="ghost" data-edit-txn="${r.id}" aria-label="Editar" title="Editar" style="margin-right:6px;">${ICON_EDIT}</button>` : ""}
           ${allowDelete ? `<button class="ghost" data-del-txn="${r.id}" aria-label="Excluir" title="Excluir">${ICON_DELETE}</button>` : `<span class="muted">-</span>`}
           ${canPay ? `<button class="ghost" data-pay-txn="${r.id}" style="margin-left:6px;">Marcar paga</button>` : ""}
         </td>
@@ -4495,6 +5139,7 @@ function renderCategoriesTable() {
   }
 
   async function loadCoupleDetails(startTS, endTS) {
+    const monthKey = formatMonthKey(startTS?.toDate?.() ?? startTS);
     try {
       const qRef = query(
         collection(db, "wallets", COUPLE_WALLET_ID, "transactions_view"),
@@ -4508,7 +5153,9 @@ function renderCategoriesTable() {
       let income = 0, expense = 0;
 
       for (const d of snaps.docs) {
-        const t = normalizeTxnV2(d.data());
+        const t = normalizeTxn(d.data());
+        const docMonthKey = t.monthKey || formatMonthKey(t.date?.toDate?.() ?? t.date);
+        if (monthKey && docMonthKey && docMonthKey !== monthKey) continue;
         const amount = Number(t.amountCents || 0);
         if (t.type === "income") income += amount;
         else expense += amount;
@@ -4518,6 +5165,7 @@ function renderCategoriesTable() {
         rows.push({
           id: d.id,
           date: t.date?.toDate?.() ?? null,
+          monthKey: docMonthKey,
           categoryName: t.categoryName ?? "",
           note: t.note ?? "",
           type: t.type ?? "",
@@ -4530,12 +5178,13 @@ function renderCategoriesTable() {
           status,
           paymentMethod: t.paymentMethod ?? "",
           creditCardId: t.creditCardId ?? "",
-          statementMonth: t.statementMonth ?? ""
+          statementMonth: t.statementMonth ?? "",
+          recurring: t.recurring ?? { isRecurring: false, cadence: "none" }
         });
       }
 
       state.currentRows = rows;
-      renderTxnRows(rows, { allowDelete: false, isCoupleView: true });
+      renderTxnRows(rows, { allowDelete: false, isCoupleView: true, allowEdit: false });
       coupleBreakdown.style.display = "none";
 
       return { income, expense, balance: income - expense };
@@ -4601,7 +5250,9 @@ function renderCategoriesTable() {
       const rows = [];
 
       for (const d of snaps.docs) {
-        const t = normalizeTxnV2(d.data());
+        const t = normalizeTxn(d.data());
+        const docMonthKey = t.monthKey || formatMonthKey(t.date?.toDate?.() ?? t.date);
+        if (docMonthKey !== yyyyMM) continue;
         const amount = Number(t.amountCents || 0);
         if (t.type === "income") income += amount;
         else expense += amount;
@@ -4610,6 +5261,7 @@ function renderCategoriesTable() {
         rows.push({
           id: d.id,
           date: t.date?.toDate?.() ?? null,
+          monthKey: docMonthKey,
           categoryName: t.categoryName ?? "",
           note: t.note ?? "",
           type: t.type ?? "",
@@ -4622,12 +5274,14 @@ function renderCategoriesTable() {
           status,
           paymentMethod: t.paymentMethod ?? "",
           creditCardId: t.creditCardId ?? "",
-          statementMonth: t.statementMonth ?? ""
+          statementMonth: t.statementMonth ?? "",
+          recurring: t.recurring ?? { isRecurring: false, cadence: "none" }
         });
 
         state.txnCache.set(d.id, {
           id: d.id,
           date: t.date?.toDate?.() ?? null,
+          monthKey: docMonthKey,
           categoryName: t.categoryName ?? "",
           categoryId: t.categoryId ?? "",
           note: t.note ?? "",
@@ -4650,7 +5304,7 @@ function renderCategoriesTable() {
 
       state.currentRows = rows;
       renderDashboardMovements(rows);
-      renderTxnRows(rows, { allowDelete: true, isCoupleView: false });
+      renderTxnRows(rows, { allowDelete: true, isCoupleView: false, allowEdit: true });
       txnStatus.textContent = `Transações no mês: ${rows.length}`;
       renderKPIs(income, expense);
       dashboardStatus.textContent = rows.length ? "Movimentações do mês selecionado." : "Sem lançamentos no mês.";
@@ -4781,49 +5435,20 @@ function renderCategoriesTable() {
     monthInput.click();
   };
 
-  btnEmail.addEventListener("click", async () => {
-    try {
-      setAuthMessage("Entrando...");
-      const email = $("email").value.trim().toLowerCase();
-      const pass = $("pass").value;
-
-      if (!ALLOWED_EMAILS.has(email)) throw new Error("Este e-mail não está autorizado.");
-
-      await signInWithEmailAndPassword(auth, email, pass);
-      setAuthMessage("Login OK.");
-    } catch (e) {
-      const msg = e?.message ?? String(e);
-      const friendly = msg.toLowerCase().includes("autoriz")
-        ? msg
-        : "Não foi possível entrar. Confira seus dados e tente novamente.";
-      setAuthMessage(friendly, true);
-    }
+  if (loginForm) loginForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    loginEmailPassword();
   });
-
-  btnGoogle.addEventListener("click", async () => {
-    try {
-      setAuthMessage("Abrindo Google...");
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const email = (result.user.email ?? "").toLowerCase();
-
-      if (!ALLOWED_EMAILS.has(email)) {
-        await signOut(auth);
-        throw new Error("Conta Google não autorizada.");
-      }
-
-      setAuthMessage("Login Google OK.");
-    } catch (e) {
-      const msg = e?.message ?? String(e);
-      const friendly = msg.toLowerCase().includes("autoriz")
-        ? msg
-        : "Não foi possível entrar com Google agora. Tente novamente.";
-      setAuthMessage(friendly, true);
-    }
+  if (btnGoogle) btnGoogle.addEventListener("click", loginGoogle);
+  if (btnForgot) btnForgot.addEventListener("click", resetPassword);
+  if (btnLogout) btnLogout.addEventListener("click", logout);
+  if (btnCloseEdit) btnCloseEdit.addEventListener("click", closeEditModal);
+  if (btnSaveEdit) btnSaveEdit.addEventListener("click", updateTransactionPersonalAndSync);
+  if (editModal) editModal.addEventListener("click", (e) => {
+    if (e.target === editModal) closeEditModal();
   });
-
-  btnLogout.addEventListener("click", async () => {
-    await signOut(auth);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && editModal && !editModal.hidden) closeEditModal();
   });
 
   walletSelect.addEventListener("change", refreshWalletContext);
@@ -4858,7 +5483,7 @@ function renderCategoriesTable() {
     btn.addEventListener("click", () => {
       const target = btn.getAttribute("data-page-target");
       if (!target) return;
-      showPage(target);
+      navigate(`#/app/${target}`);
     });
   });
   if (sidebarToggle && appShell) {
@@ -4897,55 +5522,36 @@ function renderCategoriesTable() {
 
   initSortControls();
 
+  setView("loading");
+  window.addEventListener("hashchange", renderRoute);
+
   onAuthStateChanged(auth, async (user) => {
+    setAuthMessage("");
+    setAppError("");
+    setOpsError("");
+    authReady = true;
+
+    if (!user) {
+      resetSessionState();
+      renderRoute();
+      return;
+    }
+
     try {
-      setAuthMessage("");
-      setAppError("");
-      setOpsError("");
-
-      if (!user) {
-        btnLogout.style.display = "none";
-        appGrid.style.display = "none";
-        me.textContent = "Aguardando login";
-        renderDashboardMovements([]);
-        if (authCard) authCard.style.display = "";
-        return;
-      }
-
-      const email = (user.email ?? "").toLowerCase();
-      if (!ALLOWED_EMAILS.has(email)) {
-        await signOut(auth);
-        throw new Error("Usuário autenticado, mas não autorizado.");
-      }
-
-      state.user = user;
-      state.email = email;
-      state.uid = user.uid;
-      state.displayName = user.displayName ?? (user.email?.split("@")[0] ?? "Usuário");
-
-      btnLogout.style.display = "";
-      appGrid.style.display = "";
-      if (authCard) authCard.style.display = "none";
-
-      me.textContent = state.displayName;
-
-      await ensureUserProfile(user);
-      await ensureWalletMetaIfOwner(user);
-      await ensureMembershipShortcutsFromMembers(user);
-
-      const wallets = await loadWalletOptions(user);
-      selectDefaultWallet(wallets);
-
-      await refreshWalletContext();
-      showPage("dashboard");
-
-      setAuthMessage("Sessão ativa.");
+      await bootstrapUser(user);
+      renderRoute();
     } catch (e) {
-      const raw = e?.message ?? "";
-      const friendly = raw.includes("Firebase") ? "Não foi possível iniciar a sessão. Tente novamente." : (raw || "Não foi possível iniciar a sessão. Tente novamente.");
-      setAppError(friendly);
+      resetSessionState();
+      const msg = e?.message?.toLowerCase?.() || "";
+      const friendly = msg.includes("autoriz")
+        ? "Conta nao autorizada."
+        : "Nao foi possivel iniciar a sessao. Tente novamente.";
+      setAuthMessage(friendly, true);
+      renderRoute();
     }
   });
+
+  renderRoute();
 
 
 </script>
