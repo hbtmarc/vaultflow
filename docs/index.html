@@ -368,10 +368,23 @@ Manual tests:
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      margin-right: 6px;
+      margin-left: 6px;
       vertical-align: middle;
     }
     .recurring-icon svg { width: 18px; height: 18px; display: block; }
+    .installment-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-left: 6px;
+      white-space: nowrap;
+    }
     .gallery-head {
       display: grid;
       grid-template-columns: 1.5fr 0.8fr 0.7fr;
@@ -769,7 +782,7 @@ Manual tests:
                   <div class="option-head">
                     <input type="checkbox" id="cbInstallment" />
                     <div class="option-text">
-                      <span class="option-label">Despesa parcelada</span>
+                      <span class="option-label">Parcelado(a)</span>
                       <span class="option-sub">Controlar parcelas</span>
                     </div>
                   </div>
@@ -783,6 +796,7 @@ Manual tests:
                       <input id="installmentCurrent" type="number" min="1" step="1" placeholder="Ex.: 3" />
                     </div>
                   </div>
+                  <p class="muted" id="installmentHint" hidden>Serão criadas parcelas retroativas para meses anteriores.</p>
                 </div>
 
                 <div class="option-card" id="cardFinance" hidden>
@@ -803,6 +817,7 @@ Manual tests:
                       <input id="financeCurrent" type="number" min="1" step="1" placeholder="Ex.: 10" />
                     </div>
                   </div>
+                  <p class="muted" id="financeHint" hidden>Serão criadas parcelas retroativas para meses anteriores.</p>
                 </div>
               </div>
             </div>
@@ -1342,8 +1357,10 @@ Manual tests:
   const cardFinance = $("cardFinance");
   const installmentTotal = $("installmentTotal");
   const installmentCurrent = $("installmentCurrent");
+  const installmentHint = $("installmentHint");
   const financeTotal = $("financeTotal");
   const financeCurrent = $("financeCurrent");
+  const financeHint = $("financeHint");
 
   const txnTable = $("txnTable");
   const txnStatus = $("txnStatus");
@@ -1930,6 +1947,12 @@ Manual tests:
     const limited = rows.slice(0, 6);
     for (const r of limited) {
       const dt = r.date ? toISODateLocal(r.date) : "-";
+      const label = occurrenceCounterLabel(r);
+      const showRecurringIcon = shouldShowRecurringIcon(r);
+      const descBase = (r.note || "").trim();
+      const descText = descBase || (label || showRecurringIcon ? "(sem descricao)" : "");
+      const labelHtml = label ? ` <span class="installment-badge">${escapeHtml(label)}</span>` : "";
+      const recurringHtml = showRecurringIcon ? `<span class="recurring-icon" aria-label="Recorrente">${ICON_RECURRING}</span>` : "";
       const card = document.createElement("div");
       card.className = "move-card";
       card.innerHTML = `
@@ -1937,7 +1960,7 @@ Manual tests:
           <span>${escapeHtml(dt)} - ${escapeHtml(r.categoryName || "-")}</span>
           <span class="move-amount">${toBRL(Math.abs(r.amountCents))}</span>
         </div>
-        <div class="muted">${escapeHtml(r.note || "")}${r.sourceLabel ? ` - ${escapeHtml(r.sourceLabel)}` : ""}</div>
+        <div class="muted">${escapeHtml(descText)}${labelHtml}${recurringHtml}${r.sourceLabel ? ` - ${escapeHtml(r.sourceLabel)}` : ""}</div>
       `;
       target.appendChild(card);
     }
@@ -1973,6 +1996,15 @@ Manual tests:
 
     [installmentTotal, installmentCurrent].forEach((el) => { if (el) el.disabled = !showInstallment; });
     [financeTotal, financeCurrent].forEach((el) => { if (el) el.disabled = !showFinance; });
+
+    const currentInstallment = parsePositiveInt(installmentCurrent?.value) || 1;
+    if (installmentHint) {
+      installmentHint.hidden = !showInstallment || currentInstallment <= 1;
+    }
+    const currentFinance = parsePositiveInt(financeCurrent?.value) || 1;
+    if (financeHint) {
+      financeHint.hidden = !showFinance || currentFinance <= 1;
+    }
   }
 
   function syncCreditTxnFields() {
@@ -2735,6 +2767,46 @@ function renderCategoriesTable() {
     }
   }
 
+  function isInstallmentTxn(txn) {
+    if (!txn) return false;
+    const hasInstallmentFlag = Boolean(txn.installment?.isInstallment);
+    const hasInstallmentPlan = txn.planType === "installment";
+    const hasInstallmentData = Number(txn.installment?.total) && Number(txn.installment?.current);
+    return hasInstallmentFlag || hasInstallmentPlan || hasInstallmentData;
+  }
+
+  function isFinanceTxn(txn) {
+    if (!txn) return false;
+    const hasFinanceFlag = Boolean(txn.finance?.isFinance);
+    const hasFinancePlan = txn.planType === "finance";
+    const hasFinanceData = Number(txn.finance?.total) && Number(txn.finance?.current);
+    return hasFinanceFlag || hasFinancePlan || hasFinanceData;
+  }
+
+  function occurrenceCounterLabel(txn) {
+    if (!txn) return "";
+    const isInstallment = isInstallmentTxn(txn);
+    const isFinance = isFinanceTxn(txn);
+    if (!isInstallment && !isFinance) return "";
+    const total = Number((isInstallment ? txn.installment?.total : txn.finance?.total) ?? txn.occurrenceTotal ?? 0);
+    const current = Number((isInstallment ? txn.installment?.current : txn.finance?.current) ?? txn.occurrenceIndex ?? 0);
+    if (!Number.isFinite(total) || !Number.isFinite(current)) return "";
+    if (total < 2 || current < 1) return "";
+    return `${current}/${total}`;
+  }
+
+  function installmentLabel(txn) {
+    return occurrenceCounterLabel(txn);
+  }
+
+  function shouldShowRecurringIcon(txn) {
+    if (!txn) return false;
+    const isRecurring = Boolean(txn.recurring?.isRecurring || txn.planType === "recurring");
+    if (!isRecurring) return false;
+    const status = (txn.status ?? "").toString().toLowerCase();
+    return !status || status === "scheduled";
+  }
+
   function friendlyPlanStatus(status) {
     switch (status) {
       case "active": return "Ativo";
@@ -3276,11 +3348,17 @@ function renderCategoriesTable() {
     }
 
     for (const item of sorted) {
+      const label = occurrenceCounterLabel(item);
+      const showRecurringIcon = shouldShowRecurringIcon(item);
+      const descBase = (item.note || "").trim();
+      const descText = descBase || (label || showRecurringIcon ? "(sem descricao)" : "");
+      const labelHtml = label ? ` <span class="installment-badge">${escapeHtml(label)}</span>` : "";
+      const recurringHtml = showRecurringIcon ? `<span class="recurring-icon" aria-label="Recorrente">${ICON_RECURRING}</span>` : "";
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td class="nowrap">${escapeHtml(item.date || "-")}</td>
         <td>${escapeHtml(item.categoryName || "-")}</td>
-        <td>${escapeHtml(item.note || "")}</td>
+        <td>${escapeHtml(descText)}${labelHtml}${recurringHtml}</td>
         <td class="right">${toBRL(Math.abs(item.amountCents))}</td>
       `;
       statementItemsTable.appendChild(tr);
@@ -3379,7 +3457,7 @@ function renderCategoriesTable() {
     const closingDay = getCardClosingDay(cardId);
 
     for (const d of snaps.docs) {
-      const t = normalizeTxnV2(d.data());
+      const t = normalizeTxn(d.data());
       let statementMonth = t.statementMonth;
       if (!statementMonth) {
         const baseDate = t.purchaseDate?.toDate?.() ?? t.date?.toDate?.();
@@ -3394,6 +3472,12 @@ function renderCategoriesTable() {
         id: d.id,
         status: t.status ?? "",
         planId: t.planId ?? "",
+        planType: t.planType ?? "",
+        recurring: t.recurring ?? { isRecurring: false, cadence: "none" },
+        installment: t.installment ?? { isInstallment: false, total: null, current: null },
+        finance: t.finance ?? { isFinance: false, total: null, current: null },
+        occurrenceIndex: t.occurrenceIndex ?? null,
+        occurrenceTotal: t.occurrenceTotal ?? null,
         date: dt,
         categoryName: t.categoryName || "-",
         note: t.note || "",
@@ -3744,7 +3828,7 @@ function renderCategoriesTable() {
         setOpsError("Informe o numero de parcelas.");
         return;
       }
-      amountEachCents = Math.floor(amountTotalCents / monthsTotal);
+      amountEachCents = amountTotalCents;
     }
 
     if (planMode === "finance" && paymentMethod === "credito") {
@@ -3868,7 +3952,9 @@ function renderCategoriesTable() {
       monthsTotal = parsePositiveInt(planMonthsTotal?.value);
       if (!amountTotalCents || amountTotalCents <= 0) { planStatus.textContent = "Informe o valor total."; return; }
       if (!monthsTotal || monthsTotal <= 0) { planStatus.textContent = "Informe o numero de meses."; return; }
-      amountEachCents = Math.floor(amountTotalCents / monthsTotal);
+      amountEachCents = type === "finance"
+        ? amountTotalCents
+        : Math.floor(amountTotalCents / monthsTotal);
     }
 
     let startMonth = yyyyMMFromMonthInput(planStartMonth?.value);
@@ -4083,16 +4169,20 @@ function renderCategoriesTable() {
     if (!plan || !plan.monthsTotal) return;
     if (plan.status !== "active") return;
 
-    const amounts = splitAmountByMonths(plan.amountTotalCents || 0, plan.monthsTotal);
-    let lastMonth = null;
+    const baseDate = getPlanBaseDate(plan);
+    if (!baseDate) return;
+    const amountEachCents = Number(plan.amountEachCents ?? plan.amountTotalCents ?? 0);
+    let lastMonthKey = null;
 
     for (let i = 1; i <= plan.monthsTotal; i += 1) {
-      const month = addMonthsYYYYMM(plan.startMonth, i - 1);
+      const occurrenceDate = addMonthsPreserveDay(baseDate, i - 1);
+      const monthKey = formatMonthKey(occurrenceDate);
       const txnId = `f_${planId}_${String(i).padStart(2, "0")}`;
       const v2 = buildPlanV2Fields(plan, i, plan.monthsTotal);
       const payload = {
-        date: timestampFromYYYYMM(month),
-        amountCents: amounts[i - 1] ?? plan.amountEachCents ?? 0,
+        date: Timestamp.fromDate(occurrenceDate),
+        monthKey,
+        amountCents: amountEachCents,
         type: plan.txnType || "expense",
         categoryId: plan.categoryId,
         categoryName: plan.categoryName,
@@ -4105,12 +4195,12 @@ function renderCategoriesTable() {
         status: "scheduled"
       };
       await createTxnWithDerivations(payload, { walletId: plan.walletId, txnId });
-      lastMonth = month;
+      lastMonthKey = monthKey;
     }
 
-    if (lastMonth) {
+    if (lastMonthKey) {
       await setDoc(doc(db, "wallets", plan.walletId, "plans", planId), {
-        generatedThrough: lastMonth,
+        generatedThrough: lastMonthKey,
         updatedAt: serverTimestamp(),
         updatedBy: state.uid
       }, { merge: true });
@@ -4656,19 +4746,22 @@ function renderCategoriesTable() {
       return;
     }
 
-    const baseDate = new Date(dateStr + "T00:00:00");
-    if (Number.isNaN(baseDate.getTime())) {
+    const inputDate = new Date(dateStr + "T00:00:00");
+    if (Number.isNaN(inputDate.getTime())) {
       setOpsError("Informe uma data valida.");
       return;
     }
 
     let monthsTotal = 0;
+    let currentInstallment = 1;
     if (planMode === "recurring") {
       monthsTotal = 12;
     } else if (planMode === "installment" || planMode === "credit_installment") {
       monthsTotal = Number(installmentTotal?.value || 0);
+      currentInstallment = parsePositiveInt(installmentCurrent?.value) || 1;
     } else if (planMode === "finance") {
       monthsTotal = Number(financeTotal?.value || 0);
+      currentInstallment = parsePositiveInt(financeCurrent?.value) || 1;
     }
 
     if (!monthsTotal || monthsTotal < 1) {
@@ -4676,14 +4769,29 @@ function renderCategoriesTable() {
       return;
     }
 
-    const startMonth = formatMonthKey(baseDate);
+    if ((planMode === "installment" || planMode === "credit_installment" || planMode === "finance")
+      && currentInstallment > monthsTotal) {
+      setOpsError("A parcela atual nao pode ser maior que o total.");
+      return;
+    }
+
+    const usesCurrent = planMode === "installment" || planMode === "credit_installment" || planMode === "finance";
+    const startDate = usesCurrent
+      ? addMonthsPreserveDay(inputDate, -(currentInstallment - 1))
+      : inputDate;
+    const startMonth = formatMonthKey(startDate);
     const planTitleValue = (note || categoryName || "Plano").trim();
-    const amounts = planMode === "recurring" ? [] : splitCents(amountCents, monthsTotal);
-    const amountEachCents = planMode === "recurring" ? amountCents : (amounts[0] ?? amountCents);
+    const shouldSplit = planMode === "installment" || planMode === "credit_installment";
+    const amounts = shouldSplit ? splitCents(amountCents, monthsTotal) : [];
+    const amountEachCents = shouldSplit ? (amounts[0] ?? amountCents) : amountCents;
 
     let creditCardId = "";
     let purchaseDate = null;
     let statementStartMonth = "";
+    if (planMode === "finance" && paymentMethod === "credito") {
+      setOpsError("Financiamento nao usa cartao de credito.");
+      return;
+    }
     if (paymentMethod === "credito") {
       creditCardId = txnCard?.value || "";
       if (!creditCardId) {
@@ -4695,6 +4803,10 @@ function renderCategoriesTable() {
       const closingDay = getCardClosingDay(creditCardId);
       statementStartMonth = computeStatementMonth(purchaseDateObj, closingDay);
       purchaseDate = Timestamp.fromDate(purchaseDateObj);
+    }
+    if (planMode === "credit_installment" && currentInstallment > 1) {
+      const adjusted = addMonthsToMonthKey(formatMonthKey(inputDate), -(currentInstallment - 1));
+      if (adjusted) statementStartMonth = adjusted;
     }
 
     btnAddTxn.disabled = true;
@@ -4711,8 +4823,8 @@ function renderCategoriesTable() {
         amountTotalCents: amountCents,
         amountEachCents,
         startMonth,
-        startDay: baseDate.getDate(),
-        startDate: Timestamp.fromDate(baseDate),
+        startDay: startDate.getDate(),
+        startDate: Timestamp.fromDate(startDate),
         monthsTotal,
         generatedThrough: startMonth,
         status: "active",
@@ -4730,12 +4842,16 @@ function renderCategoriesTable() {
 
       for (let idx = 0; idx < monthsTotal; idx += 1) {
         const occurrenceIndex = idx + 1;
-        let occurrenceDate = addMonthsPreserveDay(baseDate, idx);
+        let occurrenceDate = addMonthsPreserveDay(startDate, idx);
         let statementMonth = "";
+
+        if (planMode === "installment" || planMode === "finance") {
+          occurrenceDate = addMonthsPreserveDay(inputDate, occurrenceIndex - currentInstallment);
+        }
 
         if (planMode === "credit_installment" && statementStartMonth) {
           statementMonth = addMonthsToMonthKey(statementStartMonth, idx);
-          occurrenceDate = alignDateToMonthKey(baseDate, statementMonth);
+          occurrenceDate = alignDateToMonthKey(startDate, statementMonth);
         }
 
         const monthKey = formatMonthKey(occurrenceDate);
@@ -4747,9 +4863,9 @@ function renderCategoriesTable() {
               ? `cc_${planId}_${monthKey}`
               : `p_${planId}_${String(occurrenceIndex).padStart(2, "0")}`;
 
-        const amountForOccurrence = planMode === "recurring"
-          ? amountCents
-          : (amounts[idx] ?? amountEachCents);
+        const amountForOccurrence = shouldSplit
+          ? (amounts[idx] ?? amountEachCents)
+          : amountEachCents;
 
         const txnPayload = {
           date: Timestamp.fromDate(occurrenceDate),
@@ -4770,15 +4886,19 @@ function renderCategoriesTable() {
           purchaseDate,
           originalType: type,
           recurring: { isRecurring: planMode === "recurring", cadence: planMode === "recurring" ? "monthly" : "none" },
-          installment: { isInstallment: planMode === "installment" || planMode === "credit_installment", total: occurrenceTotal, current: occurrenceIndex },
-          finance: { isFinance: planMode === "finance", total: occurrenceTotal, current: occurrenceIndex }
+          installment: (planMode === "installment" || planMode === "credit_installment")
+            ? { isInstallment: true, total: occurrenceTotal, current: occurrenceIndex }
+            : { isInstallment: false, total: null, current: null },
+          finance: planMode === "finance"
+            ? { isFinance: true, total: occurrenceTotal, current: occurrenceIndex }
+            : { isFinance: false, total: null, current: null }
         };
 
         await createTxnWithDerivations(txnPayload, { walletId: state.walletId, txnId });
       }
 
       if (planMode === "recurring") {
-        const generatedThrough = formatMonthKey(addMonthsPreserveDay(baseDate, monthsTotal - 1));
+        const generatedThrough = formatMonthKey(addMonthsPreserveDay(startDate, monthsTotal - 1));
         await setDoc(planRef, { generatedThrough, updatedAt: serverTimestamp(), updatedBy: state.uid }, { merge: true });
       }
 
@@ -5018,13 +5138,22 @@ function renderCategoriesTable() {
       const display = toBRL(Math.abs(r.amountCents));
       const prefix = (r.type === "income") ? "+" : "-";
       const metaParts = [];
-      const isRecurring = !!(r.recurring?.isRecurring || r.planType === "recurring");
-      const isScheduled = !r.status || r.status === "scheduled";
-      const showRecurringIcon = isRecurring && isScheduled;
-      if (r.planType && !(showRecurringIcon && r.planType === "recurring")) metaParts.push(friendlyPlanType(r.planType));
-      if (r.occurrenceIndex && r.occurrenceTotal) metaParts.push(`${r.occurrenceIndex}/${r.occurrenceTotal}`);
+      const isInstallment = isInstallmentTxn(r);
+      const isFinance = isFinanceTxn(r);
+      const isCounterTxn = isInstallment || isFinance;
+      const installmentBadge = occurrenceCounterLabel(r);
+      const showRecurringIcon = shouldShowRecurringIcon(r);
+      if (r.planType && r.planType !== "recurring" && !isCounterTxn) {
+        metaParts.push(friendlyPlanType(r.planType));
+      }
+      const isRecurringPlan = r.planType === "recurring" || r.recurring?.isRecurring;
+      if (r.occurrenceIndex && r.occurrenceTotal && !isCounterTxn && !isRecurringPlan) {
+        metaParts.push(`${r.occurrenceIndex}/${r.occurrenceTotal}`);
+      }
       const statusLabel = friendlyTxnStatus(r.status);
-      if (statusLabel && !(showRecurringIcon && statusLabel.toLowerCase().includes("agend"))) metaParts.push(statusLabel);
+      if (statusLabel && !isCounterTxn && !(showRecurringIcon && statusLabel.toLowerCase().includes("agend"))) {
+        metaParts.push(statusLabel);
+      }
       if (r.paymentMethod === "credito" && r.statementMonth) metaParts.push(`Fatura ${r.statementMonth}`);
       const extraParts = [];
       if (isCoupleView && r.sourceLabel) extraParts.push(r.sourceLabel);
@@ -5032,7 +5161,10 @@ function renderCategoriesTable() {
       const extraLine = extraParts.length
         ? `<div class="muted" style="margin-top:4px;">${escapeHtml(extraParts.join(" | "))}</div>`
         : "";
-      const recurringIcon = showRecurringIcon ? `<span class="recurring-icon" aria-label="Recorrente">${ICON_RECURRING}</span>` : "";
+      const descBase = (r.note || "").trim();
+      const descText = descBase || (installmentBadge || showRecurringIcon ? "(sem descricao)" : "-");
+      const installmentHtml = installmentBadge ? `<span class="installment-badge">${escapeHtml(installmentBadge)}</span>` : "";
+      const recurringHtml = showRecurringIcon ? `<span class="recurring-icon" aria-label="Recorrente">${ICON_RECURRING}</span>` : "";
       const canPay = allowDelete && !isCoupleView
         && r.status && r.status !== "paid"
         && ["installment", "finance", "credit_installment"].includes(r.planType);
@@ -5046,7 +5178,7 @@ function renderCategoriesTable() {
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${recurringIcon}${escapeHtml(r.note || "-")}${extraLine}</td>
+        <td>${escapeHtml(descText)}${installmentHtml}${recurringHtml}${extraLine}</td>
         <td>${escapeHtml(paymentLabel)}</td>
         <td>${escapeHtml(r.categoryName || "-")}</td>
         <td class="nowrap">${escapeHtml(dt)}</td>
@@ -5467,6 +5599,8 @@ function renderCategoriesTable() {
   txnType.addEventListener("change", syncOptionalFields);
   cbInstallment.addEventListener("change", syncOptionalFields);
   cbFinance.addEventListener("change", syncOptionalFields);
+  if (installmentCurrent) installmentCurrent.addEventListener("input", syncOptionalFields);
+  if (financeCurrent) financeCurrent.addEventListener("input", syncOptionalFields);
   if (txnPayment) txnPayment.addEventListener("change", syncCreditTxnFields);
   if (txnCard) txnCard.addEventListener("change", syncCreditTxnFields);
   if (txnPurchaseDate) txnPurchaseDate.addEventListener("change", syncCreditTxnFields);
