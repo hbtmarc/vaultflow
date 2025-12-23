@@ -2583,7 +2583,7 @@ Manual tests:
       const metaParts = [item.dateLabel || "-", item.categoryName || "-", paymentLabel];
       if (item.sourceLabel) metaParts.push(item.sourceLabel);
       const creditMeta = item.creditCardName && (item.invoiceMonth || item.statementMonth)
-        ? `${item.creditCardName} | ${item.invoiceMonth || item.statementMonth}`
+        ? formatInvoiceLabel(item.creditCardName, item.invoiceMonth || item.statementMonth)
         : "";
       const amountClass = item.type === "income" ? "positive" : "negative";
       const amountPrefix = item.type === "income" ? "+" : "-";
@@ -4062,7 +4062,7 @@ function renderCategoriesTable() {
     const cardName = txn.creditCardNameSnapshot
       || (txn.creditCardId ? state.creditCards.get(txn.creditCardId)?.name : "");
     if (!cardName) return "";
-    return `${cardName} | ${month}`;
+    return formatInvoiceLabel(cardName, month);
   }
 
   const SORT_ICON_ASC = '<svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7.034 2a1 1 0 0 1 .945.673l2.793 8.069a1 1 0 0 1-1.89.654l-.412-1.19H5.597l-.411 1.19a1 1 0 0 1-1.89-.654l2.793-8.07A1 1 0 0 1 7.034 2Zm0 4.057-.744 2.15h1.488l-.744-2.15ZM4.749 13a1 1 0 1 0 0 2H8l-4.05 5.4a1 1 0 0 0 .8 1.6H10a1 1 0 1 0 0-2H6.75l4.05-5.4A1 1 0 0 0 10 13H4.75Zm7.544 3.293a1 1 0 0 1 1.414 0l2.292 2.292V3a1 1 0 1 1 2 0v15.586l2.294-2.293a1 1 0 0 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 0 1 0-1.414Z" fill="#222F3D"/></svg>';
@@ -4291,12 +4291,46 @@ function renderCategoriesTable() {
 
   const STATEMENT_MONTH_LABELS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
+  function normalizeInvoiceMonth(value) {
+    if (!value) return "";
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (/^\d{4}-\d{2}$/.test(trimmed)) return trimmed;
+      const fromDate = yyyyMMFromDateStr(trimmed);
+      if (fromDate) return fromDate;
+    }
+    if (value instanceof Date && !Number.isNaN(value.getTime())) {
+      return formatYYYYMM(value.getFullYear(), value.getMonth() + 1);
+    }
+    const asDate = value?.toDate?.();
+    if (asDate instanceof Date && !Number.isNaN(asDate.getTime())) {
+      return formatYYYYMM(asDate.getFullYear(), asDate.getMonth() + 1);
+    }
+    return "";
+  }
+
+  function formatInvoiceMonthName(yyyyMM) {
+    const normalized = normalizeInvoiceMonth(yyyyMM);
+    if (!/^\d{4}-\d{2}$/.test(normalized || "")) return "";
+    const [year, month] = normalized.split("-").map(Number);
+    if (!year || !month || month < 1 || month > 12) return "";
+    const d = new Date(year, month - 1, 1);
+    const raw = d.toLocaleString("pt-BR", { month: "long", timeZone: "America/Sao_Paulo" }) || "";
+    return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : "";
+  }
+
+  function formatInvoiceLabel(cardName, invoiceMonth) {
+    const name = (cardName || "").trim();
+    const monthLabel = formatInvoiceMonthName(invoiceMonth);
+    if (!name && !monthLabel) return "";
+    if (!name) return monthLabel;
+    if (!monthLabel) return name;
+    return `${name} | ${monthLabel}`;
+  }
+
   function formatStatementMonth(yyyyMM) {
-    if (!yyyyMMFromMonthInput(yyyyMM)) return "-";
-    const [year, month] = yyyyMM.split("-");
-    const idx = Number(month) - 1;
-    const label = STATEMENT_MONTH_LABELS[idx] || month;
-    return `${label} ${year}`;
+    const label = formatInvoiceMonthName(yyyyMM);
+    return label || "-";
   }
 
   function statementStatusLabel(status) {
@@ -4321,7 +4355,11 @@ function renderCategoriesTable() {
   }
 
   function updateStatementSummary({ month, totalCents, status, itemsCount } = {}) {
-    if (statementSummaryMonth) statementSummaryMonth.textContent = formatStatementMonth(month);
+    const cardName = statementCard?.value
+      ? (state.creditCards.get(statementCard.value)?.name || "Cartao")
+      : "";
+    const label = formatInvoiceLabel(cardName, month);
+    if (statementSummaryMonth) statementSummaryMonth.textContent = label || formatInvoiceMonthName(month) || "-";
     if (statementSummaryTotal) statementSummaryTotal.textContent = totalCents == null ? "-" : toBRL(totalCents);
     if (statementSummaryStatus) statementSummaryStatus.textContent = statementStatusLabel(status);
     if (statementSummaryCount) statementSummaryCount.textContent = Number.isFinite(itemsCount) ? String(itemsCount) : "-";
@@ -4338,7 +4376,8 @@ function renderCategoriesTable() {
       return;
     }
     const cardName = state.creditCards.get(cardId)?.name || "Cartao";
-    statementItemsTitle.textContent = `Itens da fatura: ${cardName} - ${month}`;
+    const label = formatInvoiceLabel(cardName, month);
+    statementItemsTitle.textContent = `Itens da fatura: ${label || cardName}`;
   }
 
   function highlightStatementCard(month) {
@@ -4763,6 +4802,7 @@ function renderCategoriesTable() {
       const countHtml = itemsCount != null
         ? `<span class="badge" data-statement-count="${s.month}">${itemsCount} itens</span>`
         : `<span class="badge" data-statement-count="${s.month}" hidden></span>`;
+      const invoiceLabel = formatInvoiceLabel(cardName, s.month);
       const card = document.createElement("div");
       card.className = "statement-card";
       card.setAttribute("data-statement-card", s.month);
@@ -4771,7 +4811,7 @@ function renderCategoriesTable() {
       card.setAttribute("aria-pressed", s.month === state.activeStatementMonth ? "true" : "false");
       card.innerHTML = `
         <div class="title">${escapeHtml(cardName)}</div>
-        <div class="meta">${escapeHtml(s.month || "-")}</div>
+        <div class="meta">${escapeHtml(invoiceLabel || "-")}</div>
         <div class="value">${toBRL(s.totalCents)}</div>
         <div class="chip-row">
           <span class="badge">${escapeHtml(statusLabel)}</span>
@@ -5036,7 +5076,9 @@ function renderCategoriesTable() {
 
     state.activeStatementMonth = month;
     state.statementItemsMonth = month;
-    if (statementItemsMonth) statementItemsMonth.textContent = formatStatementMonth(month);
+    const cardName = state.creditCards.get(cardId)?.name || "Cartao";
+    const label = formatInvoiceLabel(cardName, month) || formatInvoiceMonthName(month) || "Selecionado";
+    if (statementItemsMonth) statementItemsMonth.textContent = label;
     if (statementItemsPanel) statementItemsPanel.hidden = false;
     updateStatementItemsTitle(month, cardId);
 
