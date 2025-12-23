@@ -737,7 +737,7 @@ Manual tests:
                 <select id="txnPayment">
                   <option value="">Selecione</option>
                   <option value="pix">Pix</option>
-                  <option value="credito">Cartao de credito</option>
+                  <option value="credit_card">Cartao de credito</option>
                   <option value="debito">Cartao de debito</option>
                   <option value="dinheiro">Dinheiro</option>
                   <option value="transferencia">Transferencia</option>
@@ -754,14 +754,6 @@ Manual tests:
               <div>
                 <label for="txnCard">Cartao</label>
                 <select id="txnCard"></select>
-              </div>
-              <div>
-                <label for="txnPurchaseDate">Data da compra</label>
-                <input id="txnPurchaseDate" type="date" />
-              </div>
-              <div>
-                <label for="txnStatementMonth">Fatura</label>
-                <input id="txnStatementMonth" disabled />
               </div>
             </div>
 
@@ -1009,11 +1001,11 @@ Manual tests:
               </div>
               <div>
                 <label for="cardClosingDay">Fechamento</label>
-                <input id="cardClosingDay" type="number" min="1" max="28" step="1" placeholder="Ex.: 10" />
+                <input id="cardClosingDay" type="number" min="1" max="31" step="1" placeholder="Ex.: 10" />
               </div>
               <div>
                 <label for="cardDueDay">Vencimento</label>
-                <input id="cardDueDay" type="number" min="1" max="28" step="1" placeholder="Ex.: 20" />
+                <input id="cardDueDay" type="number" min="1" max="31" step="1" placeholder="Ex.: 20" />
               </div>
             </div>
             <div class="row">
@@ -1209,6 +1201,36 @@ Manual tests:
       <p class="err" id="editError"></p>
     </div>
   </div>
+  <div id="editCardModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editCardTitle" aria-describedby="editCardHelper" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3 id="editCardTitle">Editar cartao</h3>
+          <p class="muted" id="editCardHelper">Atualize os dados do cartao e a fatura futura.</p>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div>
+          <label for="editCardName">Nome do cartao</label>
+          <input id="editCardName" placeholder="Ex.: Nubank" />
+        </div>
+        <div>
+          <label for="editCardClosingDay">Fechamento</label>
+          <input id="editCardClosingDay" type="number" min="1" max="31" step="1" placeholder="Ex.: 10" />
+        </div>
+        <div>
+          <label for="editCardDueDay">Vencimento</label>
+          <input id="editCardDueDay" type="number" min="1" max="31" step="1" placeholder="Ex.: 20" />
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="btnCloseCardEdit" class="secondary" type="button">Cancelar</button>
+        <button id="btnSaveCardEdit" type="button">Salvar alteracoes</button>
+      </div>
+      <p class="muted" id="editCardStatus"></p>
+      <p class="err" id="editCardError"></p>
+    </div>
+  </div>
 </section>
 
 <script type="module">
@@ -1345,8 +1367,6 @@ Manual tests:
   const btnAddTxn = $("btnAddTxn");
   const creditTxnFields = $("creditTxnFields");
   const txnCard = $("txnCard");
-  const txnPurchaseDate = $("txnPurchaseDate");
-  const txnStatementMonth = $("txnStatementMonth");
 
   const cbRecurring = $("cbRecurring");
   const cbInstallment = $("cbInstallment");
@@ -1432,6 +1452,14 @@ Manual tests:
   const btnSaveEdit = $("btnSaveEdit");
   const editStatus = $("editStatus");
   const editError = $("editError");
+  const editCardModal = $("editCardModal");
+  const editCardName = $("editCardName");
+  const editCardClosingDay = $("editCardClosingDay");
+  const editCardDueDay = $("editCardDueDay");
+  const btnCloseCardEdit = $("btnCloseCardEdit");
+  const btnSaveCardEdit = $("btnSaveCardEdit");
+  const editCardStatus = $("editCardStatus");
+  const editCardError = $("editCardError");
 
   const state = {
     user: null,
@@ -1446,6 +1474,7 @@ Manual tests:
     coupleTab: "totals",
     categories: new Map(), // catId -> {name, kind}
     creditCards: new Map(), // cardId -> {name, closingDay, dueDay, status}
+    creditCardsCollectionName: null,
     plans: new Map(), // planId -> plan data
     currentRows: [],
     txnCache: new Map(),
@@ -1455,6 +1484,7 @@ Manual tests:
     statementItemsCache: [],
     statementItemsMonth: null,
     editingTxnId: null,
+    editingCardId: null,
     sort: {
       transactions: { key: "date", dir: "desc" },
       categories: { key: "name", dir: "asc" },
@@ -1531,8 +1561,8 @@ Manual tests:
       normalized.monthKey = formatMonthKey(dateVal);
       return normalized;
     }
-    if (normalized.statementMonth) {
-      normalized.monthKey = normalized.statementMonth;
+    if (normalized.invoiceMonth || normalized.statementMonth) {
+      normalized.monthKey = normalized.invoiceMonth || normalized.statementMonth;
     }
     return normalized;
   }
@@ -1845,15 +1875,20 @@ Manual tests:
     return amounts;
   }
 
-  function computeStatementMonth(purchaseDate, closingDay = 10) {
+  function normalizeClosingDay(value, fallback = 31) {
+    const n = Number(value);
+    if (Number.isFinite(n) && n >= 1 && n <= 31) return n;
+    return fallback;
+  }
+
+  function computeInvoiceMonth(purchaseDate, closingDay) {
     const d = purchaseDate instanceof Date ? purchaseDate : new Date(purchaseDate || Date.now());
-    const day = d.getDate();
-    let y = d.getFullYear();
-    let m = d.getMonth() + 1;
-    if (day > closingDay) {
-      m += 1;
-      if (m > 12) { m = 1; y += 1; }
-    }
+    if (!(d instanceof Date) || Number.isNaN(d.getTime())) return "";
+    const closing = normalizeClosingDay(closingDay);
+    const monthOffset = d.getDate() <= closing ? 1 : 2;
+    const totalMonths = (d.getFullYear() * 12) + (d.getMonth()) + monthOffset;
+    const y = Math.floor(totalMonths / 12);
+    const m = (totalMonths % 12) + 1;
     return formatYYYYMM(y, m);
   }
 
@@ -1946,7 +1981,8 @@ Manual tests:
     }
     const limited = rows.slice(0, 6);
     for (const r of limited) {
-      const dt = r.date ? toISODateLocal(r.date) : "-";
+      const dateToShow = (isCreditCardPayment(r.paymentMethod) && r.purchaseDate) ? r.purchaseDate : r.date;
+      const dt = dateToShow ? toISODateLocal(dateToShow) : "-";
       const label = occurrenceCounterLabel(r);
       const showRecurringIcon = shouldShowRecurringIcon(r);
       const descBase = (r.note || "").trim();
@@ -2009,32 +2045,8 @@ Manual tests:
 
   function syncCreditTxnFields() {
     if (!creditTxnFields) return;
-    const isCredit = (txnPayment?.value === "credito");
+    const isCredit = isCreditCardPayment(txnPayment?.value);
     creditTxnFields.hidden = !isCredit;
-    if (!isCredit) {
-      if (txnStatementMonth) txnStatementMonth.value = "";
-      return;
-    }
-
-    if (txnPurchaseDate && !txnPurchaseDate.value && txnDate?.value) {
-      txnPurchaseDate.value = txnDate.value;
-    }
-
-    const cardId = txnCard?.value || "";
-    if (!cardId) {
-      if (txnStatementMonth) txnStatementMonth.value = "";
-      return;
-    }
-    const closingDay = getCardClosingDay(cardId);
-    const purchaseDateStr = txnPurchaseDate?.value || txnDate?.value || "";
-    if (!purchaseDateStr) {
-      if (txnStatementMonth) txnStatementMonth.value = "";
-      return;
-    }
-
-    const purchaseDateObj = new Date(purchaseDateStr + "T00:00:00");
-    const statementMonth = computeStatementMonth(purchaseDateObj, closingDay);
-    if (txnStatementMonth) txnStatementMonth.value = statementMonth || "";
   }
 
   function syncPlanFields() {
@@ -2050,7 +2062,7 @@ Manual tests:
     if (planPaymentWrap) planPaymentWrap.hidden = isCredit;
     if (planPaymentMethod) {
       if (isCredit) {
-        planPaymentMethod.value = "credito";
+        planPaymentMethod.value = "credit_card";
         planPaymentMethod.disabled = true;
       } else {
         planPaymentMethod.disabled = false;
@@ -2431,6 +2443,7 @@ Manual tests:
     state.walletType = type;
     state.walletName = friendlyWalletLabel(walletId, name);
     state.walletLabels.set(walletId, state.walletName);
+    state.creditCardsCollectionName = null;
 
     const couple = isCoupleWallet();
     state.coupleTab = couple ? "details" : "totals";
@@ -2441,7 +2454,7 @@ Manual tests:
 
     const disablePersonal = couple;
     [catName, catKind, btnAddCat, btnSeedCats].forEach((el) => el && (el.disabled = disablePersonal));
-    [txnDate, txnType, txnCat, txnAmount, txnNote, txnPayment, txnCard, txnPurchaseDate, btnAddTxn].forEach((el) => el && (el.disabled = disablePersonal));
+    [txnDate, txnType, txnCat, txnAmount, txnNote, txnPayment, txnCard, btnAddTxn].forEach((el) => el && (el.disabled = disablePersonal));
     [
       planTitle, planType, planTxnType, planCategory, planAmountEach, planAmountTotal, planMonthsTotal,
       planStartMonth, planPaymentMethod, planCreditCard, planPurchaseDate, btnCreatePlan
@@ -2455,8 +2468,8 @@ Manual tests:
     const now = new Date();
     txnDate.value = toISODateLocal(now);
 
-    await reloadAll();
     await loadCreditCards();
+    await reloadAll();
     await loadPlans();
   }
 
@@ -2770,7 +2783,7 @@ function renderCategoriesTable() {
   function isInstallmentTxn(txn) {
     if (!txn) return false;
     const hasInstallmentFlag = Boolean(txn.installment?.isInstallment);
-    const hasInstallmentPlan = txn.planType === "installment";
+    const hasInstallmentPlan = txn.planType === "installment" || txn.planType === "credit_installment";
     const hasInstallmentData = Number(txn.installment?.total) && Number(txn.installment?.current);
     return hasInstallmentFlag || hasInstallmentPlan || hasInstallmentData;
   }
@@ -2824,10 +2837,15 @@ function renderCategoriesTable() {
     return "";
   }
 
+  function isCreditCardPayment(method) {
+    return method === "credit_card" || method === "credito";
+  }
+
   function friendlyPaymentMethod(method) {
     switch (method) {
       case "pix": return "Pix";
-      case "credito": return "Cartao de credito";
+      case "credito":
+      case "credit_card": return "Cartao de credito";
       case "debito": return "Cartao de debito";
       case "dinheiro": return "Dinheiro";
       case "transferencia": return "Transferencia";
@@ -2835,6 +2853,30 @@ function renderCategoriesTable() {
       case "outro": return "Outro";
       default: return "-";
     }
+  }
+
+  function getTxnInvoiceMonth(txn = {}) {
+    const direct = txn.invoiceMonth || txn.statementMonth;
+    if (direct) return direct;
+    if (!isCreditCardPayment(txn.paymentMethod)) return "";
+    const purchaseRaw = txn.purchaseDate;
+    const purchaseDate = purchaseRaw instanceof Date ? purchaseRaw : purchaseRaw?.toDate?.();
+    const dateRaw = txn.date;
+    const dateObj = dateRaw instanceof Date ? dateRaw : dateRaw?.toDate?.();
+    const baseDate = purchaseDate || dateObj;
+    if (!(baseDate instanceof Date) || Number.isNaN(baseDate.getTime())) return "";
+    const closingDay = txn.creditCardId ? getCardClosingDay(txn.creditCardId) : 31;
+    return computeInvoiceMonth(baseDate, closingDay);
+  }
+
+  function creditCardTag(txn = {}) {
+    if (!isCreditCardPayment(txn.paymentMethod)) return "";
+    const month = getTxnInvoiceMonth(txn);
+    if (!month) return "";
+    const cardName = txn.creditCardNameSnapshot
+      || (txn.creditCardId ? state.creditCards.get(txn.creditCardId)?.name : "");
+    if (!cardName) return "";
+    return `${cardName} | ${month}`;
   }
 
   const SORT_ICON_ASC = '<svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7.034 2a1 1 0 0 1 .945.673l2.793 8.069a1 1 0 0 1-1.89.654l-.412-1.19H5.597l-.411 1.19a1 1 0 0 1-1.89-.654l2.793-8.07A1 1 0 0 1 7.034 2Zm0 4.057-.744 2.15h1.488l-.744-2.15ZM4.749 13a1 1 0 1 0 0 2H8l-4.05 5.4a1 1 0 0 0 .8 1.6H10a1 1 0 1 0 0-2H6.75l4.05-5.4A1 1 0 0 0 10 13H4.75Zm7.544 3.293a1 1 0 0 1 1.414 0l2.292 2.292V3a1 1 0 1 1 2 0v15.586l2.294-2.293a1 1 0 0 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 0 1 0-1.414Z" fill="#222F3D"/></svg>';
@@ -2973,21 +3015,36 @@ function renderCategoriesTable() {
     return (type === "income") ? -amt : amt;
   }
 
+  function getCreditCardCollectionName() {
+    return state.creditCardsCollectionName || "creditCards";
+  }
+
+  function getCreditCardCollectionRef(walletId = state.walletId) {
+    return collection(db, "wallets", walletId, getCreditCardCollectionName());
+  }
+
+  function getCreditCardDocRef(walletId, cardId) {
+    return doc(db, "wallets", walletId, getCreditCardCollectionName(), cardId);
+  }
+
+  function getCreditCardStatementsRef(walletId, cardId) {
+    return collection(db, "wallets", walletId, getCreditCardCollectionName(), cardId, "statements");
+  }
+
   function getStatementKey(txn = {}) {
-    if (txn.paymentMethod !== "credito") return null;
-    if (!txn.creditCardId || !txn.statementMonth) return null;
-    return { cardId: txn.creditCardId, month: txn.statementMonth };
+    if (!isCreditCardPayment(txn.paymentMethod)) return null;
+    const month = txn.invoiceMonth || txn.statementMonth;
+    if (!txn.creditCardId || !month) return null;
+    return { cardId: txn.creditCardId, month };
   }
 
   function getStatementRef(walletId, cardId, month) {
-    return doc(db, "wallets", walletId, "credit_cards", cardId, "statements", month);
+    return doc(db, "wallets", walletId, getCreditCardCollectionName(), cardId, "statements", month);
   }
 
   function getCardClosingDay(cardId) {
     const card = state.creditCards.get(cardId);
-    const closing = Number(card?.closingDay ?? 0);
-    if (Number.isFinite(closing) && closing >= 1 && closing <= 28) return closing;
-    return 10;
+    return normalizeClosingDay(card?.closingDay, 31);
   }
 
   function setStatementStatus(msg = "") {
@@ -3048,6 +3105,48 @@ function renderCategoriesTable() {
 
   // ===== Credit Cards =====
 
+  async function fetchCreditCardSnapshots(walletId) {
+    const preferred = state.creditCardsCollectionName || "creditCards";
+    const fallback = preferred === "creditCards" ? "credit_cards" : "creditCards";
+    let preferredSnaps = null;
+    let preferredError = null;
+
+    try {
+      preferredSnaps = await getDocs(collection(db, "wallets", walletId, preferred));
+    } catch (e) {
+      preferredError = e;
+    }
+
+    if (preferredSnaps && !preferredSnaps.empty) {
+      state.creditCardsCollectionName = preferred;
+      return preferredSnaps;
+    }
+
+    let fallbackSnaps = null;
+    let fallbackError = null;
+    try {
+      fallbackSnaps = await getDocs(collection(db, "wallets", walletId, fallback));
+    } catch (e) {
+      fallbackError = e;
+    }
+
+    if (fallbackSnaps && !fallbackSnaps.empty) {
+      state.creditCardsCollectionName = fallback;
+      return fallbackSnaps;
+    }
+
+    if (preferredSnaps) {
+      state.creditCardsCollectionName = preferred;
+      return preferredSnaps;
+    }
+    if (fallbackSnaps) {
+      state.creditCardsCollectionName = fallback;
+      return fallbackSnaps;
+    }
+
+    throw preferredError || fallbackError || new Error("Nao foi possivel carregar cartoes.");
+  }
+
   async function loadCreditCards() {
     state.creditCards.clear();
     if (txnCard) txnCard.innerHTML = "";
@@ -3064,8 +3163,7 @@ function renderCategoriesTable() {
     }
 
     try {
-      const colRef = collection(db, "wallets", state.walletId, "credit_cards");
-      const snaps = await getDocs(colRef);
+      const snaps = await fetchCreditCardSnapshots(state.walletId);
       for (const d of snaps.docs) {
         const data = d.data();
         state.creditCards.set(d.id, {
@@ -3106,6 +3204,7 @@ function renderCategoriesTable() {
         <td class="right">${c.dueDay || "-"}</td>
         <td><span class="badge">${statusLabel}</span></td>
         <td class="right actions">
+          <button class="ghost" data-edit-card="${c.id}" aria-label="Editar" title="Editar">${ICON_EDIT}</button>
           <button class="ghost" data-toggle-card="${c.id}">${actionLabel}</button>
           <button class="ghost" data-del-card="${c.id}" aria-label="Excluir" title="Excluir">${ICON_DELETE}</button>
         </td>
@@ -3119,12 +3218,127 @@ function renderCategoriesTable() {
         await toggleCardStatus(id);
       });
     });
+    cardTable.querySelectorAll("button[data-edit-card]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-edit-card");
+        openEditCardModal(id);
+      });
+    });
     cardTable.querySelectorAll("button[data-del-card]").forEach(btn => {
       btn.addEventListener("click", async () => {
         const id = btn.getAttribute("data-del-card");
         await deleteCreditCard(id);
       });
     });
+  }
+
+  function openEditCardModal(cardId) {
+    if (!editCardModal) return;
+    const card = state.creditCards.get(cardId);
+    if (!card) return;
+    state.editingCardId = cardId;
+    if (editCardName) editCardName.value = card.name || "";
+    if (editCardClosingDay) editCardClosingDay.value = card.closingDay || "";
+    if (editCardDueDay) editCardDueDay.value = card.dueDay || "";
+    if (editCardStatus) editCardStatus.textContent = "";
+    if (editCardError) editCardError.textContent = "";
+    editCardModal.hidden = false;
+  }
+
+  function closeEditCardModal() {
+    if (!editCardModal) return;
+    editCardModal.hidden = true;
+    state.editingCardId = null;
+  }
+
+  async function updateFutureCreditCardTransactions(cardId, closingDay, cardNameSnapshot = "") {
+    if (!cardId || !isPersonalWalletId(state.walletId)) return { scanned: 0, updated: 0 };
+    const start = currentDateInTZ();
+    start.setHours(0, 0, 0, 0);
+    const startTS = Timestamp.fromDate(start);
+    const baseQuery = (method) => query(
+      collection(db, "wallets", state.walletId, "transactions"),
+      where("creditCardId", "==", cardId),
+      where("paymentMethod", "==", method),
+      where("purchaseDate", ">=", startTS)
+    );
+
+    const methods = ["credit_card", "credito"];
+    const txnMap = new Map();
+    for (const method of methods) {
+      try {
+        const snaps = await getDocs(baseQuery(method));
+        snaps.docs.forEach((snap) => txnMap.set(snap.id, snap));
+      } catch (e) {
+        console.error("fetch future card txns failed", e);
+      }
+    }
+
+    let scanned = 0;
+    let updated = 0;
+    for (const snap of txnMap.values()) {
+      scanned += 1;
+      const data = normalizeTxn(snap.data());
+      const purchaseDate = data.purchaseDate?.toDate?.() ?? null;
+      if (!(purchaseDate instanceof Date) || Number.isNaN(purchaseDate.getTime())) continue;
+      const newInvoiceMonth = computeInvoiceMonth(purchaseDate, closingDay);
+      const oldInvoiceMonth = data.invoiceMonth || data.statementMonth || "";
+      if (!newInvoiceMonth || newInvoiceMonth === oldInvoiceMonth) continue;
+      const alignedDate = alignDateToMonthKey(purchaseDate, newInvoiceMonth);
+      const updates = {
+        date: Timestamp.fromDate(alignedDate),
+        monthKey: newInvoiceMonth,
+        invoiceMonth: newInvoiceMonth,
+        statementMonth: newInvoiceMonth,
+        creditCardNameSnapshot: cardNameSnapshot || data.creditCardNameSnapshot || null
+      };
+      await updateTxnWithDerivations(snap.id, updates, { walletId: state.walletId });
+      updated += 1;
+    }
+    return { scanned, updated };
+  }
+
+  async function saveCardEdits() {
+    if (!editCardModal || !editCardName || !editCardClosingDay || !editCardDueDay || !btnSaveCardEdit) return;
+    if (editCardError) editCardError.textContent = "";
+    if (editCardStatus) editCardStatus.textContent = "";
+
+    const cardId = state.editingCardId;
+    if (!cardId) { if (editCardError) editCardError.textContent = "Nenhum cartao selecionado."; return; }
+
+    const name = (editCardName.value ?? "").trim();
+    const closingDay = parsePositiveInt(editCardClosingDay.value);
+    const dueDay = parsePositiveInt(editCardDueDay.value);
+
+    if (!name) { if (editCardError) editCardError.textContent = "Informe o nome do cartao."; return; }
+    if (!closingDay || closingDay < 1 || closingDay > 31) { if (editCardError) editCardError.textContent = "Fechamento invalido."; return; }
+    if (!dueDay || dueDay < 1 || dueDay > 31) { if (editCardError) editCardError.textContent = "Vencimento invalido."; return; }
+
+    btnSaveCardEdit.disabled = true;
+    btnSaveCardEdit.textContent = "Salvando...";
+
+    try {
+      await setDoc(getCreditCardDocRef(state.walletId, cardId), {
+        name,
+        closingDay,
+        dueDay,
+        updatedAt: serverTimestamp(),
+        updatedBy: state.uid
+      }, { merge: true });
+
+      if (editCardStatus) editCardStatus.textContent = "Atualizando faturas futuras...";
+      const result = await updateFutureCreditCardTransactions(cardId, closingDay, name);
+      const suffix = result.updated ? `Faturas ajustadas: ${result.updated}.` : "Nenhuma fatura futura ajustada.";
+      if (editCardStatus) editCardStatus.textContent = `Cartao atualizado. ${suffix}`;
+
+      await loadCreditCards();
+    } catch (e) {
+      console.error("saveCardEdits failed", e);
+      if (editCardError) editCardError.textContent = "Nao foi possivel atualizar o cartao.";
+    } finally {
+      btnSaveCardEdit.disabled = false;
+      btnSaveCardEdit.textContent = "Salvar alteracoes";
+    }
   }
 
   async function addCreditCard() {
@@ -3140,11 +3354,11 @@ function renderCategoriesTable() {
     const dueDay = parsePositiveInt(cardDueDay.value);
 
     if (!name) { cardStatus.textContent = "Informe o nome do cartao."; return; }
-    if (!closingDay || closingDay < 1 || closingDay > 28) { cardStatus.textContent = "Fechamento invalido."; return; }
-    if (!dueDay || dueDay < 1 || dueDay > 28) { cardStatus.textContent = "Vencimento invalido."; return; }
+    if (!closingDay || closingDay < 1 || closingDay > 31) { cardStatus.textContent = "Fechamento invalido."; return; }
+    if (!dueDay || dueDay < 1 || dueDay > 31) { cardStatus.textContent = "Vencimento invalido."; return; }
 
     try {
-      await addDoc(collection(db, "wallets", state.walletId, "credit_cards"), {
+      await addDoc(getCreditCardCollectionRef(state.walletId), {
         name,
         closingDay,
         dueDay,
@@ -3169,7 +3383,7 @@ function renderCategoriesTable() {
     const current = state.creditCards.get(cardId);
     const nextStatus = current?.status === "active" ? "inactive" : "active";
     try {
-      await setDoc(doc(db, "wallets", state.walletId, "credit_cards", cardId), {
+      await setDoc(getCreditCardDocRef(state.walletId, cardId), {
         status: nextStatus,
         updatedAt: serverTimestamp(),
         updatedBy: state.uid
@@ -3205,12 +3419,12 @@ function renderCategoriesTable() {
     if (cardStatus) cardStatus.textContent = "Excluindo cartao...";
 
     try {
-      const stmtCol = collection(db, "wallets", state.walletId, "credit_cards", cardId, "statements");
+      const stmtCol = getCreditCardStatementsRef(state.walletId, cardId);
       const stmtSnaps = await getDocs(stmtCol);
       for (const d of stmtSnaps.docs) {
         await deleteDoc(d.ref);
       }
-      await deleteDoc(doc(db, "wallets", state.walletId, "credit_cards", cardId));
+      await deleteDoc(getCreditCardDocRef(state.walletId, cardId));
       await loadCreditCards();
       if (cardStatus) cardStatus.textContent = "Cartao excluido.";
     } catch (e) {
@@ -3228,16 +3442,10 @@ function renderCategoriesTable() {
       );
       const snaps = await getDocs(qRef);
       const byMonth = new Map();
-      const closingDay = getCardClosingDay(cardId);
 
       for (const d of snaps.docs) {
         const t = normalizeTxn(d.data());
-        const docMonthKey = t.monthKey || formatMonthKey(t.date?.toDate?.() ?? t.date);
-        let month = t.statementMonth;
-        if (!month) {
-          const baseDate = t.purchaseDate?.toDate?.() ?? t.date?.toDate?.();
-          if (baseDate) month = computeStatementMonth(baseDate, closingDay);
-        }
+        let month = getTxnInvoiceMonth(t);
         if (!month) continue;
         const delta = statementSignedAmount(t.amountCents, t.type);
         const current = byMonth.get(month) || 0;
@@ -3405,7 +3613,7 @@ function renderCategoriesTable() {
     let usedFallback = false;
 
     try {
-      const colRef = collection(db, "wallets", state.walletId, "credit_cards", cardId, "statements");
+      const colRef = getCreditCardStatementsRef(state.walletId, cardId);
       const snaps = await getDocs(colRef);
       entries = snaps.docs.map(d => {
         const data = d.data();
@@ -3454,15 +3662,10 @@ function renderCategoriesTable() {
     const snaps = await getDocs(qRef);
     const items = [];
     let computedTotal = 0;
-    const closingDay = getCardClosingDay(cardId);
 
     for (const d of snaps.docs) {
       const t = normalizeTxn(d.data());
-      let statementMonth = t.statementMonth;
-      if (!statementMonth) {
-        const baseDate = t.purchaseDate?.toDate?.() ?? t.date?.toDate?.();
-        if (baseDate) statementMonth = computeStatementMonth(baseDate, closingDay);
-      }
+      let statementMonth = getTxnInvoiceMonth(t);
       if (statementMonth !== month) continue;
       const displayDate = t.purchaseDate?.toDate?.() ?? t.date?.toDate?.();
       const dt = displayDate ? toISODateLocal(displayDate) : "-";
@@ -3831,7 +4034,7 @@ function renderCategoriesTable() {
       amountEachCents = amountTotalCents;
     }
 
-    if (planMode === "finance" && paymentMethod === "credito") {
+    if (planMode === "finance" && isCreditCardPayment(paymentMethod)) {
       setOpsError("Financiamento nao usa cartao de credito.");
       return;
     }
@@ -3840,17 +4043,16 @@ function renderCategoriesTable() {
     let purchaseDate = null;
     let statementStartMonth = null;
 
-    if (planMode === "credit_installment" || (planMode === "recurring" && paymentMethod === "credito")) {
+    if (planMode === "credit_installment" || (planMode === "recurring" && isCreditCardPayment(paymentMethod))) {
       creditCardId = txnCard?.value || "";
       if (!creditCardId) {
         setOpsError("Selecione um cartao.");
         return;
       }
-      const purchaseDateStr = txnPurchaseDate?.value || dateStr;
+      const purchaseDateStr = dateStr;
       const purchaseDateObj = new Date(purchaseDateStr + "T00:00:00");
       purchaseDate = Timestamp.fromDate(purchaseDateObj);
-      const closingDay = getCardClosingDay(creditCardId);
-      statementStartMonth = computeStatementMonth(purchaseDateObj, closingDay);
+      statementStartMonth = computeInvoiceMonth(purchaseDateObj, getCardClosingDay(creditCardId));
       if (planMode === "credit_installment" && statementStartMonth) {
         startMonth = statementStartMonth;
       }
@@ -3861,7 +4063,7 @@ function renderCategoriesTable() {
 
     try {
       const planRef = doc(collection(db, "wallets", state.walletId, "plans"));
-      const planPayment = planMode === "credit_installment" ? "credito" : (paymentMethod || "outro");
+      const planPayment = planMode === "credit_installment" ? "credit_card" : (paymentMethod || "outro");
       const payload = {
       type: planMode,
       txnType: type,
@@ -3901,7 +4103,6 @@ function renderCategoriesTable() {
       txnNote.value = "";
       if (txnPayment) txnPayment.value = "";
       if (txnCard) txnCard.value = "";
-      if (txnStatementMonth) txnStatementMonth.value = "";
       cbRecurring.checked = false;
       cbInstallment.checked = false;
       cbFinance.checked = false;
@@ -3967,7 +4168,7 @@ function renderCategoriesTable() {
     let statementStartMonth = null;
 
     if (type === "credit_installment") {
-      paymentMethod = "credito";
+      paymentMethod = "credit_card";
       creditCardId = planCreditCard?.value || "";
       if (!creditCardId) { planStatus.textContent = "Selecione um cartao."; return; }
 
@@ -3975,8 +4176,7 @@ function renderCategoriesTable() {
       if (!purchaseDateStr) { planStatus.textContent = "Informe a data da compra."; return; }
       const purchaseDateObj = new Date(purchaseDateStr + "T00:00:00");
       purchaseDate = Timestamp.fromDate(purchaseDateObj);
-      const closingDay = getCardClosingDay(creditCardId);
-      statementStartMonth = computeStatementMonth(purchaseDateObj, closingDay);
+      statementStartMonth = computeInvoiceMonth(purchaseDateObj, getCardClosingDay(creditCardId));
     }
 
     btnCreatePlan.disabled = true;
@@ -4071,18 +4271,19 @@ function renderCategoriesTable() {
       const txnId = `r_${planId}_${current}`;
       const v2 = buildPlanV2Fields(plan, index, null);
       let creditFields = {};
-      if (plan.paymentMethod === "credito" && plan.creditCardId) {
+      if (isCreditCardPayment(plan.paymentMethod) && plan.creditCardId) {
         const baseDay = plan.purchaseDate?.toDate?.().getDate?.() ?? 1;
         const parsed = parseYYYYMM(current);
         if (parsed) {
           const day = Math.min(baseDay, 28);
           const purchaseDateObj = new Date(parsed.y, parsed.m - 1, day);
-          const closingDay = getCardClosingDay(plan.creditCardId);
-          const statementMonth = computeStatementMonth(purchaseDateObj, closingDay);
+          const invoiceMonth = computeInvoiceMonth(purchaseDateObj, getCardClosingDay(plan.creditCardId));
           creditFields = {
             creditCardId: plan.creditCardId,
-            statementMonth,
-            purchaseDate: Timestamp.fromDate(purchaseDateObj)
+            statementMonth: invoiceMonth || null,
+            invoiceMonth: invoiceMonth || null,
+            purchaseDate: Timestamp.fromDate(purchaseDateObj),
+            creditCardNameSnapshot: state.creditCards.get(plan.creditCardId)?.name || null
           };
         }
       }
@@ -4211,18 +4412,30 @@ function renderCategoriesTable() {
     const plan = planOverride || await getPlan(planId);
     if (!plan || !plan.monthsTotal) return;
     if (plan.status !== "active") return;
-    if (!plan.creditCardId || !plan.statementStartMonth) return;
+    if (!plan.creditCardId) return;
 
     const amounts = splitAmountByMonths(plan.amountTotalCents || 0, plan.monthsTotal);
+    let basePurchaseDate = plan.startDate?.toDate?.() ?? plan.purchaseDate?.toDate?.() ?? null;
+    if (!basePurchaseDate) {
+      const fallbackMonth = plan.startMonth || plan.statementStartMonth;
+      basePurchaseDate = fallbackMonth ? firstDateOfMonth(fallbackMonth) : null;
+    }
+    if (!basePurchaseDate) return;
+
+    const closingDay = getCardClosingDay(plan.creditCardId);
     let lastMonth = null;
 
     for (let i = 1; i <= plan.monthsTotal; i += 1) {
-      const statementMonth = addMonthsYYYYMM(plan.statementStartMonth, i - 1);
-      const txnId = `cc_${planId}_${statementMonth}`;
+      const occurrencePurchaseDate = addMonthsPreserveDay(basePurchaseDate, i - 1);
+      const invoiceMonth = computeInvoiceMonth(occurrencePurchaseDate, closingDay);
+      if (!invoiceMonth) continue;
+      const occurrenceDate = alignDateToMonthKey(occurrencePurchaseDate, invoiceMonth);
+      const txnId = `cc_${planId}_${invoiceMonth}`;
       const v2 = buildPlanV2Fields(plan, i, plan.monthsTotal);
-      v2.paymentMethod = "credito";
+      v2.paymentMethod = "credit_card";
       const payload = {
-        date: timestampFromYYYYMM(statementMonth),
+        date: Timestamp.fromDate(occurrenceDate),
+        monthKey: invoiceMonth,
         amountCents: amounts[i - 1] ?? plan.amountEachCents ?? 0,
         type: plan.txnType || "expense",
         categoryId: plan.categoryId,
@@ -4235,11 +4448,13 @@ function renderCategoriesTable() {
         occurrenceTotal: plan.monthsTotal,
         status: "scheduled",
         creditCardId: plan.creditCardId,
-        statementMonth,
-        purchaseDate: plan.purchaseDate || null
+        creditCardNameSnapshot: state.creditCards.get(plan.creditCardId)?.name || null,
+        invoiceMonth,
+        statementMonth: invoiceMonth,
+        purchaseDate: Timestamp.fromDate(occurrencePurchaseDate)
       };
       await createTxnWithDerivations(payload, { walletId: plan.walletId, txnId });
-      lastMonth = statementMonth;
+      lastMonth = invoiceMonth;
     }
 
     if (lastMonth) {
@@ -4255,6 +4470,21 @@ function renderCategoriesTable() {
 
   async function createTxnWithDerivations(txnPayload, { walletId = state.walletId, txnId = null } = {}) {
     txnPayload = withMonthKey(txnPayload);
+    if (isCreditCardPayment(txnPayload.paymentMethod)) {
+      let invoiceMonth = txnPayload.invoiceMonth || txnPayload.statementMonth;
+      if (!invoiceMonth) {
+        const baseDate = txnPayload.purchaseDate?.toDate?.() ?? txnPayload.date?.toDate?.() ?? txnPayload.date;
+        if (baseDate instanceof Date && !Number.isNaN(baseDate.getTime())) {
+          const closingDay = txnPayload.creditCardId ? getCardClosingDay(txnPayload.creditCardId) : 31;
+          invoiceMonth = computeInvoiceMonth(baseDate, closingDay);
+        }
+      }
+      if (invoiceMonth && !txnPayload.invoiceMonth) txnPayload.invoiceMonth = invoiceMonth;
+      if (invoiceMonth && !txnPayload.statementMonth) txnPayload.statementMonth = invoiceMonth;
+      if (!txnPayload.creditCardNameSnapshot && txnPayload.creditCardId) {
+        txnPayload.creditCardNameSnapshot = state.creditCards.get(txnPayload.creditCardId)?.name || null;
+      }
+    }
     const personalWalletId = walletId;
     const shouldSyncToCouple = isPersonalWalletId(personalWalletId);
 
@@ -4268,7 +4498,7 @@ function renderCategoriesTable() {
 
     const reportRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", month);
 
-    const needsStatement = txnPayload.paymentMethod === "credito" && txnPayload.creditCardId && txnPayload.statementMonth;
+    const needsStatement = isCreditCardPayment(txnPayload.paymentMethod) && txnPayload.creditCardId && txnPayload.statementMonth;
     const statementRef = needsStatement ? getStatementRef(personalWalletId, txnPayload.creditCardId, txnPayload.statementMonth) : null;
 
     await runTransaction(db, async (tx) => {
@@ -4711,11 +4941,13 @@ function renderCategoriesTable() {
           txn = {
             id: txnId,
             date: data.date?.toDate?.() ?? null,
+            purchaseDate: data.purchaseDate?.toDate?.() ?? null,
             amountCents: Number(data.amountCents || 0),
             type: data.type ?? "expense",
             categoryId: data.categoryId ?? "",
             categoryName: data.categoryName ?? "",
-            note: data.note ?? ""
+            note: data.note ?? "",
+            paymentMethod: data.paymentMethod ?? ""
           };
         }
       } catch (e) {
@@ -4729,7 +4961,8 @@ function renderCategoriesTable() {
       return;
     }
 
-    if (txn.date) editTxnDate.value = toISODateLocal(txn.date);
+    const editBaseDate = (isCreditCardPayment(txn.paymentMethod) && txn.purchaseDate) ? txn.purchaseDate : txn.date;
+    if (editBaseDate) editTxnDate.value = toISODateLocal(editBaseDate);
     editTxnType.value = txn.type || "expense";
     setCategoryOptions(editTxnCat, txn.categoryId || "", txn.categoryName || "Categoria removida");
     editTxnAmount.value = formatCentsToInputValue(txn.amountCents);
@@ -4786,27 +5019,22 @@ function renderCategoriesTable() {
     const amountEachCents = shouldSplit ? (amounts[0] ?? amountCents) : amountCents;
 
     let creditCardId = "";
-    let purchaseDate = null;
+    let cardClosingDay = null;
+    let planPurchaseDate = null;
     let statementStartMonth = "";
-    if (planMode === "finance" && paymentMethod === "credito") {
+    if (planMode === "finance" && isCreditCardPayment(paymentMethod)) {
       setOpsError("Financiamento nao usa cartao de credito.");
       return;
     }
-    if (paymentMethod === "credito") {
+    if (isCreditCardPayment(paymentMethod)) {
       creditCardId = txnCard?.value || "";
       if (!creditCardId) {
         setOpsError("Selecione um cartao.");
         return;
       }
-      const purchaseDateStr = txnPurchaseDate?.value || dateStr;
-      const purchaseDateObj = new Date(purchaseDateStr + "T00:00:00");
-      const closingDay = getCardClosingDay(creditCardId);
-      statementStartMonth = computeStatementMonth(purchaseDateObj, closingDay);
-      purchaseDate = Timestamp.fromDate(purchaseDateObj);
-    }
-    if (planMode === "credit_installment" && currentInstallment > 1) {
-      const adjusted = addMonthsToMonthKey(formatMonthKey(inputDate), -(currentInstallment - 1));
-      if (adjusted) statementStartMonth = adjusted;
+      cardClosingDay = getCardClosingDay(creditCardId);
+      planPurchaseDate = Timestamp.fromDate(startDate);
+      statementStartMonth = computeInvoiceMonth(startDate, cardClosingDay);
     }
 
     btnAddTxn.disabled = true;
@@ -4828,8 +5056,10 @@ function renderCategoriesTable() {
         monthsTotal,
         generatedThrough: startMonth,
         status: "active",
-        paymentMethod: paymentMethod || "outro",
+        paymentMethod: isCreditCardPayment(paymentMethod) ? "credit_card" : (paymentMethod || "outro"),
         creditCardId: creditCardId || null,
+        statementStartMonth: statementStartMonth || null,
+        purchaseDate: planPurchaseDate || null,
         createdAt: serverTimestamp(),
         createdBy: state.uid,
         updatedAt: serverTimestamp(),
@@ -4842,19 +5072,19 @@ function renderCategoriesTable() {
 
       for (let idx = 0; idx < monthsTotal; idx += 1) {
         const occurrenceIndex = idx + 1;
-        let occurrenceDate = addMonthsPreserveDay(startDate, idx);
-        let statementMonth = "";
-
-        if (planMode === "installment" || planMode === "finance") {
-          occurrenceDate = addMonthsPreserveDay(inputDate, occurrenceIndex - currentInstallment);
+        let occurrencePurchaseDate = addMonthsPreserveDay(startDate, idx);
+        if (planMode === "installment" || planMode === "finance" || planMode === "credit_installment") {
+          occurrencePurchaseDate = addMonthsPreserveDay(inputDate, occurrenceIndex - currentInstallment);
         }
 
-        if (planMode === "credit_installment" && statementStartMonth) {
-          statementMonth = addMonthsToMonthKey(statementStartMonth, idx);
-          occurrenceDate = alignDateToMonthKey(startDate, statementMonth);
-        }
-
-        const monthKey = formatMonthKey(occurrenceDate);
+        const isCreditPayment = isCreditCardPayment(paymentMethod) && creditCardId;
+        const invoiceMonth = isCreditPayment
+          ? computeInvoiceMonth(occurrencePurchaseDate, cardClosingDay)
+          : "";
+        const occurrenceDate = (isCreditPayment && invoiceMonth)
+          ? alignDateToMonthKey(occurrencePurchaseDate, invoiceMonth)
+          : occurrencePurchaseDate;
+        const monthKey = invoiceMonth || formatMonthKey(occurrenceDate);
         const txnId = planMode === "recurring"
           ? `r_${planId}_${monthKey}`
           : planMode === "finance"
@@ -4880,10 +5110,12 @@ function renderCategoriesTable() {
           occurrenceIndex,
           occurrenceTotal,
           status: "scheduled",
-          paymentMethod: paymentMethod || "outro",
-          creditCardId: statementMonth ? creditCardId : null,
-          statementMonth: statementMonth || null,
-          purchaseDate,
+          paymentMethod: isCreditPayment ? "credit_card" : (paymentMethod || "outro"),
+          creditCardId: isCreditPayment ? creditCardId : null,
+          creditCardNameSnapshot: isCreditPayment ? (state.creditCards.get(creditCardId)?.name || null) : null,
+          invoiceMonth: invoiceMonth || null,
+          statementMonth: invoiceMonth || null,
+          purchaseDate: isCreditPayment ? Timestamp.fromDate(occurrencePurchaseDate) : null,
           originalType: type,
           recurring: { isRecurring: planMode === "recurring", cadence: planMode === "recurring" ? "monthly" : "none" },
           installment: (planMode === "installment" || planMode === "credit_installment")
@@ -4906,7 +5138,6 @@ function renderCategoriesTable() {
       txnNote.value = "";
       if (txnPayment) txnPayment.value = "";
       if (txnCard) txnCard.value = "";
-      if (txnStatementMonth) txnStatementMonth.value = "";
       syncCreditTxnFields();
 
       await reloadAll();
@@ -4957,7 +5188,7 @@ function renderCategoriesTable() {
 
     let planMode = "";
     if (wantsFinance) planMode = "finance";
-    else if (wantsInstallment) planMode = (txnV2.paymentMethod === "credito" ? "credit_installment" : "installment");
+    else if (wantsInstallment) planMode = (isCreditCardPayment(txnV2.paymentMethod) ? "credit_installment" : "installment");
     else if (wantsRecurring) planMode = "recurring";
 
     if (planMode) {
@@ -4977,18 +5208,20 @@ function renderCategoriesTable() {
     const personalWalletId = state.walletId;
 
     let creditCardId = null;
+    let invoiceMonth = null;
     let statementMonth = null;
     let purchaseDate = null;
+    let creditCardNameSnapshot = null;
 
-    if (txnV2.paymentMethod === "credito") {
+    if (isCreditCardPayment(txnV2.paymentMethod)) {
       creditCardId = txnCard?.value || "";
       if (!creditCardId) { setOpsError("Selecione um cartao."); return; }
 
-      const purchaseDateStr = txnPurchaseDate?.value || dateStr;
-      const purchaseDateObj = new Date(purchaseDateStr + "T00:00:00");
-      const closingDay = getCardClosingDay(creditCardId);
-      statementMonth = computeStatementMonth(purchaseDateObj, closingDay);
+      const purchaseDateObj = new Date(dateStr + "T00:00:00");
+      invoiceMonth = computeInvoiceMonth(purchaseDateObj, getCardClosingDay(creditCardId));
+      statementMonth = invoiceMonth || null;
       purchaseDate = Timestamp.fromDate(purchaseDateObj);
+      creditCardNameSnapshot = state.creditCards.get(creditCardId)?.name || null;
     }
 
     btnAddTxn.disabled = true;
@@ -4996,7 +5229,7 @@ function renderCategoriesTable() {
 
     try {
       const baseDate = new Date(dateStr + "T00:00:00");
-      const dateForTxn = statementMonth ? alignDateToMonthKey(baseDate, statementMonth) : baseDate;
+      const dateForTxn = invoiceMonth ? alignDateToMonthKey(baseDate, invoiceMonth) : baseDate;
       const ts = Timestamp.fromDate(dateForTxn);
       const monthKey = formatMonthKey(dateForTxn);
 
@@ -5010,6 +5243,8 @@ function renderCategoriesTable() {
         note,
         ...txnV2,
         creditCardId,
+        creditCardNameSnapshot,
+        invoiceMonth,
         statementMonth,
         purchaseDate
       };
@@ -5020,7 +5255,6 @@ function renderCategoriesTable() {
       txnNote.value = "";
       if (txnPayment) txnPayment.value = "";
       if (txnCard) txnCard.value = "";
-      if (txnStatementMonth) txnStatementMonth.value = "";
       syncCreditTxnFields();
 
       await reloadAll();
@@ -5101,19 +5335,36 @@ function renderCategoriesTable() {
     btnSaveEdit.textContent = "Salvando...";
 
     try {
-      const dt = new Date(dateStr + "T00:00:00");
-      const ts = Timestamp.fromDate(dt);
-      const monthKey = formatMonthKey(dt);
-
-      await updateTxnWithDerivations(txnId, {
-        date: ts,
-        monthKey,
+      const cached = state.txnCache.get(txnId) || {};
+      const isCredit = isCreditCardPayment(cached.paymentMethod);
+      const baseDate = new Date(dateStr + "T00:00:00");
+      const updates = {
         amountCents,
         type,
         categoryId: catId,
         categoryName,
         note
-      }, { walletId: state.walletId });
+      };
+
+      if (isCredit) {
+        const closingDay = cached.creditCardId ? getCardClosingDay(cached.creditCardId) : 31;
+        const invoiceMonth = computeInvoiceMonth(baseDate, closingDay);
+        const dateForTxn = invoiceMonth ? alignDateToMonthKey(baseDate, invoiceMonth) : baseDate;
+        updates.date = Timestamp.fromDate(dateForTxn);
+        updates.monthKey = formatMonthKey(dateForTxn);
+        updates.purchaseDate = Timestamp.fromDate(baseDate);
+        updates.invoiceMonth = invoiceMonth || null;
+        updates.statementMonth = invoiceMonth || null;
+        updates.creditCardId = cached.creditCardId || null;
+        updates.creditCardNameSnapshot = cached.creditCardNameSnapshot
+          || (cached.creditCardId ? state.creditCards.get(cached.creditCardId)?.name : null)
+          || null;
+      } else {
+        updates.date = Timestamp.fromDate(baseDate);
+        updates.monthKey = formatMonthKey(baseDate);
+      }
+
+      await updateTxnWithDerivations(txnId, updates, { walletId: state.walletId });
 
       editStatus.textContent = "Transacao atualizada.";
       closeEditModal();
@@ -5134,32 +5385,35 @@ function renderCategoriesTable() {
     const sorted = sortCollection("transactions", rows || []);
 
     for (const r of sorted) {
-      const dt = r.date ? toISODateLocal(r.date) : "-";
+      const dateToShow = (isCreditCardPayment(r.paymentMethod) && r.purchaseDate) ? r.purchaseDate : r.date;
+      const dt = dateToShow ? toISODateLocal(dateToShow) : "-";
       const display = toBRL(Math.abs(r.amountCents));
       const prefix = (r.type === "income") ? "+" : "-";
       const metaParts = [];
       const isInstallment = isInstallmentTxn(r);
       const isFinance = isFinanceTxn(r);
       const isCounterTxn = isInstallment || isFinance;
+      const isCredit = isCreditCardPayment(r.paymentMethod);
       const installmentBadge = occurrenceCounterLabel(r);
       const showRecurringIcon = shouldShowRecurringIcon(r);
-      if (r.planType && r.planType !== "recurring" && !isCounterTxn) {
+      if (r.planType && r.planType !== "recurring" && !isCounterTxn && !isCredit) {
         metaParts.push(friendlyPlanType(r.planType));
       }
       const isRecurringPlan = r.planType === "recurring" || r.recurring?.isRecurring;
-      if (r.occurrenceIndex && r.occurrenceTotal && !isCounterTxn && !isRecurringPlan) {
+      if (r.occurrenceIndex && r.occurrenceTotal && !isCounterTxn && !isRecurringPlan && !isCredit) {
         metaParts.push(`${r.occurrenceIndex}/${r.occurrenceTotal}`);
       }
       const statusLabel = friendlyTxnStatus(r.status);
-      if (statusLabel && !isCounterTxn && !(showRecurringIcon && statusLabel.toLowerCase().includes("agend"))) {
+      if (statusLabel && !isCounterTxn && !isCredit && !(showRecurringIcon && statusLabel.toLowerCase().includes("agend"))) {
         metaParts.push(statusLabel);
       }
-      if (r.paymentMethod === "credito" && r.statementMonth) metaParts.push(`Fatura ${r.statementMonth}`);
+      const creditTag = creditCardTag(r);
       const extraParts = [];
-      if (isCoupleView && r.sourceLabel) extraParts.push(r.sourceLabel);
-      if (metaParts.length) extraParts.push(metaParts.join(" | "));
+      if (isCoupleView && r.sourceLabel) extraParts.push(`<span>${escapeHtml(r.sourceLabel)}</span>`);
+      if (metaParts.length) extraParts.push(`<span>${escapeHtml(metaParts.join(" | "))}</span>`);
+      if (creditTag) extraParts.push(`<span class="badge">${escapeHtml(creditTag)}</span>`);
       const extraLine = extraParts.length
-        ? `<div class="muted" style="margin-top:4px;">${escapeHtml(extraParts.join(" | "))}</div>`
+        ? `<div class="muted" style="margin-top:4px; display:flex; flex-wrap:wrap; gap:6px;">${extraParts.join("")}</div>`
         : "";
       const descBase = (r.note || "").trim();
       const descText = descBase || (installmentBadge || showRecurringIcon ? "(sem descricao)" : "-");
@@ -5171,8 +5425,9 @@ function renderCategoriesTable() {
 
       const paymentBase = friendlyPaymentMethod(r.paymentMethod);
       let paymentLabel = paymentBase;
-      if (r.paymentMethod === "credito" && r.creditCardId) {
-        const cardName = state.creditCards.get(r.creditCardId)?.name;
+      if (isCreditCardPayment(r.paymentMethod)) {
+        const cardName = r.creditCardNameSnapshot
+          || (r.creditCardId ? state.creditCards.get(r.creditCardId)?.name : "");
         if (cardName) paymentLabel = `${paymentBase} - ${cardName}`;
       }
 
@@ -5297,6 +5552,7 @@ function renderCategoriesTable() {
         rows.push({
           id: d.id,
           date: t.date?.toDate?.() ?? null,
+          purchaseDate: t.purchaseDate?.toDate?.() ?? null,
           monthKey: docMonthKey,
           categoryName: t.categoryName ?? "",
           note: t.note ?? "",
@@ -5310,6 +5566,8 @@ function renderCategoriesTable() {
           status,
           paymentMethod: t.paymentMethod ?? "",
           creditCardId: t.creditCardId ?? "",
+          creditCardNameSnapshot: t.creditCardNameSnapshot ?? "",
+          invoiceMonth: t.invoiceMonth ?? t.statementMonth ?? "",
           statementMonth: t.statementMonth ?? "",
           recurring: t.recurring ?? { isRecurring: false, cadence: "none" }
         });
@@ -5393,6 +5651,7 @@ function renderCategoriesTable() {
         rows.push({
           id: d.id,
           date: t.date?.toDate?.() ?? null,
+          purchaseDate: t.purchaseDate?.toDate?.() ?? null,
           monthKey: docMonthKey,
           categoryName: t.categoryName ?? "",
           note: t.note ?? "",
@@ -5406,6 +5665,8 @@ function renderCategoriesTable() {
           status,
           paymentMethod: t.paymentMethod ?? "",
           creditCardId: t.creditCardId ?? "",
+          creditCardNameSnapshot: t.creditCardNameSnapshot ?? "",
+          invoiceMonth: t.invoiceMonth ?? t.statementMonth ?? "",
           statementMonth: t.statementMonth ?? "",
           recurring: t.recurring ?? { isRecurring: false, cadence: "none" }
         });
@@ -5413,6 +5674,7 @@ function renderCategoriesTable() {
         state.txnCache.set(d.id, {
           id: d.id,
           date: t.date?.toDate?.() ?? null,
+          purchaseDate: t.purchaseDate?.toDate?.() ?? null,
           monthKey: docMonthKey,
           categoryName: t.categoryName ?? "",
           categoryId: t.categoryId ?? "",
@@ -5430,6 +5692,8 @@ function renderCategoriesTable() {
           occurrenceTotal: t.occurrenceTotal ?? null,
           status,
           creditCardId: t.creditCardId ?? "",
+          creditCardNameSnapshot: t.creditCardNameSnapshot ?? "",
+          invoiceMonth: t.invoiceMonth ?? t.statementMonth ?? "",
           statementMonth: t.statementMonth ?? ""
         });
       }
@@ -5576,11 +5840,17 @@ function renderCategoriesTable() {
   if (btnLogout) btnLogout.addEventListener("click", logout);
   if (btnCloseEdit) btnCloseEdit.addEventListener("click", closeEditModal);
   if (btnSaveEdit) btnSaveEdit.addEventListener("click", updateTransactionPersonalAndSync);
+  if (btnCloseCardEdit) btnCloseCardEdit.addEventListener("click", closeEditCardModal);
+  if (btnSaveCardEdit) btnSaveCardEdit.addEventListener("click", saveCardEdits);
   if (editModal) editModal.addEventListener("click", (e) => {
     if (e.target === editModal) closeEditModal();
   });
+  if (editCardModal) editCardModal.addEventListener("click", (e) => {
+    if (e.target === editCardModal) closeEditCardModal();
+  });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && editModal && !editModal.hidden) closeEditModal();
+    if (e.key === "Escape" && editCardModal && !editCardModal.hidden) closeEditCardModal();
   });
 
   walletSelect.addEventListener("change", refreshWalletContext);
@@ -5603,7 +5873,6 @@ function renderCategoriesTable() {
   if (financeCurrent) financeCurrent.addEventListener("input", syncOptionalFields);
   if (txnPayment) txnPayment.addEventListener("change", syncCreditTxnFields);
   if (txnCard) txnCard.addEventListener("change", syncCreditTxnFields);
-  if (txnPurchaseDate) txnPurchaseDate.addEventListener("change", syncCreditTxnFields);
   if (txnDate) txnDate.addEventListener("change", syncCreditTxnFields);
   if (planType) planType.addEventListener("change", syncPlanFields);
   if (planPaymentMethod) planPaymentMethod.addEventListener("change", syncPlanFields);
@@ -5644,7 +5913,6 @@ function renderCategoriesTable() {
     const nowLocal = currentDateInTZ();
     if (cur) monthInput.value = cur;
     txnDate.value = toISODateLocal(nowLocal);
-    if (txnPurchaseDate) txnPurchaseDate.value = toISODateLocal(nowLocal);
     if (planStartMonth && cur) planStartMonth.value = cur;
     if (planPurchaseDate) planPurchaseDate.value = toISODateLocal(nowLocal);
     if (planPaymentMethod) planPaymentMethod.value = "outro";
