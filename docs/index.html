@@ -43,6 +43,8 @@ Manual tests:
       overflow-y: auto;
     }
     h1,h2,h3 { margin: 0; }
+    h2 { font-size: 18px; }
+    h3 { font-size: 17px; }
     p { margin: 0; }
     .muted { color: var(--muted); }
     .err { color: var(--danger); white-space: pre-wrap; margin-top: 6px; }
@@ -54,7 +56,14 @@ Manual tests:
       width: 100%;
       transition: all 0.25s ease;
     }
-    .app-shell.collapsed .sidebar { width: 80px; flex-basis: 80px; }
+    .app-shell.collapsed .sidebar {
+      width: 80px;
+      min-width: 80px;
+      max-width: 80px;
+      flex: 0 0 80px;
+      padding: 16px 8px;
+      align-items: stretch;
+    }
     .sidebar {
       background: linear-gradient(180deg, #0f172a 0%, #0b1224 100%);
       color: #e2e8f0;
@@ -168,19 +177,20 @@ Manual tests:
       margin: 0 auto;
       width: 100%;
       gap: 16px;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
     }
     .topbar > div:first-child { min-width: 0; flex: 1 1 auto; }
+    .topbar h1 { font-size: 20px; letter-spacing: -0.3px; }
     .eyebrow { text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 6px; }
     .top-actions {
       display: flex;
       align-items: center;
       gap: 12px;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       margin-left: auto;
       justify-content: flex-end;
       min-width: 0;
-      white-space: nowrap;
+      white-space: normal;
     }
     .top-actions > :not(.search-trigger) { flex: 0 0 auto; }
     .wallet-select {
@@ -223,9 +233,9 @@ Manual tests:
       background: #fff;
       box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
       width: auto;
-      max-width: 260px;
-      min-width: 160px;
-      flex: 0 1 220px;
+      max-width: 320px;
+      min-width: 180px;
+      flex: 1 1 240px;
       cursor: text;
     }
     .search-trigger input {
@@ -274,6 +284,29 @@ Manual tests:
       padding: 0;
       margin: 0;
     }
+    .filter-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+    .filter-btn span { font-size: 12px; letter-spacing: 0.01em; }
+    .filter-btn svg { width: 18px; height: 18px; display: block; }
+    .filter-btn[aria-expanded="true"] {
+      background: #f1f5f9;
+      border-color: rgba(15, 23, 42, 0.16);
+    }
+    .filter-panel { padding: 0 32px 18px; width: 100%; }
+    .filter-panel-inner { max-width: 1400px; margin: 0 auto; }
+    .filter-panel-card { display: grid; gap: 8px; }
+    .filter-panel-title { font-size: 16px; font-weight: 700; }
     .content { padding: 0 32px 32px; display: block; width: 100%; }
     .card, .panel {
       background: var(--panel);
@@ -284,6 +317,176 @@ Manual tests:
     .card { padding: 20px; }
     .panel { padding: 18px 18px 16px; }
     .panel-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+    .table-header { align-items: center; }
+    .table-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .table-count { font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .filter-actions { display: inline-flex; align-items: center; gap: 8px; }
+    .table-filter-toggle { width: 36px; height: 36px; padding: 0; }
+    .filter-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--soft);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .table-filter-panel {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      margin: 6px 0 4px;
+    }
+    .table-filter-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+    .filter-group { display: grid; gap: 6px; }
+    .filter-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .table-filter-panel input,
+    .table-filter-panel select {
+      width: 100%;
+      min-width: 0;
+    }
+    .table-filter-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .table-filter-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 6px 0 2px;
+    }
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .filter-chip.more { background: var(--soft); }
+    .filter-chip button {
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1;
+      padding: 0;
+    }
+    .toast-stack {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      display: grid;
+      gap: 8px;
+      z-index: 70;
+      max-width: min(360px, 90vw);
+    }
+    .toast {
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 14px;
+      padding: 10px 12px;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text);
+    }
+    .toast.success { border-color: rgba(14, 167, 107, 0.35); }
+    .toast.error { border-color: rgba(239, 68, 68, 0.35); }
+    .toast button {
+      border: none;
+      background: transparent;
+      padding: 4px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: inherit;
+    }
+    .toast button:hover { background: #f1f5f9; box-shadow: none; transform: none; }
+    .skeleton {
+      position: relative;
+      overflow: hidden;
+      background: #e5e7eb;
+      border-radius: 999px;
+    }
+    .skeleton::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+      animation: shimmer 1.4s infinite;
+    }
+    .skeleton-line { height: 12px; }
+    .skeleton-block { height: 18px; border-radius: 10px; }
+    .skeleton-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+      display: grid;
+      gap: 8px;
+    }
+    .skeleton-grid { display: grid; gap: 8px; }
+    .kpi-row.is-loading .value,
+    .kpi-row.is-loading .mini-label {
+      color: transparent;
+      position: relative;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      display: inline-block;
+    }
+    .kpi-row.is-loading .value {
+      min-width: 140px;
+      min-height: 28px;
+    }
+    .kpi-row.is-loading .mini-label {
+      min-width: 110px;
+      min-height: 14px;
+    }
+    .kpi-row.is-loading .value::after,
+    .kpi-row.is-loading .mini-label::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+      animation: shimmer 1.4s infinite;
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
     .panel-footer { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     .auth-card { display: grid; gap: 12px; border: 1px solid #dbeafe; background: linear-gradient(135deg, #ffffff, #f8fbff); }
     .auth-grid { display: grid; gap: 10px; }
@@ -363,7 +566,18 @@ Manual tests:
     button:disabled { opacity: 0.6; cursor: not-allowed; }
     button.secondary { background: #fff; color: var(--primary); border-color: var(--border); }
     button.ghost { background: #f8fafc; color: var(--text); border-color: var(--border); }
+    button.danger { background: var(--danger); color: #fff; border-color: rgba(239, 68, 68, 0.7); }
+    button.danger:hover { box-shadow: 0 12px 32px rgba(239, 68, 68, 0.25); }
     button svg { width: 18px; height: 18px; display: block; }
+    button:focus-visible,
+    .icon-btn:focus-visible,
+    .icon-action:focus-visible,
+    .nav-item:focus-visible,
+    .chip-toggle:focus-visible,
+    .filter-btn:focus-visible {
+      outline: 2px solid rgba(14, 165, 233, 0.35);
+      outline-offset: 2px;
+    }
     #btnLogout { padding: 0; width: 28px; height: 28px; min-width: 0; display: inline-grid; place-items: center; color: #000; }
     #btnLogout svg { width: 24px; height: 24px; }
     .app-grid { width: 100%; max-width: 1400px; margin: 0 auto; display: block; }
@@ -387,6 +601,31 @@ Manual tests:
     .tab { padding: 8px 12px; border-radius: 10px; border: 1px solid transparent; background: transparent; cursor: pointer; font-size: 13px; color: var(--text); font-weight: 600; }
     .tab.active { background: #fff; border-color: var(--border); box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08); }
     .info-note { background: #f8fafc; border: 1px dashed var(--border); border-radius: 12px; padding: 10px 12px; color: var(--muted); margin: 6px 0 2px; }
+    .empty-state {
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      background: #f8fafc;
+      padding: 16px;
+      display: grid;
+      gap: 8px;
+      place-items: center;
+      text-align: center;
+    }
+    .empty-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      background: #fff;
+      font-size: 16px;
+    }
+    .empty-title { font-weight: 600; }
+    .empty-text { font-size: 13px; color: var(--muted); }
+    .empty-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .empty-row td { padding: 16px 10px; }
     .table-shell { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: #fff; position: relative; }
     .table-pager {
       display: flex;
@@ -496,6 +735,21 @@ Manual tests:
     .sort-indicator { font-size: 11px; color: var(--muted); min-width: 24px; text-align: right; display: inline-flex; align-items: center; justify-content: flex-end; }
     .sort-indicator svg { width: 16px; height: 16px; display: block; }
     .sort-btn.active .sort-indicator { color: var(--text); }
+    .sort-level {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text);
+      background: #f8fafc;
+      margin-left: 4px;
+    }
+    .sort-level.is-secondary { opacity: 0.5; }
     .recurring-icon {
       display: inline-flex;
       align-items: center;
@@ -517,6 +771,16 @@ Manual tests:
       margin-left: 6px;
       white-space: nowrap;
     }
+    .txn-desc-inline {
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .txn-desc-inline .installment-badge { margin-left: 0; }
+    .txn-desc-inline .recurring-icon { margin-left: 0; }
+    .payment-main { font-weight: 600; }
+    .payment-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
     .gallery-head {
       display: grid;
       grid-template-columns: 1.5fr 0.8fr 0.7fr;
@@ -548,9 +812,25 @@ Manual tests:
     .category-title { font-weight: 700; }
     .category-actions { display: flex; gap: 6px; }
     .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; align-items: end; }
-    .txn-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: end; }
-    .txn-note { grid-column: 1 / -1; }
-    .txn-note textarea { min-height: 72px; resize: vertical; }
+    .txn-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+    .txn-grid .field-date,
+    .txn-grid .field-type,
+    .txn-grid .field-amount {
+      grid-column: span 2;
+    }
+    .txn-grid .field-desc { grid-column: span 4; }
+    .txn-grid .field-cat { grid-column: span 2; }
+    .txn-grid .field-payment,
+    .txn-grid .field-card {
+      grid-column: span 3;
+    }
+    .txn-grid .field-note { grid-column: 1 / -1; }
+    .txn-grid .field-note textarea { min-height: 72px; resize: vertical; }
     .txn-grid input,
     .txn-grid select,
     .txn-grid textarea {
@@ -571,8 +851,10 @@ Manual tests:
     .move-card { padding: 8px 10px; border-radius: 12px; border: 1px solid var(--border); background: #fff; display: grid; gap: 6px; box-shadow: none; }
     .move-line { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; }
     .move-date { font-size: 12px; color: var(--muted); white-space: nowrap; }
-    .move-desc { font-size: 13px; color: var(--text); }
-    .move-cat { color: var(--muted); font-weight: 500; }
+    .move-desc { font-size: 13px; color: var(--text); min-width: 0; display: grid; gap: 2px; }
+    .move-title { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+    .move-title-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .move-cat { color: var(--muted); font-weight: 500; font-size: 12px; }
     .move-amount { font-weight: 700; white-space: nowrap; text-align: right; }
     .move-more { align-self: flex-start; padding: 6px 10px; font-size: 12px; }
     .actions { display: flex; gap: 6px; justify-content: flex-end; }
@@ -580,6 +862,7 @@ Manual tests:
     .split-panels { display: grid; grid-template-columns: 1fr; gap: 12px; }
     .mini-panel { padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: #fff; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06); display: grid; gap: 6px; align-content: start; }
     .mini-panel h3 { margin: 0; font-size: 16px; }
+    .mini-panel-footer { display: flex; justify-content: flex-end; }
     .statement-overview { margin-top: 8px; }
     .statement-overview .metric-card { padding: 12px; }
     .statement-overview .metric-card .value { font-size: 18px; }
@@ -610,24 +893,23 @@ Manual tests:
     .option-label { font-weight: 700; }
     .option-sub { font-size: 12px; color: var(--muted); }
     .option-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 6px; }
+    .edit-observation { grid-column: 1 / -1; }
+    .edit-observation textarea { min-height: 72px; resize: vertical; }
     .table-compact th, .table-compact td { padding: 10px 10px; }
     .table-compact td { font-size: 13px; }
     .table-compact .ghost { padding: 6px 8px; }
     .table-compact .ghost svg { width: 16px; height: 16px; }
-    .statement-carousel-wrap { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; margin-top: 12px; }
+    .statement-carousel-wrap { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start; margin-top: 12px; }
     .statement-carousel {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 12px;
-      overflow-x: auto;
       padding: 2px 2px 10px;
-      scroll-snap-type: x mandatory;
-      scroll-behavior: smooth;
     }
-    .statement-carousel::-webkit-scrollbar { display: none; }
-    .statement-carousel { scrollbar-width: none; }
     .statement-card {
-      min-width: 220px;
-      max-width: 240px;
+      width: 100%;
+      min-width: 0;
+      max-width: none;
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 14px;
@@ -635,7 +917,6 @@ Manual tests:
       display: grid;
       gap: 8px;
       box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
-      scroll-snap-align: start;
       cursor: pointer;
     }
     .statement-card:focus {
@@ -655,7 +936,7 @@ Manual tests:
       border: 1px solid var(--border);
       background: #fff;
       color: var(--text);
-      display: grid;
+      display: none;
       place-items: center;
       cursor: pointer;
       box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
@@ -711,18 +992,35 @@ Manual tests:
       .optional-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 980px) {
-      .summary-panels { grid-template-columns: 1fr; }
+      .top-actions { justify-content: flex-start; width: 100%; }
       .txn-grid { grid-template-columns: 1fr; }
+      .txn-grid > div { grid-column: 1 / -1; }
+      .table-filter-grid { grid-template-columns: 1fr; }
       .option-fields { grid-template-columns: 1fr; }
       .statement-carousel-wrap { grid-template-columns: 1fr; }
       .carousel-nav { display: none; }
     }
     @media (max-width: 720px) {
       .panel-header { flex-direction: column; align-items: flex-start; }
+      .table-header-actions { width: 100%; justify-content: flex-start; }
+      .summary-panels { grid-template-columns: 1fr; }
+      .sort-level {
+        width: auto;
+        height: auto;
+        border: 0;
+        background: transparent;
+        margin-left: 2px;
+        padding: 0;
+        font-size: 10px;
+        position: relative;
+        top: -4px;
+      }
       .topbar { padding: 22px 18px 10px; }
+      .filter-panel { padding: 0 18px 16px; }
       .content { padding: 0 18px 24px; }
       .card, .panel { padding: 16px; }
       .top-actions { gap: 8px; }
+      .filter-btn span { display: none; }
       .search-kbd { display: none; }
       .search-trigger { min-width: 140px; max-width: 200px; }
       .wallet-select { min-width: 100px; padding: 8px 10px; }
@@ -747,27 +1045,43 @@ Manual tests:
     .app-shell.collapsed .sidebar-footer .strong,
     .app-shell.collapsed .sidebar-footer .mono { display: none; }
     .app-shell.collapsed .session-row { justify-content: center; }
-    .app-shell.collapsed .sidebar { padding: 16px 10px; align-items: center; }
-    .app-shell.collapsed .sidebar-top { flex-direction: column; justify-content: center; gap: 12px; }
+    .app-shell.collapsed .sidebar { padding: 16px 8px; align-items: stretch; }
+    .app-shell.collapsed .sidebar-top,
+    .app-shell.collapsed .brand-row,
+    .app-shell.collapsed .brand,
+    .app-shell.collapsed .nav,
+    .app-shell.collapsed .sidebar-footer {
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+    }
+    .app-shell.collapsed .sidebar-top { flex-direction: column; gap: 12px; }
     .app-shell.collapsed .sidebar-toggle { margin-left: 0; }
-    .app-shell.collapsed .brand-row { justify-content: center; }
-    .app-shell.collapsed .brand { justify-content: center; }
     .app-shell.collapsed .icon-btn { width: 36px; height: 36px; }
-    .app-shell.collapsed .nav { gap: 10px; width: 56px; margin: 0 auto; }
+    .app-shell.collapsed .nav { gap: 10px; justify-items: center; }
+    .app-shell.collapsed .sidebar-footer { padding: 10px; }
     .app-shell.collapsed .nav-item {
       justify-content: center;
       align-items: center;
       flex-direction: column;
       gap: 6px;
       text-align: center;
-      padding: 10px;
+      padding: 10px 0;
       min-height: 44px;
-      width: 56px;
+      width: 100%;
       margin: 0 auto;
     }
     .app-shell.collapsed .nav-item .nav-label { display: none; }
     .app-shell.collapsed .nav-item .nav-icon { margin: 0; }
     .app-shell.collapsed .nav-item::after { content: none; }
+    @media (max-width: 1180px) {
+      .app-shell.collapsed .sidebar {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        flex: 0 0 auto;
+      }
+    }
   </style>
 
 </head>
@@ -844,7 +1158,7 @@ Manual tests:
     <nav class="nav">
       <button class="nav-item active" type="button" data-page-target="dashboard">
         <span class="nav-icon" aria-hidden="true"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.499 9.5 11.5 21H6.25a3.25 3.25 0 0 1-3.245-3.065L3 17.752V9.499h8.499Zm1.5 5.999H21.5v2.253a3.25 3.25 0 0 1-3.25 3.25L13 21l-.001-5.502Zm5.252-13a3.25 3.25 0 0 1 3.245 3.065l.005.184-.001 8.251h-8.501L13 2.498h5.251ZM11.5 2.497 11.499 8H3V5.748a3.25 3.25 0 0 1 3.25-3.25h5.25Z" fill="#ffffff"/></svg></span>
-        <span class="nav-label">Dashboard</span>
+        <span class="nav-label">Visão do mês</span>
       </button>
       <button class="nav-item" type="button" data-page-target="transactions">
         <span class="nav-icon" aria-hidden="true"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6.5 2a1 1 0 0 0-1 1v.112A4.502 4.502 0 0 0 2 7.5v.384a4.883 4.883 0 0 0 2.796 4.415l.704.332v6.14A2.5 2.5 0 0 1 4 16.48v-.845a1 1 0 1 0-2 0v.845a4.502 4.502 0 0 0 3.5 4.389v.124a1 1 0 0 0 2 0v-.124a4.502 4.502 0 0 0 3.5-4.389v-.372A4.875 4.875 0 0 0 8.209 11.7l-.709-.335V5.208A2.5 2.5 0 0 1 9 7.5v.865a1 1 0 1 0 2 0V7.5a4.502 4.502 0 0 0-3.5-4.388V3a1 1 0 0 0-1-1ZM4 7.5a2.5 2.5 0 0 1 1.5-2.292v5.206A2.884 2.884 0 0 1 4 7.884V7.5Zm3.5 11.271v-5.189c.92.501 1.5 1.468 1.5 2.525v.372a2.5 2.5 0 0 1-1.5 2.292Z" fill="#ffffff"/><path d="M15 12c0-.332.015-.657.043-.975H16a1 1 0 0 0 0-2h-.577a7.898 7.898 0 0 1 .979-2.125c.85-1.268 1.916-1.9 2.962-1.9.378 0 .785.117 1.067.31a1 1 0 1 0 1.13-1.65C20.904 3.21 20.09 3 19.364 3c-1.917 0-3.533 1.159-4.623 2.786-.619.923-1.094 2.025-1.39 3.239H12a1 1 0 1 0 0 2h1.036c-.024.32-.036.646-.036.975v.027h-1a1 1 0 1 0 0 2h1.16c.255 1.588.804 3.03 1.58 4.187C15.832 19.84 17.448 21 19.364 21c.697 0 1.535-.174 2.222-.67a1 1 0 0 0-1.172-1.621c-.254.183-.644.291-1.05.291-1.046 0-2.112-.632-2.962-1.9-.553-.824-.98-1.876-1.212-3.075H16a1 1 0 0 0 0-2h-1V12Z" fill="#ffffff"/></svg></span>
@@ -861,7 +1175,6 @@ Manual tests:
     </nav>
 
     <div class="sidebar-footer">
-      <div class="label">Sessão</div>
       <div class="session-row">
         <div class="strong" id="me">Aguardando login</div>
         <button id="btnLogout" class="ghost" style="display:none;" aria-label="Sair" title="Sair"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 4.354v6.651l7.442-.001L17.72 9.28a.75.75 0 0 1-.073-.976l.073-.084a.75.75 0 0 1 .976-.073l.084.073 2.997 2.997a.75.75 0 0 1 .073.976l-.073.084-2.996 3.004a.75.75 0 0 1-1.134-.975l.072-.085 1.713-1.717-7.431.001L12 19.25a.75.75 0 0 1-.88.739l-8.5-1.502A.75.75 0 0 1 2 17.75V5.75a.75.75 0 0 1 .628-.74l8.5-1.396a.75.75 0 0 1 .872.74ZM8.502 11.5a1.002 1.002 0 1 0 0 2.004 1.002 1.002 0 0 0 0-2.004Z" fill="currentColor"/><path d="M13 18.501h.765l.102-.006a.75.75 0 0 0 .648-.745l-.007-4.25H13v5.001ZM13.002 10 13 8.725V5h.745a.75.75 0 0 1 .743.647l.007.102.007 4.251h-1.5Z" fill="currentColor"/></svg></button>
@@ -873,18 +1186,9 @@ Manual tests:
     <header class="topbar">
       <div>
         <p class="eyebrow">VaultFlow</p>
-        <h1 id="pageTitle">Dashboard</h1>
+        <h1 id="pageTitle">Visão do mês</h1>
       </div>
       <div class="top-actions">
-        <div class="search-trigger" id="globalSearchTrigger" role="button" tabindex="0">
-          <span class="search-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14Zm0-2a9 9 0 1 0 5.62 16.01l3.68 3.68a1 1 0 1 0 1.42-1.42l-3.68-3.68A9 9 0 0 0 11 2Z" fill="currentColor"/>
-            </svg>
-          </span>
-          <input id="globalSearchInput" type="search" placeholder="Buscar transacoes..." autocomplete="off" aria-label="Buscar transacoes" readonly />
-          <span class="search-kbd" id="searchShortcutHint">Ctrl K</span>
-        </div>
         <select id="walletSelect" class="wallet-select" aria-label="Selecionar carteira"></select>
         <div class="month-control">
           <button class="mc-btn" id="btnMonthPrev" type="button" aria-label="Mês anterior">◀</button>
@@ -894,9 +1198,32 @@ Manual tests:
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17 4a1 1 0 0 1 1 1v1h1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h1V5a1 1 0 1 1 2 0v1h6V5a1 1 0 0 1 1-1Zm2 7H5v7h14v-7Zm-4-5v1a1 1 0 1 1-2 0V6h-4v1a1 1 0 1 1-2 0V6H6v2h12V6h-1Zm-8.5 7a1 1 0 1 1 0 2h-1a1 1 0 1 1 0-2h1Zm5 0a1 1 0 1 1 0 2h-1a1 1 0 1 1 0-2h1Zm5 0a1 1 0 1 1 0 2h-1a1 1 0 1 1 0-2h1Z" fill="currentColor"/></svg>
           </button>
         </div>
+        <div class="search-trigger" id="globalSearchTrigger" role="button" tabindex="0">
+          <span class="search-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14Zm0-2a9 9 0 1 0 5.62 16.01l3.68 3.68a1 1 0 1 0 1.42-1.42l-3.68-3.68A9 9 0 0 0 11 2Z" fill="currentColor"/>
+            </svg>
+          </span>
+          <input id="globalSearchInput" type="search" placeholder="Buscar transações..." autocomplete="off" aria-label="Buscar transações" readonly />
+          <span class="search-kbd" id="searchShortcutHint">Ctrl+K</span>
+        </div>
+        <button class="filter-btn" id="filterToggle" type="button" aria-label="Filtros" aria-expanded="false" aria-controls="filterPanel">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10 16h4a1 1 0 0 1 .117 1.993L14 18h-4a1 1 0 0 1-.117-1.993L10 16h4-4Zm-2-5h8a1 1 0 0 1 .117 1.993L16 13H8a1 1 0 0 1-.117-1.993L8 11h8-8ZM5 6h14a1 1 0 0 1 .117 1.993L19 8H5a1 1 0 0 1-.117-1.993L5 6h14H5Z" fill="#212121"/></svg>
+          <span>Filtro</span>
+        </button>
         <input id="month" type="month" class="month-input" />
       </div>
     </header>
+
+    <section class="filter-panel" id="filterPanel" hidden>
+      <div class="filter-panel-inner">
+        <div class="panel filter-panel-card">
+          <p class="eyebrow">Filtros</p>
+          <h3 class="filter-panel-title">Filtros em breve</h3>
+          <p class="muted">Em breve: filtros por período, categoria e status.</p>
+        </div>
+      </div>
+    </section>
 
     <main class="content">
       <section class="app-grid" id="appGrid">
@@ -905,8 +1232,8 @@ Manual tests:
           <div class="panel">
             <div class="panel-header">
               <div>
-                <p class="eyebrow">Carteira</p>
-                <h2>Dashboard</h2>
+                <p class="eyebrow">Resumo</p>
+                <h2>Visão do mês</h2>
               </div>
             </div>
 
@@ -914,17 +1241,17 @@ Manual tests:
               <div class="metric-card income">
                 <div class="label">Receitas</div>
                 <div class="value" id="kpiIncome">R$ 0,00</div>
-                <div class="mini-label">Entradas no período</div>
+                <div class="mini-label"><span id="kpiIncomeCount">0</span> receitas no mês</div>
               </div>
               <div class="metric-card expense">
                 <div class="label">Despesas</div>
                 <div class="value" id="kpiExpense">R$ 0,00</div>
-                <div class="mini-label">Saídas no período</div>
+                <div class="mini-label"><span id="kpiExpenseCount">0</span> despesas no mês</div>
               </div>
               <div class="metric-card balance">
                 <div class="label">Saldo</div>
                 <div class="value" id="kpiBalance">R$ 0,00</div>
-                <div class="mini-label">Resultado consolidado</div>
+                <div class="mini-label"><span id="kpiTotalCount">0</span> movimentações no mês</div>
               </div>
             </div>
 
@@ -940,21 +1267,34 @@ Manual tests:
             <div id="coupleBreakdown" style="display:none; margin-top:10px;"></div>
           </div>
 
-          <div class="panel list-panel">
-            <div class="panel-header">
-              <div>
-                <p class="eyebrow">Movimentações</p>
-                <h2>Movimentacoes (Resumo)</h2>
+            <div class="panel list-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Resumo</p>
+                  <h2>Movimentações</h2>
+                </div>
               </div>
-            </div>
-            <div class="summary-panels">
-              <div class="mini-panel">
-                <div class="section-heading"><h3>Receitas</h3><span class="pill">Mês selecionado</span></div>
-                <div id="incomeList" class="stack-list"></div>
+              <div class="empty-state" id="dashboardEmpty" hidden>
+                <div class="empty-icon" aria-hidden="true"></div>
+                <div class="empty-title">Sem movimentações neste mês.</div>
+                <div class="empty-actions">
+                  <button class="secondary" id="dashboardAddTxn" type="button">Adicionar transação</button>
+                </div>
+              </div>
+            <div class="summary-panels" id="dashboardSummaryPanels">
+                <div class="mini-panel">
+                  <div class="section-heading"><h3>Receitas</h3><span class="pill">Mês selecionado</span></div>
+                  <div id="incomeList" class="stack-list"></div>
+                <div class="mini-panel-footer">
+                  <button class="ghost move-more" id="incomeMore" type="button" hidden>Ver mais</button>
+                </div>
               </div>
               <div class="mini-panel">
                 <div class="section-heading"><h3>Despesas</h3><span class="pill">Mês selecionado</span></div>
                 <div id="expenseList" class="stack-list"></div>
+                <div class="mini-panel-footer">
+                  <button class="ghost move-more" id="expenseMore" type="button" hidden>Ver mais</button>
+                </div>
               </div>
             </div>
             <p class="muted" id="dashboardStatus"></p>
@@ -962,15 +1302,19 @@ Manual tests:
         </section>
 
         <section class="page" id="page-transactions">
-          <div class="panel">
+            <div class="panel" id="txnFormPanel">
             <div class="panel-header">
               <div>
-                <p class="eyebrow">Fluxo</p>
-                <h3>Transacoes</h3>
+                <p class="eyebrow">Transações</p>
+                <h3>Adicionar transação</h3>
               </div>
             </div>
             <div class="txn-grid">
-              <div>
+              <div class="field-date">
+                <label for="txnDate">Data</label>
+                <input id="txnDate" type="date" required />
+              </div>
+              <div class="field-type">
                 <label for="txnType">Tipo</label>
                 <select id="txnType">
                   <option value="expense">Despesa</option>
@@ -978,38 +1322,38 @@ Manual tests:
                   <option value="reserve">Reserva</option>
                 </select>
               </div>
-              <div>
-                <label for="txnDate">Data</label>
-                <input id="txnDate" type="date" />
-              </div>
-              <div>
+              <div class="field-amount">
                 <label for="txnAmount">Valor</label>
-                <input id="txnAmount" placeholder="Ex.: 35,90" />
+                <input id="txnAmount" placeholder="0,00" required />
               </div>
-              <div>
+              <div class="field-desc">
+                <label for="txnDesc">Descrição</label>
+                <input id="txnDesc" placeholder="Ex.: Supermercado BH" required />
+              </div>
+              <div class="field-cat">
                 <label for="txnCat">Categoria</label>
-                <select id="txnCat"></select>
+                <select id="txnCat" required></select>
               </div>
-              <div>
-                <label for="txnPayment">Forma de pagamento</label>
-                <select id="txnPayment">
+              <div class="field-payment">
+                <label for="txnPayment">Pagamento</label>
+                <select id="txnPayment" required>
                   <option value="">Selecione</option>
                   <option value="pix">Pix</option>
-                  <option value="credit_card">Cartao de credito</option>
-                  <option value="debito">Cartao de debito</option>
+                  <option value="credit_card">Cartão de crédito</option>
+                  <option value="debito">Cartão de débito</option>
                   <option value="dinheiro">Dinheiro</option>
-                  <option value="transferencia">Transferencia</option>
+                  <option value="transferencia">Transferência</option>
                   <option value="boleto">Boleto</option>
                   <option value="outro">Outro</option>
                 </select>
               </div>
-              <div id="creditTxnFields" class="txn-credit" hidden>
-                <label for="txnCard">Cartao</label>
+              <div id="creditTxnFields" class="field-card" hidden>
+                <label for="txnCard">Cartão</label>
                 <select id="txnCard"></select>
               </div>
-              <div class="txn-note">
-                <label for="txnNote">Descricao / Observacao</label>
-                <textarea id="txnNote" rows="2" placeholder="Ex.: Supermercado, Uber, assinatura."></textarea>
+              <div class="field-note">
+                <label for="txnObs">Observação</label>
+                <textarea id="txnObs" rows="2" placeholder="Opcional"></textarea>
               </div>
             </div>
 
@@ -1031,13 +1375,13 @@ Manual tests:
                     <input type="checkbox" id="cbInstallment" />
                     <div class="option-text">
                       <span class="option-label">Parcelado(a)</span>
-                      <span class="option-sub">Controlar parcelas</span>
+                      <span class="option-sub">Total dividido automaticamente</span>
                     </div>
                   </div>
                   <div class="option-fields" id="installmentFields" hidden>
                     <div>
                       <label for="installmentTotal">Total de parcelas</label>
-                      <input id="installmentTotal" type="number" min="1" step="1" placeholder="Ex.: 12" />
+                      <input id="installmentTotal" type="number" min="2" step="1" placeholder="Ex.: 12" />
                     </div>
                     <div>
                       <label for="installmentCurrent">Parcela atual</label>
@@ -1052,13 +1396,13 @@ Manual tests:
                     <input type="checkbox" id="cbFinance" />
                     <div class="option-text">
                       <span class="option-label">Financiamento</span>
-                      <span class="option-sub">Detalhar parcelas</span>
+                      <span class="option-sub">Valor por parcela</span>
                     </div>
                   </div>
                   <div class="option-fields" id="financeFields" hidden>
                     <div>
                       <label for="financeTotal">Total de parcelas</label>
-                      <input id="financeTotal" type="number" min="1" step="1" placeholder="Ex.: 48" />
+                      <input id="financeTotal" type="number" min="2" step="1" placeholder="Ex.: 48" />
                     </div>
                     <div>
                       <label for="financeCurrent">Parcela atual</label>
@@ -1077,15 +1421,60 @@ Manual tests:
             <p class="err" id="opsError"></p>
           </div>
 
-          <div class="panel list-panel">
-            <div class="panel-header">
+          <div class="panel list-panel" id="txnListPanel">
+            <div class="panel-header table-header">
               <div>
-                <p class="eyebrow">Movimentacoes</p>
-                <h2>Lista do mes</h2>
+                <p class="eyebrow">Mês selecionado</p>
+                <h2>Movimentações</h2>
+              </div>
+              <div class="table-header-actions">
+                <span class="table-count" id="txnTableCount">Mostrando 0 de 0</span>
+                <div class="filter-actions">
+                  <button class="icon-action table-filter-toggle" id="txnFilterToggle" type="button" aria-label="Filtrar" aria-expanded="false" aria-controls="txnFilterPanel">
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10 16h4a1 1 0 0 1 .117 1.993L14 18h-4a1 1 0 0 1-.117-1.993L10 16h4-4Zm-2-5h8a1 1 0 0 1 .117 1.993L16 13H8a1 1 0 0 1-.117-1.993L8 11h8-8ZM5 6h14a1 1 0 0 1 .117 1.993L19 8H5a1 1 0 0 1-.117-1.993L5 6h14H5Z" fill="#212121"/></svg>
+                  </button>
+                  <span class="filter-badge" id="txnFilterBadge" hidden>Filtros (0)</span>
+                </div>
               </div>
             </div>
+            <div class="table-filter-panel" id="txnFilterPanel" hidden>
+              <div class="table-filter-grid">
+                <div class="filter-group">
+                <label class="filter-label" for="txnFilterSearch">Busca local</label>
+                  <input id="txnFilterSearch" type="search" placeholder="Descrição ou observação" autocomplete="off" />
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label" for="txnFilterCategory">Categoria</label>
+                  <select id="txnFilterCategory"></select>
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label" for="txnFilterPayment">Pagamento</label>
+                  <select id="txnFilterPayment"></select>
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label" for="txnFilterType">Tipo</label>
+                  <select id="txnFilterType">
+                    <option value="all">Todos</option>
+                    <option value="expense">Despesa</option>
+                    <option value="income">Receita</option>
+                  </select>
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label" for="txnFilterMin">Valor mínimo</label>
+                  <input id="txnFilterMin" inputmode="decimal" placeholder="Ex.: 50,00" />
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label" for="txnFilterMax">Valor máximo</label>
+                  <input id="txnFilterMax" inputmode="decimal" placeholder="Ex.: 200,00" />
+                </div>
+              </div>
+              <div class="table-filter-actions">
+                <button class="ghost" id="txnFilterClear" type="button" hidden>Limpar</button>
+              </div>
+            </div>
+            <div class="table-filter-chips" id="txnFilterChips" hidden></div>
             <div class="info-note focus-banner" id="txnFocusBanner" hidden>
-              <span id="txnFocusText">Filtro rapido ativo. Exibindo transacao selecionada.</span>
+              <span id="txnFocusText">Filtro rápido ativo. Exibindo transação selecionada.</span>
               <button class="ghost" id="btnClearTxnFocus" type="button">Limpar filtro</button>
             </div>
             <div class="table-shell large">
@@ -1094,35 +1483,28 @@ Manual tests:
                   <tr>
                     <th>
                       <button class="sort-btn" type="button" data-sort-table="transactions" data-sort-key="description">
-                        <span class="sort-label">Descricao</span>
+                        <span class="sort-label">Descrição</span>
                         <span class="sort-indicator"></span>
+                        <span class="sort-level" aria-hidden="true"></span>
                       </button>
                     </th>
                     <th>
-                      <button class="sort-btn" type="button" data-sort-table="transactions" data-sort-key="payment">
-                        <span class="sort-label">Pagamento (Forma)</span>
-                        <span class="sort-indicator"></span>
-                      </button>
+                      <span class="sort-label">Pagamento</span>
                     </th>
                     <th>
-                      <button class="sort-btn" type="button" data-sort-table="transactions" data-sort-key="category">
-                        <span class="sort-label">Categoria</span>
-                        <span class="sort-indicator"></span>
-                      </button>
+                      <span class="sort-label">Categoria</span>
                     </th>
                     <th class="nowrap">
                       <button class="sort-btn" type="button" data-sort-table="transactions" data-sort-key="date">
                         <span class="sort-label">Data</span>
                         <span class="sort-indicator"></span>
+                        <span class="sort-level" aria-hidden="true"></span>
                       </button>
                     </th>
                     <th class="right nowrap">
-                      <button class="sort-btn" type="button" data-sort-table="transactions" data-sort-key="amount">
-                        <span class="sort-label">Valor</span>
-                        <span class="sort-indicator"></span>
-                      </button>
+                      <span class="sort-label">Valor</span>
                     </th>
-                    <th class="right nowrap">Acoes</th>
+                    <th class="right nowrap">Ações</th>
                   </tr>
                 </thead>
                 <tbody id="txnTable"></tbody>
@@ -1136,7 +1518,7 @@ Manual tests:
           <div class="panel">
             <div class="panel-header">
               <div>
-                <p class="eyebrow">Organizacao</p>
+                <p class="eyebrow">Organização</p>
                 <h3>Categorias</h3>
               </div>
             </div>
@@ -1144,7 +1526,7 @@ Manual tests:
             <div class="form-grid">
               <div>
                 <label for="catName">Nome</label>
-                <input id="catName" placeholder="Ex.: Alimentacao" />
+                <input id="catName" placeholder="Ex.: Alimentação" />
               </div>
               <div>
                 <label for="catKind">Tipo</label>
@@ -1156,7 +1538,7 @@ Manual tests:
               </div>
               <div class="row">
                 <button id="btnAddCat">Adicionar</button>
-                <button id="btnSeedCats" class="ghost">Categorias padrao</button>
+                <button id="btnSeedCats" class="ghost">Categorias padrão</button>
               </div>
             </div>
             <div class="muted" id="catStatus" style="margin-top:6px;"></div>
@@ -1169,7 +1551,7 @@ Manual tests:
                 <span class="sort-label">Tipo</span>
                 <span class="sort-indicator"></span>
               </button>
-              <div class="gallery-head-actions right">Acoes</div>
+              <div class="gallery-head-actions right">Ações</div>
             </div>
             <div id="catGrid" class="category-grid"></div>
           </div>
@@ -1179,8 +1561,8 @@ Manual tests:
           <div class="panel">
             <div class="panel-header">
               <div>
-                <p class="eyebrow">Sessao</p>
-                <h3>Preferencias</h3>
+                <p class="eyebrow">Sessão</p>
+                <h3>Preferências</h3>
               </div>
             </div>
             <p class="muted">Use o menu para navegar. Seus dados sincronizam automaticamente.</p>
@@ -1188,11 +1570,11 @@ Manual tests:
           <div class="panel">
             <div class="panel-header">
               <div>
-                <p class="eyebrow">Automacao</p>
+                <p class="eyebrow">Automação</p>
                 <h3>Planos</h3>
               </div>
             </div>
-            <p class="muted">Planos sao criados em Transacoes ao marcar recorrente, parcelado ou financiamento.</p>
+            <p class="muted">Planos sao criados em Transações ao marcar recorrente, parcelado ou financiamento.</p>
             <div class="muted" id="planStatus" style="margin-top:6px;"></div>
             <div class="table-shell" style="margin-top:12px;">
               <table>
@@ -1228,7 +1610,7 @@ Manual tests:
                         <span class="sort-indicator"></span>
                       </button>
                     </th>
-                    <th class="right">Acoes</th>
+                    <th class="right">Ações</th>
                   </tr>
                 </thead>
                 <tbody id="planTable"></tbody>
@@ -1239,13 +1621,13 @@ Manual tests:
           <div class="panel">
             <div class="panel-header">
               <div>
-                <p class="eyebrow">Cartoes</p>
-                <h3>Cadastro</h3>
+                <p class="eyebrow">Cadastro</p>
+                <h3>Cartões</h3>
               </div>
             </div>
             <div class="form-grid">
               <div>
-                <label for="cardName">Nome</label>
+                <label for="cardName">Nome do cartão</label>
                 <input id="cardName" placeholder="Ex.: Nubank" />
               </div>
               <div>
@@ -1258,7 +1640,7 @@ Manual tests:
               </div>
             </div>
             <div class="row">
-              <button id="btnAddCard" class="ghost">Adicionar cartao</button>
+              <button id="btnAddCard" class="ghost">Adicionar cartão</button>
             </div>
             <div class="muted" id="cardStatus" style="margin-top:6px;"></div>
             <div class="table-shell" style="margin-top:12px;">
@@ -1267,7 +1649,7 @@ Manual tests:
                   <tr>
                     <th>
                       <button class="sort-btn" type="button" data-sort-table="cards" data-sort-key="name">
-                        <span class="sort-label">Cartao</span>
+                        <span class="sort-label">Cartão</span>
                         <span class="sort-indicator"></span>
                       </button>
                     </th>
@@ -1289,7 +1671,7 @@ Manual tests:
                         <span class="sort-indicator"></span>
                       </button>
                     </th>
-                    <th class="right">Acoes</th>
+                    <th class="right">Ações</th>
                   </tr>
                 </thead>
                 <tbody id="cardTable"></tbody>
@@ -1300,13 +1682,13 @@ Manual tests:
           <div class="panel">
             <div class="panel-header">
               <div>
-                <p class="eyebrow">Cartao</p>
+                <p class="eyebrow">Cartões</p>
                 <h3>Faturas</h3>
               </div>
             </div>
             <div class="form-grid">
               <div>
-                <label for="statementCard">Cartao</label>
+                <label for="statementCard">Cartão</label>
                 <select id="statementCard"></select>
               </div>
             </div>
@@ -1366,7 +1748,7 @@ Manual tests:
                     </th>
                     <th>
                       <button class="sort-btn" type="button" data-sort-table="statementItems" data-sort-key="description">
-                        <span class="sort-label">Descricao</span>
+                        <span class="sort-label">Descrição</span>
                         <span class="sort-indicator"></span>
                       </button>
                     </th>
@@ -1394,8 +1776,8 @@ Manual tests:
     <div class="modal-card search-modal-card">
       <div class="modal-header">
         <div>
-          <h3 id="searchTitle">Buscar transacoes</h3>
-          <p class="muted" id="searchHint">Filtro global para encontrar transacoes rapidamente.</p>
+          <h3 id="searchTitle">Buscar transações</h3>
+          <p class="muted" id="searchHint">Filtro global para encontrar transações rapidamente.</p>
         </div>
         <button class="icon-action" id="btnCloseSearch" type="button" aria-label="Fechar busca">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1409,16 +1791,16 @@ Manual tests:
             <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14Zm0-2a9 9 0 1 0 5.62 16.01l3.68 3.68a1 1 0 1 0 1.42-1.42l-3.68-3.68A9 9 0 0 0 11 2Z" fill="currentColor"/>
           </svg>
         </span>
-        <input id="searchInput" type="search" placeholder="Buscar transacoes..." autocomplete="off" />
+        <input id="searchInput" type="search" placeholder="Buscar transações..." autocomplete="off" />
         <span class="search-kbd">Esc</span>
       </div>
       <div class="search-filters" id="searchFilters">
         <div class="search-group">
-          <div class="search-label">Periodo</div>
+          <div class="search-label">Período</div>
           <div class="chip-row">
-            <button class="chip-toggle active" type="button" data-filter="period" data-value="current">Mes atual</button>
-            <button class="chip-toggle" type="button" data-filter="period" data-value="last3">Ultimos 3 meses</button>
-            <button class="chip-toggle" type="button" data-filter="period" data-value="last12">Ultimos 12 meses</button>
+            <button class="chip-toggle active" type="button" data-filter="period" data-value="current">Mês atual</button>
+            <button class="chip-toggle" type="button" data-filter="period" data-value="last3">Últimos 3 meses</button>
+            <button class="chip-toggle" type="button" data-filter="period" data-value="last12">Últimos 12 meses</button>
             <button class="chip-toggle" type="button" data-filter="period" data-value="custom">Intervalo</button>
           </div>
           <div class="search-range" id="searchRange" hidden>
@@ -1427,7 +1809,7 @@ Manual tests:
               <input id="searchDateFrom" type="date" />
             </div>
             <div>
-              <label for="searchDateTo">Ate</label>
+              <label for="searchDateTo">Até</label>
               <input id="searchDateTo" type="date" />
             </div>
           </div>
@@ -1441,21 +1823,21 @@ Manual tests:
           </div>
         </div>
         <div class="search-group">
-          <div class="search-label">Metodo</div>
+          <div class="search-label">Método</div>
           <div class="chip-row">
             <button class="chip-toggle active" type="button" data-filter="method" data-value="all">Todos</button>
             <button class="chip-toggle" type="button" data-filter="method" data-value="pix">Pix</button>
-            <button class="chip-toggle" type="button" data-filter="method" data-value="debito">Debito</button>
-            <button class="chip-toggle" type="button" data-filter="method" data-value="credit_card">Credito</button>
+            <button class="chip-toggle" type="button" data-filter="method" data-value="debito">Débito</button>
+            <button class="chip-toggle" type="button" data-filter="method" data-value="credit_card">Cartão de crédito</button>
             <button class="chip-toggle" type="button" data-filter="method" data-value="dinheiro">Dinheiro</button>
-            <button class="chip-toggle" type="button" data-filter="method" data-value="transferencia">Transferencia</button>
+            <button class="chip-toggle" type="button" data-filter="method" data-value="transferencia">Transferência</button>
             <button class="chip-toggle" type="button" data-filter="method" data-value="boleto">Boleto</button>
             <button class="chip-toggle" type="button" data-filter="method" data-value="outro">Outro</button>
           </div>
         </div>
         <div class="search-row">
           <div class="search-group" id="searchCardWrap">
-            <div class="search-label">Cartao (credito)</div>
+            <div class="search-label">Cartão de crédito</div>
             <select id="searchCard"></select>
           </div>
           <div class="search-group">
@@ -1472,12 +1854,12 @@ Manual tests:
           </div>
         </div>
         <div class="search-group">
-          <div class="search-label">Ordenacao</div>
+          <div class="search-label">Ordenação</div>
           <select id="searchSort">
             <option value="recent">Mais recentes</option>
             <option value="amount_desc">Maior valor</option>
             <option value="amount_asc">Menor valor</option>
-            <option value="desc">Descricao A-Z</option>
+            <option value="desc">Descrição A-Z</option>
           </select>
         </div>
       </div>
@@ -1491,8 +1873,8 @@ Manual tests:
     <div class="modal-card">
       <div class="modal-header">
         <div>
-          <h3 id="editModalTitle">Editar transacao</h3>
-          <p class="muted" id="editHelper">Atualize os dados da transacao.</p>
+          <h3 id="editModalTitle">Editar transação</h3>
+          <p class="muted" id="editHelper">Atualize os dados da transação.</p>
         </div>
       </div>
       <div class="form-grid">
@@ -1516,16 +1898,20 @@ Manual tests:
       <div class="form-grid">
         <div>
           <label for="editTxnAmount">Valor</label>
-          <input id="editTxnAmount" placeholder="Ex.: 35,90" />
+          <input id="editTxnAmount" placeholder="0,00" />
         </div>
         <div>
-          <label for="editTxnNote">Descricao</label>
-          <input id="editTxnNote" placeholder="Observacao" />
+          <label for="editTxnDesc">Descrição</label>
+          <input id="editTxnDesc" placeholder="Ex.: Supermercado BH" required />
+        </div>
+        <div class="edit-observation">
+          <label for="editTxnObs">Observação</label>
+          <textarea id="editTxnObs" rows="2" placeholder="Opcional"></textarea>
         </div>
       </div>
       <div class="modal-actions">
         <button id="btnCloseEdit" class="secondary" type="button">Cancelar</button>
-        <button id="btnSaveEdit" type="button">Salvar alteracoes</button>
+        <button id="btnSaveEdit" type="button">Salvar alterações</button>
       </div>
       <p class="muted" id="editStatus"></p>
       <p class="err" id="editError"></p>
@@ -1535,13 +1921,13 @@ Manual tests:
     <div class="modal-card">
       <div class="modal-header">
         <div>
-          <h3 id="editCardTitle">Editar cartao</h3>
-          <p class="muted" id="editCardHelper">Atualize os dados do cartao e a fatura futura.</p>
+          <h3 id="editCardTitle">Editar cartão</h3>
+          <p class="muted" id="editCardHelper">Atualize os dados do cartão e a fatura futura.</p>
         </div>
       </div>
       <div class="form-grid">
         <div>
-          <label for="editCardName">Nome do cartao</label>
+          <label for="editCardName">Nome do cartão</label>
           <input id="editCardName" placeholder="Ex.: Nubank" />
         </div>
         <div>
@@ -1555,12 +1941,32 @@ Manual tests:
       </div>
       <div class="modal-actions">
         <button id="btnCloseCardEdit" class="secondary" type="button">Cancelar</button>
-        <button id="btnSaveCardEdit" type="button">Salvar alteracoes</button>
+        <button id="btnSaveCardEdit" type="button">Salvar alterações</button>
       </div>
       <p class="muted" id="editCardStatus"></p>
       <p class="err" id="editCardError"></p>
     </div>
   </div>
+  <div id="confirmModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3 id="confirmTitle">Confirmar</h3>
+          <p class="muted" id="confirmMessage">Tem certeza?</p>
+        </div>
+        <button class="icon-action" id="confirmClose" type="button" aria-label="Fechar confirmação">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-actions">
+        <button id="confirmCancel" class="secondary" type="button">Cancelar</button>
+        <button id="confirmOk" class="danger" type="button">Excluir</button>
+      </div>
+    </div>
+  </div>
+  <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
 </section>
 
 <script type="module">
@@ -1672,6 +2078,10 @@ Manual tests:
   const kpiIncome = $("kpiIncome");
   const kpiExpense = $("kpiExpense");
   const kpiBalance = $("kpiBalance");
+  const kpiIncomeCount = $("kpiIncomeCount");
+  const kpiExpenseCount = $("kpiExpenseCount");
+  const kpiTotalCount = $("kpiTotalCount");
+  const kpiRow = $("kpis");
   const coupleBreakdown = $("coupleBreakdown");
 
   const coupleTabs = $("coupleTabs");
@@ -1679,6 +2089,11 @@ Manual tests:
 
   const incomeList = $("incomeList");
   const expenseList = $("expenseList");
+  const dashboardEmpty = $("dashboardEmpty");
+  const dashboardAddTxn = $("dashboardAddTxn");
+  const dashboardSummaryPanels = $("dashboardSummaryPanels");
+  const incomeMore = $("incomeMore");
+  const expenseMore = $("expenseMore");
   const dashboardStatus = $("dashboardStatus");
 
   const catName = $("catName");
@@ -1693,8 +2108,10 @@ Manual tests:
   const txnPayment = $("txnPayment");
   const txnCat = $("txnCat");
   const txnAmount = $("txnAmount");
-  const txnNote = $("txnNote");
+  const txnDesc = $("txnDesc");
+  const txnObs = $("txnObs");
   const btnAddTxn = $("btnAddTxn");
+  const txnFormPanel = $("txnFormPanel");
   const creditTxnFields = $("creditTxnFields");
   const txnCard = $("txnCard");
 
@@ -1716,6 +2133,7 @@ Manual tests:
   const txnTable = $("txnTable");
   const txnStatus = $("txnStatus");
   const txnPager = $("txnPager");
+  const txnListPanel = $("txnListPanel");
 
   const appError = $("appError");
   const opsError = $("opsError");
@@ -1783,6 +2201,8 @@ Manual tests:
 
   const globalSearchTrigger = $("globalSearchTrigger");
   const globalSearchInput = $("globalSearchInput");
+  const filterToggle = $("filterToggle");
+  const filterPanel = $("filterPanel");
   const searchShortcutHint = $("searchShortcutHint");
   const searchModal = $("searchModal");
   const searchInput = $("searchInput");
@@ -1802,6 +2222,18 @@ Manual tests:
   const txnFocusBanner = $("txnFocusBanner");
   const txnFocusText = $("txnFocusText");
   const btnClearTxnFocus = $("btnClearTxnFocus");
+  const txnFilterToggle = $("txnFilterToggle");
+  const txnFilterPanel = $("txnFilterPanel");
+  const txnFilterBadge = $("txnFilterBadge");
+  const txnTableCount = $("txnTableCount");
+  const txnFilterChips = $("txnFilterChips");
+  const txnFilterSearch = $("txnFilterSearch");
+  const txnFilterCategory = $("txnFilterCategory");
+  const txnFilterPayment = $("txnFilterPayment");
+  const txnFilterType = $("txnFilterType");
+  const txnFilterMin = $("txnFilterMin");
+  const txnFilterMax = $("txnFilterMax");
+  const txnFilterClear = $("txnFilterClear");
 
   const editModal = $("editModal");
   const editHelper = $("editHelper");
@@ -1809,7 +2241,8 @@ Manual tests:
   const editTxnType = $("editTxnType");
   const editTxnCat = $("editTxnCat");
   const editTxnAmount = $("editTxnAmount");
-  const editTxnNote = $("editTxnNote");
+  const editTxnDesc = $("editTxnDesc");
+  const editTxnObs = $("editTxnObs");
   const btnCloseEdit = $("btnCloseEdit");
   const btnSaveEdit = $("btnSaveEdit");
   const editStatus = $("editStatus");
@@ -1822,6 +2255,13 @@ Manual tests:
   const btnSaveCardEdit = $("btnSaveCardEdit");
   const editCardStatus = $("editCardStatus");
   const editCardError = $("editCardError");
+  const confirmModal = $("confirmModal");
+  const confirmTitle = $("confirmTitle");
+  const confirmMessage = $("confirmMessage");
+  const confirmCancel = $("confirmCancel");
+  const confirmOk = $("confirmOk");
+  const confirmClose = $("confirmClose");
+  const toastStack = $("toastStack");
 
   const state = {
     user: null,
@@ -1849,6 +2289,11 @@ Manual tests:
     editingCardId: null,
     txnFocusId: null,
     txnFocusScroll: false,
+    pendingTxnScroll: false,
+    pendingTxnFormFocus: false,
+    txnFilters: null,
+    txnSort: null,
+    txnFilterContext: { walletId: null, monthKey: null },
     search: {
       query: "",
       period: "current",
@@ -1886,6 +2331,20 @@ Manual tests:
   let appReady = false;
   let lastAppHash = "#/app/dashboard";
   Object.entries(FRIENDLY_WALLET_NAMES).forEach(([id, label]) => state.walletLabels.set(id, label));
+  const TXN_FILTER_STORAGE_KEY = "filters.transactions.list";
+  const TXN_SORT_STORAGE_KEY = "sort.transactions.list";
+  const DEFAULT_TXN_FILTERS = {
+    query: "",
+    category: "all",
+    payment: "all",
+    type: "all",
+    min: "",
+    max: ""
+  };
+  const DEFAULT_TXN_SORT = {
+    primary: { key: "date", dir: "desc" },
+    secondary: { key: "description", dir: "asc" }
+  };
 
   function setAuthMessage(msg, isError = false) {
     if (authStatus) authStatus.textContent = isError ? "" : msg;
@@ -1893,6 +2352,185 @@ Manual tests:
   }
   function setAppError(msg = "") { appError.textContent = msg; }
   function setOpsError(msg = "") { opsError.textContent = msg; }
+
+  const modalFocusMap = new Map();
+  function openModal(modalEl, focusEl = null) {
+    if (!modalEl) return;
+    modalFocusMap.set(modalEl, document.activeElement);
+    modalEl.hidden = false;
+    if (focusEl?.focus) focusEl.focus({ preventScroll: true });
+  }
+  function closeModal(modalEl) {
+    if (!modalEl) return;
+    modalEl.hidden = true;
+    const lastFocus = modalFocusMap.get(modalEl);
+    if (lastFocus?.focus) lastFocus.focus({ preventScroll: true });
+    modalFocusMap.delete(modalEl);
+  }
+
+  let activeConfirmResolve = null;
+  function openConfirmModal({ title = "Confirmar", message = "Tem certeza?", confirmText = "Excluir", cancelText = "Cancelar", danger = true } = {}) {
+    if (!confirmModal || !confirmTitle || !confirmMessage || !confirmOk || !confirmCancel) {
+      return Promise.resolve(false);
+    }
+    if (activeConfirmResolve) {
+      activeConfirmResolve(false);
+      activeConfirmResolve = null;
+    }
+    confirmTitle.textContent = title;
+    confirmMessage.textContent = message;
+    confirmOk.textContent = confirmText;
+    confirmCancel.textContent = cancelText;
+    confirmOk.classList.toggle("danger", danger);
+    openModal(confirmModal, confirmCancel);
+    return new Promise((resolve) => {
+      activeConfirmResolve = resolve;
+    });
+  }
+
+  function resolveConfirmModal(result) {
+    if (!confirmModal) return;
+    closeModal(confirmModal);
+    if (activeConfirmResolve) {
+      activeConfirmResolve(result);
+      activeConfirmResolve = null;
+    }
+  }
+
+  let toastId = 0;
+  function showToast(message, { variant = "success", duration = 3600 } = {}) {
+    if (!toastStack) return;
+    const id = `toast-${++toastId}`;
+    const toast = document.createElement("div");
+    toast.className = `toast ${variant}`;
+    toast.setAttribute("role", "status");
+    toast.setAttribute("data-toast-id", id);
+    toast.innerHTML = `
+      <span>${escapeHtml(message)}</span>
+      <button type="button" aria-label="Fechar">×</button>
+    `;
+    const closeToast = () => {
+      toast.remove();
+    };
+    toast.querySelector("button")?.addEventListener("click", closeToast);
+    toastStack.appendChild(toast);
+    setTimeout(closeToast, duration);
+  }
+
+  function renderSkeletonList(target, count = 6) {
+    if (!target) return;
+    target.innerHTML = "";
+    const wrap = document.createElement("div");
+    wrap.className = "skeleton-grid";
+    for (let i = 0; i < count; i += 1) {
+      const card = document.createElement("div");
+      card.className = "skeleton-card";
+      card.innerHTML = `
+        <div class="skeleton skeleton-line" style="width: 30%;"></div>
+        <div class="skeleton skeleton-block" style="width: 70%;"></div>
+        <div class="skeleton skeleton-line" style="width: 40%;"></div>
+      `;
+      wrap.appendChild(card);
+    }
+    target.appendChild(wrap);
+  }
+
+  function renderTableSkeleton(target, columns = 4, rows = 6) {
+    if (!target) return;
+    target.innerHTML = "";
+    for (let r = 0; r < rows; r += 1) {
+      const tr = document.createElement("tr");
+      const cells = [];
+      for (let c = 0; c < columns; c += 1) {
+        cells.push(`<td><div class="skeleton skeleton-line" style="width:${60 + (c * 8)}%;"></div></td>`);
+      }
+      tr.innerHTML = cells.join("");
+      target.appendChild(tr);
+    }
+  }
+
+  function renderCarouselSkeleton(target, count = 3) {
+    if (!target) return;
+    target.innerHTML = "";
+    for (let i = 0; i < count; i += 1) {
+      const card = document.createElement("div");
+      card.className = "statement-card";
+      card.innerHTML = `
+        <div class="skeleton skeleton-line" style="width: 45%; height: 14px;"></div>
+        <div class="skeleton skeleton-line" style="width: 60%; height: 12px;"></div>
+        <div class="skeleton skeleton-block" style="width: 40%; height: 20px;"></div>
+        <div class="skeleton skeleton-line" style="width: 50%; height: 12px;"></div>
+      `;
+      target.appendChild(card);
+    }
+  }
+
+  function setKpiLoading(isLoading) {
+    if (!kpiRow) return;
+    kpiRow.classList.toggle("is-loading", Boolean(isLoading));
+    kpiRow.setAttribute("aria-busy", isLoading ? "true" : "false");
+  }
+
+  function setDashboardLoading(isLoading) {
+    if (dashboardEmpty) dashboardEmpty.hidden = true;
+    if (dashboardSummaryPanels) dashboardSummaryPanels.hidden = false;
+    setKpiLoading(isLoading);
+    if (incomeList) incomeList.setAttribute("aria-busy", isLoading ? "true" : "false");
+    if (expenseList) expenseList.setAttribute("aria-busy", isLoading ? "true" : "false");
+    if (isLoading) {
+      renderSkeletonList(incomeList, 6);
+      renderSkeletonList(expenseList, 6);
+      if (incomeMore) incomeMore.hidden = true;
+      if (expenseMore) expenseMore.hidden = true;
+    }
+  }
+
+  function setTxnListLoading(isLoading) {
+    if (!txnTable) return;
+    txnTable.setAttribute("aria-busy", isLoading ? "true" : "false");
+    if (isLoading) {
+      renderTableSkeleton(txnTable, 6, 7);
+      if (txnTableCount) txnTableCount.textContent = "Carregando...";
+    }
+  }
+
+  function renderCategorySkeleton(target, count = 6) {
+    if (!target) return;
+    target.innerHTML = "";
+    for (let i = 0; i < count; i += 1) {
+      const card = document.createElement("div");
+      card.className = "category-card";
+      card.innerHTML = `
+        <div class="skeleton skeleton-block" style="width: 60%;"></div>
+        <div class="skeleton skeleton-line" style="width: 30%;"></div>
+      `;
+      target.appendChild(card);
+    }
+  }
+
+  function setCategoriesLoading(isLoading) {
+    if (!catGrid) return;
+    catGrid.setAttribute("aria-busy", isLoading ? "true" : "false");
+    if (isLoading) renderCategorySkeleton(catGrid, 6);
+  }
+
+  function setCardsLoading(isLoading) {
+    if (!cardTable) return;
+    cardTable.setAttribute("aria-busy", isLoading ? "true" : "false");
+    if (isLoading) renderTableSkeleton(cardTable, 5, 6);
+  }
+
+  function setStatementsLoading(isLoading) {
+    if (!statementCarousel) return;
+    statementCarousel.setAttribute("aria-busy", isLoading ? "true" : "false");
+    if (isLoading) renderCarouselSkeleton(statementCarousel, 3);
+  }
+
+  function setStatementItemsLoading(isLoading) {
+    if (!statementItemsTable) return;
+    statementItemsTable.setAttribute("aria-busy", isLoading ? "true" : "false");
+    if (isLoading) renderTableSkeleton(statementItemsTable, 4, 6);
+  }
 
   function formatMonthKey(date) {
     if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
@@ -2053,20 +2691,50 @@ Manual tests:
 
   function getAuthErrorMessage(err) {
     const code = err?.code || "";
-    if (code === "auth/user-not-found") return "Usuario nao encontrado.";
+    if (code === "auth/user-not-found") return "Usuário não encontrado.";
     if (code === "auth/wrong-password") return "Senha incorreta.";
-    if (code === "auth/invalid-credential") return "Credenciais invalidas.";
-    if (code === "auth/invalid-email") return "E-mail invalido.";
+    if (code === "auth/invalid-credential") return "Credenciais inválidas.";
+    if (code === "auth/invalid-email") return "E-mail inválido.";
     if (code === "auth/too-many-requests") return "Muitas tentativas. Aguarde e tente novamente.";
     if (code === "auth/popup-blocked") return "Popup bloqueado. Permita popups e tente novamente.";
     if (code === "auth/popup-closed-by-user") return "Popup fechado antes de concluir.";
     if (code === "auth/cancelled-popup-request") return "Popup cancelado. Tente novamente.";
-    return "Nao foi possivel entrar. Confira seus dados e tente novamente.";
+    return "Não foi possível entrar. Confira seus dados e tente novamente.";
   }
 
   function getDisplayName(user) {
-    const fallback = (user?.email || "").split("@")[0] || "Usuario";
-    return user?.displayName || fallback;
+    const name = (user?.displayName || "").trim();
+    if (name && !name.includes("@")) return name;
+    return "Usuário";
+  }
+
+  function splitTxnNote(note = "") {
+    const raw = String(note ?? "").replace(/\r/g, "");
+    const parts = raw.split("\n");
+    const description = (parts.shift() ?? "").trim();
+    const observation = parts.join("\n").trim();
+    if (!description && observation) {
+      return { description: observation, observation: "" };
+    }
+    return { description, observation };
+  }
+
+  function buildTxnNote(description, observation) {
+    const desc = (description ?? "").trim();
+    const obs = (observation ?? "").trim();
+    if (!desc) return "";
+    return obs ? `${desc}\n${obs}` : desc;
+  }
+
+  function stripOccurrenceSuffix(text, label) {
+    if (!text || !label) return text || "";
+    const escaped = String(label).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`\\s*\\(${escaped}\\)\\s*$`);
+    return text.replace(regex, "").trim();
+  }
+
+  function getTxnDescription(note) {
+    return splitTxnNote(note).description || "";
   }
 
   function escapeHtml(s) {
@@ -2336,12 +3004,12 @@ Manual tests:
           items.push(...monthItems);
         }
       } else {
-        setSearchStatus("Carregando transacoes...");
+        setSearchStatus("Carregando transações...");
         const batch = await fetchSearchTransactions(period.start, period.end);
         items.push(...batch);
       }
     } catch {
-      setSearchStatus("Nao foi possivel carregar transacoes.");
+      setSearchStatus("Não foi possível carregar transações.");
       state.search.loading = false;
       return [];
     }
@@ -2532,7 +3200,7 @@ Manual tests:
         sorted.sort((a, b) => Math.abs(a.amountCents) - Math.abs(b.amountCents));
         break;
       case "desc":
-        sorted.sort((a, b) => (a.note || "").localeCompare(b.note || ""));
+        sorted.sort((a, b) => getTxnDescription(a.note || "").localeCompare(getTxnDescription(b.note || "")));
         break;
       default:
         sorted.sort((a, b) => (b.dateSort || 0) - (a.dateSort || 0));
@@ -2565,7 +3233,7 @@ Manual tests:
     if (!searchResults) return;
     searchResults.innerHTML = "";
     if (!results.length) {
-      searchResults.innerHTML = `<div class="muted">Nenhuma transacao encontrada.</div>`;
+      searchResults.innerHTML = `<div class="muted">Nenhuma transação encontrada.</div>`;
       renderSearchPager(0);
       setSearchStatus("0 resultados");
       return;
@@ -2576,15 +3244,16 @@ Manual tests:
     const allowActions = !isCoupleWallet();
 
     for (const item of visible) {
-      const descBase = (item.note || "").trim();
       const installmentLabel = getSearchInstallmentLabel(item);
-      const descText = descBase || (installmentLabel ? "(sem descricao)" : "-");
-      const paymentLabel = friendlyPaymentMethod(item.paymentMethod);
-      const metaParts = [item.dateLabel || "-", item.categoryName || "-", paymentLabel];
+      const showRecurringIcon = shouldShowRecurringIcon(item);
+      const rawDesc = stripOccurrenceSuffix(getTxnDescription(item.note || ""), installmentLabel);
+      const descText = rawDesc || (installmentLabel || showRecurringIcon ? "(sem descrição)" : "-");
+      const labelHtml = installmentLabel ? `<span class="installment-badge">${escapeHtml(installmentLabel)}</span>` : "";
+      const recurringHtml = showRecurringIcon ? `<span class="recurring-icon" aria-label="Recorrente">${ICON_RECURRING}</span>` : "";
+      const paymentInfo = buildPaymentDisplay(item);
+      const metaParts = [item.dateLabel || "-", item.categoryName || "-", paymentInfo.main];
       if (item.sourceLabel) metaParts.push(item.sourceLabel);
-      const creditMeta = item.creditCardName && (item.invoiceMonth || item.statementMonth)
-        ? formatInvoiceLabel(item.creditCardName, item.invoiceMonth || item.statementMonth)
-        : "";
+      const paymentSub = paymentInfo.sub;
       const amountClass = item.type === "income" ? "positive" : "negative";
       const amountPrefix = item.type === "income" ? "+" : "-";
 
@@ -2594,10 +3263,10 @@ Manual tests:
       wrapper.innerHTML = `
         <div class="search-result-top">
           <div>
-            <div class="search-title">${highlightSearchText(descText, highlightTokens)}${installmentLabel ? ` <span class="installment-badge">${escapeHtml(installmentLabel)}</span>` : ""}</div>
+            <div class="search-title"><span class="txn-desc-inline"><span>${highlightSearchText(descText, highlightTokens)}</span>${labelHtml}${recurringHtml}</span></div>
             <div class="search-meta">
               <span>${escapeHtml(metaParts.join(" | "))}</span>
-              ${creditMeta ? `<span class="badge">${escapeHtml(creditMeta)}</span>` : ""}
+              ${paymentSub ? `<span class="badge">${escapeHtml(paymentSub)}</span>` : ""}
             </div>
           </div>
           <div class="search-amount ${amountClass}">${amountPrefix} ${escapeHtml(toBRL(Math.abs(item.amountCents)))}</div>
@@ -2744,7 +3413,7 @@ Manual tests:
     searchCard.innerHTML = "";
     const optAll = document.createElement("option");
     optAll.value = "";
-    optAll.textContent = "Todos cartoes";
+    optAll.textContent = "Todos cartões";
     searchCard.appendChild(optAll);
 
     const entries = Array.from(state.creditCards.entries())
@@ -2789,10 +3458,10 @@ Manual tests:
   async function openSearchModal(seed = "") {
     if (!searchModal || !searchInput) return;
     syncSearchUI();
-    searchModal.hidden = false;
     if (seed !== undefined) searchInput.value = seed || "";
     state.search.query = searchInput.value ?? "";
     state.search.resultPage = 1;
+    openModal(searchModal, searchInput);
     await ensureSearchData();
     applySearch({ resetPage: true });
     searchInput.focus({ preventScroll: true });
@@ -2800,7 +3469,7 @@ Manual tests:
 
   function closeSearchModal() {
     if (!searchModal) return;
-    searchModal.hidden = true;
+    closeModal(searchModal);
     if (globalSearchInput) globalSearchInput.value = searchInput?.value || "";
   }
 
@@ -2814,6 +3483,14 @@ Manual tests:
       return;
     }
     openSearchModal(seed);
+  }
+
+  function toggleFilterPanel(force) {
+    if (!filterPanel || !filterToggle) return;
+    const next = typeof force === "boolean" ? force : filterPanel.hidden;
+    filterPanel.hidden = !next;
+    filterToggle.setAttribute("aria-expanded", next ? "true" : "false");
+    filterToggle.classList.toggle("active", next);
   }
 
   function getActiveSearchItems() {
@@ -3034,11 +3711,11 @@ Manual tests:
     const d = purchaseDate instanceof Date ? purchaseDate : new Date(purchaseDate || Date.now());
     if (!(d instanceof Date) || Number.isNaN(d.getTime())) return "";
     const closing = normalizeClosingDay(closingDay);
-    const monthOffset = d.getDate() <= closing ? 1 : 2;
-    const totalMonths = (d.getFullYear() * 12) + (d.getMonth()) + monthOffset;
-    const y = Math.floor(totalMonths / 12);
-    const m = (totalMonths % 12) + 1;
-    return formatYYYYMM(y, m);
+    const base = new Date(d.getFullYear(), d.getMonth(), 1);
+    if (d.getDate() > closing) {
+      base.setMonth(base.getMonth() + 1);
+    }
+    return formatYYYYMM(base.getFullYear(), base.getMonth() + 1);
   }
 
   function yyyyMMFromMonthInput(value) {
@@ -3072,6 +3749,15 @@ Manual tests:
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   }
 
+  function formatDayMonth(value) {
+    let d = value;
+    if (d?.toDate) d = d.toDate();
+    if (!(d instanceof Date) || Number.isNaN(d.getTime())) return "-";
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    return `${dd}/${mm}`;
+  }
+
   function currentDateInTZ(timeZone = "America/Sao_Paulo") {
     try {
       const iso = new Date().toLocaleString("en-US", { timeZone, hour12: false });
@@ -3096,11 +3782,23 @@ Manual tests:
     return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : "Mês";
   }
 
-  function renderKPIs(incomeCents, expenseCents) {
+  function renderKPIs(incomeCents, expenseCents, rows = state.currentRows) {
+    setKpiLoading(false);
     const bal = Number(incomeCents || 0) - Number(expenseCents || 0);
     kpiIncome.textContent = toBRL(incomeCents);
     kpiExpense.textContent = toBRL(expenseCents);
     kpiBalance.textContent = toBRL(bal);
+
+    const list = Array.isArray(rows) ? rows : [];
+    let incomeCount = 0;
+    let expenseCount = 0;
+    for (const r of list) {
+      if (r?.type === "income") incomeCount += 1;
+      else if (r?.type === "expense") expenseCount += 1;
+    }
+    if (kpiIncomeCount) kpiIncomeCount.textContent = String(incomeCount);
+    if (kpiExpenseCount) kpiExpenseCount.textContent = String(expenseCount);
+    if (kpiTotalCount) kpiTotalCount.textContent = String(list.length);
   }
 
   function syncMonthLabel() {
@@ -3121,62 +3819,102 @@ Manual tests:
     reloadAll();
   }
 
-  function renderMovementList(target, rows) {
-    if (!target) return;
+  const DASHBOARD_LIST_LIMIT = 12;
+
+  function sortDashboardRows(rows = []) {
+    return rows.slice().sort((a, b) => {
+      const aDate = getTxnSortDateValue(a);
+      const bDate = getTxnSortDateValue(b);
+      if (aDate !== bDate) return aDate > bDate ? -1 : 1;
+      const descA = stripOccurrenceSuffix(getTxnDescription(a?.note || ""), occurrenceCounterLabel(a));
+      const descB = stripOccurrenceSuffix(getTxnDescription(b?.note || ""), occurrenceCounterLabel(b));
+      const cmp = compareTextSort(descA, descB);
+      if (cmp !== 0) return cmp;
+      return String(a?.id ?? "").localeCompare(String(b?.id ?? ""), "pt-BR", { sensitivity: "base" });
+    });
+  }
+
+  function renderMovementList(target, rows, { emptyMessage = "Sem movimentações.", limit = DASHBOARD_LIST_LIMIT } = {}) {
+    if (!target) return false;
     target.innerHTML = "";
     if (!rows || rows.length === 0) {
-      target.innerHTML = `<p class="muted">Sem lancamentos.</p>`;
-      return;
+      target.innerHTML = `<p class="muted">${escapeHtml(emptyMessage)}</p>`;
+      return false;
     }
-    const limit = 20;
-    const expanded = target.dataset.expanded === "true";
-    const visible = expanded ? rows : rows.slice(0, limit);
+    const visible = rows.slice(0, limit);
     for (const r of visible) {
       const dateToShow = (isCreditCardPayment(r.paymentMethod) && r.purchaseDate) ? r.purchaseDate : r.date;
-      const dt = dateToShow ? toISODateLocal(dateToShow) : "-";
+      const dt = formatDayMonth(dateToShow);
       const label = occurrenceCounterLabel(r);
-      const showRecurringIcon = shouldShowRecurringIcon(r);
-      const descBase = (r.note || "").trim();
-      const descText = descBase || "-";
-      const labelHtml = label ? ` <span class="installment-badge">${escapeHtml(label)}</span>` : "";
-      const recurringHtml = showRecurringIcon ? `<span class="recurring-icon" aria-label="Recorrente">${ICON_RECURRING}</span>` : "";
-      const extraBits = [];
-      if (r.categoryName) extraBits.push(escapeHtml(r.categoryName));
-      if (r.sourceLabel) extraBits.push(escapeHtml(r.sourceLabel));
-      const extraHtml = extraBits.length ? `<span class="move-cat"> - ${extraBits.join(" - ")}</span>` : "";
+      const rawDesc = stripOccurrenceSuffix(getTxnDescription(r.note || ""), label);
+      const descText = rawDesc || "-";
+      const category = (r.categoryName || "").trim();
+      const categoryHtml = category ? `<span class="move-cat">${escapeHtml(category)}</span>` : "";
       const card = document.createElement("div");
       card.className = "move-card";
       card.innerHTML = `
         <div class="move-line">
           <span class="move-date">${escapeHtml(dt)}</span>
-          <span class="move-desc">${escapeHtml(descText)}${labelHtml}${recurringHtml}${extraHtml}</span>
+          <span class="move-desc">
+            <span class="move-title"><span class="move-title-text">${escapeHtml(descText)}</span></span>
+            ${categoryHtml}
+          </span>
           <span class="move-amount">${toBRL(Math.abs(r.amountCents))}</span>
         </div>
       `;
       target.appendChild(card);
     }
-    if (!expanded && rows.length > limit) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "ghost move-more";
-      btn.textContent = `Mostrar mais (${rows.length - limit})`;
-      btn.addEventListener("click", () => {
-        target.dataset.expanded = "true";
-        renderMovementList(target, rows);
-      });
-      target.appendChild(btn);
-    }
+    return rows.length > limit;
   }
 
   function renderDashboardMovements(rows) {
-    const incomeRows = [];
-    const expenseRows = [];
-    for (const r of rows || []) {
-      if (r.type === "income") incomeRows.push(r);
-      else expenseRows.push(r);
+    const list = Array.isArray(rows) ? rows : [];
+    const hasAny = list.length > 0;
+    if (dashboardEmpty) dashboardEmpty.hidden = hasAny;
+    if (dashboardSummaryPanels) dashboardSummaryPanels.hidden = !hasAny;
+    if (!hasAny) {
+      if (incomeList) incomeList.innerHTML = "";
+      if (expenseList) expenseList.innerHTML = "";
+      if (incomeMore) incomeMore.hidden = true;
+      if (expenseMore) expenseMore.hidden = true;
+      return;
     }
-    renderMovementList(incomeList, incomeRows);
-    renderMovementList(expenseList, expenseRows);
+    const incomeRows = sortDashboardRows(list.filter((r) => r.type === "income"));
+    const expenseRows = sortDashboardRows(list.filter((r) => r.type === "expense"));
+    const incomeHasMore = renderMovementList(incomeList, incomeRows, { emptyMessage: "Nenhuma receita neste mês." });
+    const expenseHasMore = renderMovementList(expenseList, expenseRows, { emptyMessage: "Nenhuma despesa neste mês." });
+    if (incomeMore) incomeMore.hidden = !incomeHasMore;
+    if (expenseMore) expenseMore.hidden = !expenseHasMore;
+  }
+
+  function openTransactionsWithTypeFilter(type) {
+    if (type !== "income" && type !== "expense") return;
+    state.txnFilters = { ...DEFAULT_TXN_FILTERS, type };
+    saveTxnFiltersToStorage();
+    syncTxnFilterInputs();
+    setTxnFilterPanel(false);
+    applyTxnFiltersNow({ resetPage: true });
+    state.pendingTxnScroll = true;
+    navigate("#/app/transactions");
+  }
+
+  function focusTxnFormNow() {
+    if (txnFormPanel) {
+      txnFormPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    if (txnDate?.focus) {
+      setTimeout(() => txnDate.focus({ preventScroll: true }), 80);
+    }
+  }
+
+  function openTransactionsForCreate() {
+    const current = location.hash || "";
+    if (current.startsWith("#/app/transactions")) {
+      focusTxnFormNow();
+      return;
+    }
+    state.pendingTxnFormFocus = true;
+    navigate("#/app/transactions");
   }
 
   function syncOptionalFields() {
@@ -3198,6 +3936,10 @@ Manual tests:
 
     [installmentTotal, installmentCurrent].forEach((el) => { if (el) el.disabled = !showInstallment; });
     [financeTotal, financeCurrent].forEach((el) => { if (el) el.disabled = !showFinance; });
+    if (installmentTotal) installmentTotal.required = showInstallment;
+    if (installmentCurrent) installmentCurrent.required = showInstallment;
+    if (financeTotal) financeTotal.required = showFinance;
+    if (financeCurrent) financeCurrent.required = showFinance;
 
     const currentInstallment = parsePositiveInt(installmentCurrent?.value) || 1;
     if (installmentHint) {
@@ -3227,9 +3969,12 @@ Manual tests:
   }
 
   function syncCreditTxnFields() {
-    if (!creditTxnFields) return;
+    if (!creditTxnFields || !txnCard) return;
     const isCredit = isCreditCardPayment(txnPayment?.value);
     creditTxnFields.hidden = !isCredit;
+    txnCard.disabled = !isCredit;
+    txnCard.required = isCredit;
+    if (!isCredit) txnCard.value = "";
   }
 
   function syncPlanFields() {
@@ -3273,22 +4018,30 @@ Manual tests:
     return PERSONAL_WALLETS.has(walletId);
   }
 
+  function cleanWalletLabel(raw = "") {
+    const base = raw.includes("(") ? raw.split("(")[0].trim() : raw.trim();
+    if (!base) return "";
+    return base
+      .replace(/\b(owner|viewer|personal|aggregate|permission)\b/gi, "")
+      .replace(/[-–—|]+/g, " ")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  }
+
   function friendlyWalletLabel(walletId, fallbackName = "") {
     if (FRIENDLY_WALLET_NAMES[walletId]) return FRIENDLY_WALLET_NAMES[walletId];
-    if (fallbackName) {
-      const trimmed = fallbackName.includes("(") ? fallbackName.split("(")[0].trim() : fallbackName.trim();
-      if (trimmed) return trimmed;
-    }
+    const cleanedFallback = cleanWalletLabel(fallbackName);
+    if (cleanedFallback && cleanedFallback !== walletId) return cleanedFallback;
     if (walletId?.startsWith("w_")) {
-      const slug = walletId.slice(2).replace(/_/g, " ");
-      return slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : walletId;
+      const slug = walletId.slice(2).replace(/_/g, " ").trim();
+      if (slug) return slug.charAt(0).toUpperCase() + slug.slice(1);
     }
-    return walletId || fallbackName || "";
+    return "Carteira";
   }
 
   function showPage(key) {
     const titles = {
-      dashboard: "Dashboard",
+      dashboard: "Visão do mês",
       transactions: "Transações",
       categories: "Categorias",
       settings: "Preferências"
@@ -3307,6 +4060,20 @@ Manual tests:
     });
 
     if (pageTitle) pageTitle.textContent = titles[key] ?? "VaultFlow";
+    if (key === "transactions") {
+      if (state.pendingTxnScroll && txnListPanel) {
+        state.pendingTxnScroll = false;
+        setTimeout(() => {
+          txnListPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 60);
+      }
+      if (state.pendingTxnFormFocus) {
+        state.pendingTxnFormFocus = false;
+        setTimeout(() => {
+          focusTxnFormNow();
+        }, 60);
+      }
+    }
   }
 
   async function loginEmailPassword() {
@@ -3319,7 +4086,7 @@ Manual tests:
         return;
       }
       if (!ALLOWED_EMAILS.has(email)) {
-        setAuthMessage("Este email nao esta autorizado.", true);
+        setAuthMessage("Este email não está autorizado.", true);
         return;
       }
       setAuthLoading(true, "Entrando...");
@@ -3341,13 +4108,13 @@ Manual tests:
       const email = (result.user.email ?? "").toLowerCase();
       if (!ALLOWED_EMAILS.has(email)) {
         await signOut(auth);
-        throw new Error("Email nao autorizado.");
+        throw new Error("Email não autorizado.");
       }
       setAuthMessage("Login Google OK.");
     } catch (e) {
       const msg = e?.message?.toLowerCase?.() || "";
       if (msg.includes("autoriz")) {
-        setAuthMessage("Conta Google nao autorizada.", true);
+        setAuthMessage("Conta Google não autorizada.", true);
       } else {
         setAuthMessage(getAuthErrorMessage(e), true);
       }
@@ -3365,14 +4132,14 @@ Manual tests:
         return;
       }
       if (!ALLOWED_EMAILS.has(email)) {
-        setAuthMessage("Este email nao esta autorizado.", true);
+        setAuthMessage("Este email não está autorizado.", true);
         return;
       }
       setAuthLoading(true, "Enviando link...");
       await sendPasswordResetEmail(auth, email);
-      setAuthMessage("Email de recuperacao enviado.");
+      setAuthMessage("Email de recuperação enviado.");
     } catch (e) {
-      setAuthMessage("Nao foi possivel enviar o link. Tente novamente.", true);
+      setAuthMessage("Não foi possível enviar o link. Tente novamente.", true);
     } finally {
       setAuthLoading(false);
     }
@@ -3401,7 +4168,7 @@ Manual tests:
     const email = (user.email ?? "").toLowerCase();
     if (!ALLOWED_EMAILS.has(email)) {
       await signOut(auth);
-      throw new Error("Email nao autorizado.");
+      throw new Error("Email não autorizado.");
     }
 
     if (appReady && state.uid === user.uid) return;
@@ -3638,7 +4405,7 @@ Manual tests:
 
     const disablePersonal = couple;
     [catName, catKind, btnAddCat, btnSeedCats].forEach((el) => el && (el.disabled = disablePersonal));
-    [txnDate, txnType, txnCat, txnAmount, txnNote, txnPayment, txnCard, btnAddTxn].forEach((el) => el && (el.disabled = disablePersonal));
+    [txnDate, txnType, txnCat, txnAmount, txnDesc, txnObs, txnPayment, txnCard, btnAddTxn].forEach((el) => el && (el.disabled = disablePersonal));
     [
       planTitle, planType, planTxnType, planCategory, planAmountEach, planAmountTotal, planMonthsTotal,
       planStartMonth, planPaymentMethod, planCreditCard, planPurchaseDate, btnCreatePlan
@@ -3697,7 +4464,8 @@ Manual tests:
         diagMembershipStatus.textContent = `OK: membership consistente (role: ${membershipRole ?? "-"}).`;
       }
     } catch (e) {
-      diagError.textContent = e?.message ?? String(e);
+      console.error("diagnostics failed", e);
+      diagError.textContent = "Não foi possível executar o diagnóstico.";
     }
   }
 
@@ -3734,7 +4502,8 @@ Manual tests:
 
       diagActionStatus.textContent = "Reconciliado com base em wallets/*/members.";
     } catch (e) {
-      diagError.textContent = e?.message ?? String(e);
+      console.error("reconcile failed", e);
+      diagError.textContent = "Não foi possível concluir a reconciliação.";
     } finally {
       btnReconcile.disabled = false;
     }
@@ -3783,6 +4552,7 @@ Manual tests:
     if (editTxnCat) editTxnCat.innerHTML = "";
     if (planCategory) planCategory.innerHTML = "";
     if (searchCategory) searchCategory.innerHTML = "";
+    setCategoriesLoading(true);
 
     if (isCoupleWallet()) {
       const opt = document.createElement("option");
@@ -3791,30 +4561,54 @@ Manual tests:
       if (txnCat) txnCat.appendChild(opt);
       if (editTxnCat) editTxnCat.appendChild(opt.cloneNode(true));
       if (planCategory) planCategory.appendChild(opt.cloneNode(true));
-      if (catGrid) catGrid.innerHTML = "";
-      if (catStatus) catStatus.textContent = "Categorias nao disponiveis nesta carteira.";
+      if (catGrid) {
+        catGrid.innerHTML = "";
+        catGrid.setAttribute("aria-busy", "false");
+      }
+      if (catStatus) catStatus.textContent = "Categorias não disponíveis nesta carteira.";
       return;
     }
 
-    const colRef = collection(db, "wallets", state.walletId, "categories");
-    const snaps = await getDocs(colRef);
+    try {
+      const colRef = collection(db, "wallets", state.walletId, "categories");
+      const snaps = await getDocs(colRef);
 
-    for (const d of snaps.docs) {
-      const data = d.data();
-      state.categories.set(d.id, { name: data.name, kind: data.kind });
-    }
+      for (const d of snaps.docs) {
+        const data = d.data();
+        state.categories.set(d.id, { name: data.name, kind: data.kind });
+      }
 
       setCategoryOptions(txnCat);
       if (editTxnCat) setCategoryOptions(editTxnCat, editTxnCat.value);
       if (planCategory) setCategoryOptions(planCategory, planCategory.value);
       refreshSearchCategoryOptions();
 
-    renderCategoriesTable();
-    if (catStatus) catStatus.textContent = `Categorias carregadas: ${state.categories.size}`;
+      renderCategoriesTable();
+      if (catStatus) catStatus.textContent = "";
+    } catch (e) {
+      console.error("loadCategories failed", e);
+      if (catStatus) catStatus.textContent = "Não foi possível carregar categorias. Tente novamente.";
+      if (catGrid) {
+        catGrid.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon" aria-hidden="true"></div>
+            <div class="empty-title">Não foi possível carregar categorias.</div>
+            <div class="empty-actions">
+              <button class="ghost" type="button" data-cat-retry="1">Tentar novamente</button>
+            </div>
+          </div>
+        `;
+        catGrid.setAttribute("aria-busy", "false");
+        catGrid.querySelector("[data-cat-retry]")?.addEventListener("click", () => {
+          loadCategories();
+        });
+      }
+    }
   }
 
 function renderCategoriesTable() {
     if (!catGrid) return;
+    catGrid.setAttribute("aria-busy", "false");
     catGrid.innerHTML = "";
     updateSortIndicators("categories");
     const entries = Array.from(state.categories.entries())
@@ -3822,7 +4616,18 @@ function renderCategoriesTable() {
     const sorted = sortCollection("categories", entries);
 
     if (!sorted.length) {
-      catGrid.innerHTML = `<p class="muted">Nenhuma categoria cadastrada.</p>`;
+      catGrid.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon" aria-hidden="true"></div>
+          <div class="empty-title">Você ainda não criou categorias.</div>
+          <div class="empty-actions">
+            <button class="ghost" type="button" data-empty-category="1">Criar categoria</button>
+          </div>
+        </div>
+      `;
+      catGrid.querySelector("[data-empty-category]")?.addEventListener("click", () => {
+        catName?.focus({ preventScroll: true });
+      });
       return;
     }
 
@@ -3855,12 +4660,20 @@ function renderCategoriesTable() {
     catGrid.querySelectorAll("button[data-del-cat]").forEach(btn => {
       btn.addEventListener("click", async () => {
         const id = btn.getAttribute("data-del-cat");
-        if (!confirm("Excluir esta categoria?")) return;
+        const ok = await openConfirmModal({
+          title: "Excluir categoria?",
+          message: "Essa ação não pode ser desfeita.",
+          confirmText: "Excluir",
+          cancelText: "Cancelar"
+        });
+        if (!ok) return;
         try {
           await deleteDoc(doc(db, "wallets", state.walletId, "categories", id));
           await loadCategories();
+          showToast("Categoria removida");
         } catch (e) {
-          catStatus.textContent = "Nao foi possivel excluir a categoria.";
+          console.error("deleteCategory failed", e);
+          catStatus.textContent = "Não foi possível excluir a categoria.";
         }
       });
     });
@@ -3886,7 +4699,9 @@ function renderCategoriesTable() {
       });
       catName.value = "";
       await loadCategories();
+      showToast("Categoria criada");
     } catch (e) {
+      console.error("addCategory failed", e);
       catStatus.textContent = "Não foi possível adicionar a categoria.";
     }
   }
@@ -3902,7 +4717,9 @@ function renderCategoriesTable() {
     try {
       await setDoc(doc(db, "wallets", state.walletId, "categories", catId), { name: trimmed }, { merge: true });
       await loadCategories();
+      showToast("Categoria atualizada");
     } catch (e) {
+      console.error("editCategory failed", e);
       catStatus.textContent = "Não foi possível atualizar a categoria.";
     }
   }
@@ -3932,7 +4749,9 @@ function renderCategoriesTable() {
       }
       await loadCategories();
       catStatus.textContent = "Categorias padrão criadas.";
+      showToast("Categorias padrão criadas");
     } catch (e) {
+      console.error("seedCategories failed", e);
       catStatus.textContent = "Não foi possível criar categorias padrão agora.";
     }
   }
@@ -3961,7 +4780,7 @@ function renderCategoriesTable() {
       case "recurring": return "Recorrente";
       case "installment": return "Parcelado";
       case "finance": return "Financiamento";
-      case "credit_installment": return "Cartao parcelado";
+      case "credit_installment": return "Cartão parcelado";
       default: return "Plano";
     }
   }
@@ -4000,10 +4819,7 @@ function renderCategoriesTable() {
 
   function shouldShowRecurringIcon(txn) {
     if (!txn) return false;
-    const isRecurring = Boolean(txn.recurring?.isRecurring || txn.planType === "recurring");
-    if (!isRecurring) return false;
-    const status = (txn.status ?? "").toString().toLowerCase();
-    return !status || status === "scheduled";
+    return Boolean(txn.recurring?.isRecurring || txn.planType === "recurring");
   }
 
   function friendlyPlanStatus(status) {
@@ -4011,7 +4827,7 @@ function renderCategoriesTable() {
       case "active": return "Ativo";
       case "paused": return "Pausado";
       case "canceled": return "Cancelado";
-      case "completed": return "Concluido";
+      case "completed": return "Concluído";
       default: return "Ativo";
     }
   }
@@ -4031,10 +4847,10 @@ function renderCategoriesTable() {
     switch (method) {
       case "pix": return "Pix";
       case "credito":
-      case "credit_card": return "Cartao de credito";
-      case "debito": return "Cartao de debito";
+      case "credit_card": return "Cartão de crédito";
+      case "debito": return "Cartão de débito";
       case "dinheiro": return "Dinheiro";
-      case "transferencia": return "Transferencia";
+      case "transferencia": return "Transferência";
       case "boleto": return "Boleto";
       case "outro": return "Outro";
       default: return "-";
@@ -4055,6 +4871,26 @@ function renderCategoriesTable() {
     return computeInvoiceMonth(baseDate, closingDay);
   }
 
+  function getTxnCardName(txn = {}) {
+    return txn.creditCardNameSnapshot
+      || txn.creditCardName
+      || (txn.creditCardId ? state.creditCards.get(txn.creditCardId)?.name : "")
+      || "";
+  }
+
+  function buildPaymentDisplay(txn = {}) {
+    const method = txn.paymentMethod ?? "";
+    if (!isCreditCardPayment(method)) {
+      return { main: friendlyPaymentMethod(method), sub: "" };
+    }
+    const cardName = getTxnCardName(txn);
+    const main = cardName ? `Cartão de crédito - ${cardName}` : "Cartão de crédito";
+    const invoiceMonth = getTxnInvoiceMonth(txn);
+    const monthLabel = formatInvoiceMonthName(invoiceMonth);
+    const sub = (cardName && monthLabel) ? `${cardName} | ${monthLabel}` : "";
+    return { main, sub };
+  }
+
   function creditCardTag(txn = {}) {
     if (!isCreditCardPayment(txn.paymentMethod)) return "";
     const month = getTxnInvoiceMonth(txn);
@@ -4073,7 +4909,7 @@ function renderCategoriesTable() {
 
   const SORT_ACCESSORS = {
     transactions: {
-      description: (r) => (r.note || ""),
+      description: (r) => getTxnDescription(r.note || ""),
       payment: (r) => friendlyPaymentMethod(r.paymentMethod || ""),
       category: (r) => (r.categoryName || ""),
       date: (r) => (r.date ? r.date.getTime() : 0),
@@ -4104,10 +4940,440 @@ function renderCategoriesTable() {
     statementItems: {
       date: (i) => (i.date || ""),
       category: (i) => (i.categoryName || ""),
-      description: (i) => (i.note || ""),
+      description: (i) => getTxnDescription(i.note || ""),
       amount: (i) => Math.abs(Number(i.amountCents || 0))
     }
   };
+
+  function loadTxnFiltersFromStorage() {
+    try {
+      const raw = localStorage.getItem(TXN_FILTER_STORAGE_KEY);
+      if (!raw) return { ...DEFAULT_TXN_FILTERS };
+      const parsed = JSON.parse(raw);
+      return {
+        ...DEFAULT_TXN_FILTERS,
+        query: String(parsed?.query ?? "").trim(),
+        category: String(parsed?.category ?? "all"),
+        payment: String(parsed?.payment ?? "all"),
+        type: String(parsed?.type ?? "all"),
+        min: String(parsed?.min ?? ""),
+        max: String(parsed?.max ?? "")
+      };
+    } catch {
+      return { ...DEFAULT_TXN_FILTERS };
+    }
+  }
+
+  function saveTxnFiltersToStorage() {
+    try {
+      if (!state.txnFilters) return;
+      localStorage.setItem(TXN_FILTER_STORAGE_KEY, JSON.stringify(state.txnFilters));
+    } catch {}
+  }
+
+  function loadTxnSortState() {
+    try {
+      const raw = localStorage.getItem(TXN_SORT_STORAGE_KEY);
+      if (!raw) return { ...DEFAULT_TXN_SORT };
+      const parsed = JSON.parse(raw);
+      const primaryKey = parsed?.primary?.key;
+      const primaryDir = parsed?.primary?.dir;
+      const secondaryKey = parsed?.secondary?.key;
+      const secondaryDir = parsed?.secondary?.dir;
+      const keys = new Set(["date", "description"]);
+      const dirs = new Set(["asc", "desc"]);
+      if (!keys.has(primaryKey) || !dirs.has(primaryDir)) return { ...DEFAULT_TXN_SORT };
+      if (!keys.has(secondaryKey) || !dirs.has(secondaryDir)) return { ...DEFAULT_TXN_SORT };
+      if (primaryKey === secondaryKey) return { ...DEFAULT_TXN_SORT };
+      return {
+        primary: { key: primaryKey, dir: primaryDir },
+        secondary: { key: secondaryKey, dir: secondaryDir }
+      };
+    } catch {
+      return { ...DEFAULT_TXN_SORT };
+    }
+  }
+
+  function saveTxnSortState() {
+    try {
+      if (!state.txnSort) return;
+      localStorage.setItem(TXN_SORT_STORAGE_KEY, JSON.stringify(state.txnSort));
+    } catch {}
+  }
+
+  function getTxnSortState() {
+    if (!state.txnSort) state.txnSort = loadTxnSortState();
+    return state.txnSort;
+  }
+
+  function normalizePaymentMethod(method) {
+    if (isCreditCardPayment(method)) return "credit_card";
+    return method || "outro";
+  }
+
+  function normalizeSortText(value) {
+    return String(value ?? "").trim().toLocaleLowerCase("pt-BR");
+  }
+
+  function compareTextSort(a, b) {
+    return normalizeSortText(a).localeCompare(normalizeSortText(b), "pt-BR", { sensitivity: "base" });
+  }
+
+  function getTxnSortDateValue(txn) {
+    const base = (isCreditCardPayment(txn?.paymentMethod) && txn?.purchaseDate) ? txn.purchaseDate : txn?.date;
+    if (base instanceof Date && !Number.isNaN(base.getTime())) return base.getTime();
+    if (base?.toDate) {
+      const d = base.toDate();
+      if (d instanceof Date && !Number.isNaN(d.getTime())) return d.getTime();
+    }
+    return Number(base || 0);
+  }
+
+  function compareTxnSortKey(a, b, key, dir) {
+    let cmp = 0;
+    if (key === "date") {
+      const aVal = getTxnSortDateValue(a);
+      const bVal = getTxnSortDateValue(b);
+      cmp = aVal === bVal ? 0 : (aVal > bVal ? 1 : -1);
+    } else if (key === "description") {
+      cmp = compareTextSort(getTxnDescription(a?.note || ""), getTxnDescription(b?.note || ""));
+    }
+    if (!cmp) return 0;
+    return dir === "desc" ? -cmp : cmp;
+  }
+
+  function sortTxnRows(rows = []) {
+    const sortState = getTxnSortState();
+    const primary = sortState.primary;
+    const secondary = sortState.secondary;
+    return rows.slice().sort((a, b) => {
+      let cmp = compareTxnSortKey(a, b, primary.key, primary.dir);
+      if (cmp !== 0) return cmp;
+      cmp = compareTxnSortKey(a, b, secondary.key, secondary.dir);
+      if (cmp !== 0) return cmp;
+      return String(a?.id ?? "").localeCompare(String(b?.id ?? ""), "pt-BR", { sensitivity: "base" });
+    });
+  }
+
+  function updateTxnSortIndicators() {
+    const sortState = getTxnSortState();
+    const config = {
+      description: sortState.primary.key === "description"
+        ? { level: 1, dir: sortState.primary.dir }
+        : { level: 2, dir: sortState.secondary.dir },
+      date: sortState.primary.key === "date"
+        ? { level: 1, dir: sortState.primary.dir }
+        : { level: 2, dir: sortState.secondary.dir }
+    };
+    document.querySelectorAll(`[data-sort-table="transactions"][data-sort-key]`).forEach((btn) => {
+      const key = btn.getAttribute("data-sort-key");
+      const indicator = btn.querySelector(".sort-indicator");
+      const level = btn.querySelector(".sort-level");
+      const meta = config[key];
+      if (!meta) {
+        if (indicator) indicator.innerHTML = "";
+        if (level) level.textContent = "";
+        btn.classList.remove("is-primary", "is-secondary");
+        return;
+      }
+      if (indicator) indicator.innerHTML = meta.dir === "asc" ? SORT_ICON_ASC : SORT_ICON_DESC;
+      if (level) {
+        level.textContent = String(meta.level);
+        level.classList.toggle("is-secondary", meta.level === 2);
+      }
+      btn.classList.toggle("is-primary", meta.level === 1);
+      btn.classList.toggle("is-secondary", meta.level === 2);
+    });
+  }
+
+  function setTxnSortPrimary(key) {
+    if (key !== "date" && key !== "description") return;
+    const sortState = getTxnSortState();
+    const isPrimary = sortState.primary.key === key;
+    const currentDir = isPrimary
+      ? sortState.primary.dir
+      : (sortState.secondary.key === key ? sortState.secondary.dir : (key === "date" ? "desc" : "asc"));
+    const nextDir = currentDir === "asc" ? "desc" : "asc";
+    state.txnSort = key === "date"
+      ? { primary: { key: "date", dir: nextDir }, secondary: { key: "description", dir: "asc" } }
+      : { primary: { key: "description", dir: nextDir }, secondary: { key: "date", dir: "desc" } };
+    saveTxnSortState();
+  }
+
+  function getTxnFilterState() {
+    if (!state.txnFilters) state.txnFilters = loadTxnFiltersFromStorage();
+    return state.txnFilters;
+  }
+
+  function syncTxnFilterInputs() {
+    const filters = getTxnFilterState();
+    if (txnFilterSearch) txnFilterSearch.value = filters.query || "";
+    if (txnFilterMin) txnFilterMin.value = filters.min || "";
+    if (txnFilterMax) txnFilterMax.value = filters.max || "";
+    if (txnFilterType) txnFilterType.value = filters.type || "all";
+    if (txnFilterCategory) txnFilterCategory.value = filters.category || "all";
+    if (txnFilterPayment) txnFilterPayment.value = filters.payment || "all";
+  }
+
+  function syncTxnFilterOptions(rows = []) {
+    if (!txnFilterCategory || !txnFilterPayment) return;
+    const categories = new Map();
+    const payments = new Map();
+
+    for (const row of rows) {
+      const name = (row?.categoryName || "").trim();
+      const value = row?.categoryId || name;
+      if (name && value) categories.set(value, name);
+
+      const method = normalizePaymentMethod(row?.paymentMethod);
+      const label = friendlyPaymentMethod(method);
+      if (method) payments.set(method, label);
+    }
+
+    const categoryEntries = Array.from(categories.entries())
+      .sort((a, b) => a[1].localeCompare(b[1], "pt-BR", { sensitivity: "base" }));
+    txnFilterCategory.innerHTML = "";
+    const optAll = document.createElement("option");
+    optAll.value = "all";
+    optAll.textContent = "Todas";
+    txnFilterCategory.appendChild(optAll);
+    for (const [value, label] of categoryEntries) {
+      const opt = document.createElement("option");
+      opt.value = value;
+      opt.textContent = label;
+      txnFilterCategory.appendChild(opt);
+    }
+
+    const paymentEntries = Array.from(payments.entries())
+      .sort((a, b) => a[1].localeCompare(b[1], "pt-BR", { sensitivity: "base" }));
+    txnFilterPayment.innerHTML = "";
+    const payAll = document.createElement("option");
+    payAll.value = "all";
+    payAll.textContent = "Todos";
+    txnFilterPayment.appendChild(payAll);
+    for (const [value, label] of paymentEntries) {
+      const opt = document.createElement("option");
+      opt.value = value;
+      opt.textContent = label;
+      txnFilterPayment.appendChild(opt);
+    }
+
+    const filters = getTxnFilterState();
+    const hasCategories = categoryEntries.length > 0;
+    if (filters.category !== "all" && !categories.has(filters.category)) {
+      const fallbackLabel = state.categories.get(filters.category)?.name || "";
+      if (fallbackLabel) {
+        const opt = document.createElement("option");
+        opt.value = filters.category;
+        opt.textContent = fallbackLabel;
+        txnFilterCategory.appendChild(opt);
+      } else if (hasCategories) {
+        filters.category = "all";
+      }
+    }
+    const hasPayments = paymentEntries.length > 0;
+    if (filters.payment !== "all" && !payments.has(filters.payment)) {
+      const fallbackLabel = friendlyPaymentMethod(filters.payment);
+      if (fallbackLabel && fallbackLabel !== "-") {
+        const opt = document.createElement("option");
+        opt.value = filters.payment;
+        opt.textContent = fallbackLabel;
+        txnFilterPayment.appendChild(opt);
+      } else if (hasPayments) {
+        filters.payment = "all";
+      }
+    }
+
+    txnFilterCategory.disabled = categoryEntries.length === 0;
+    txnFilterPayment.disabled = paymentEntries.length === 0;
+    syncTxnFilterInputs();
+    saveTxnFiltersToStorage();
+  }
+
+  function getTxnFilterAmountRange(filters) {
+    const minCents = parseAmountToCents(filters.min);
+    const maxCents = parseAmountToCents(filters.max);
+    return {
+      minCents: Number.isFinite(minCents) ? minCents : null,
+      maxCents: Number.isFinite(maxCents) ? maxCents : null
+    };
+  }
+
+  function getActiveTxnFilterCount(filters = getTxnFilterState()) {
+    let count = 0;
+    if (filters.query.trim()) count += 1;
+    if (filters.category && filters.category !== "all") count += 1;
+    if (filters.payment && filters.payment !== "all") count += 1;
+    if (filters.type && filters.type !== "all") count += 1;
+    const { minCents, maxCents } = getTxnFilterAmountRange(filters);
+    if (minCents != null) count += 1;
+    if (maxCents != null) count += 1;
+    return count;
+  }
+
+  function buildTxnFilterChips(filters = getTxnFilterState()) {
+    const chips = [];
+    const query = filters.query.trim();
+    if (query) chips.push({ key: "query", label: `Busca: ${query}` });
+    if (filters.category && filters.category !== "all") {
+      let label = txnFilterCategory?.querySelector(`option[value="${filters.category}"]`)?.textContent || "";
+      if (!label) {
+        label = state.categories.get(filters.category)?.name || "";
+      }
+      if (label) chips.push({ key: "category", label: `Categoria: ${label}` });
+    }
+    if (filters.payment && filters.payment !== "all") {
+      let label = txnFilterPayment?.querySelector(`option[value="${filters.payment}"]`)?.textContent || "";
+      if (!label) label = friendlyPaymentMethod(filters.payment);
+      if (label) chips.push({ key: "payment", label: `Pagamento: ${label}` });
+    }
+    if (filters.type && filters.type !== "all") {
+      const label = filters.type === "income" ? "Receita" : "Despesa";
+      chips.push({ key: "type", label: `Tipo: ${label}` });
+    }
+    const { minCents, maxCents } = getTxnFilterAmountRange(filters);
+    if (minCents != null || maxCents != null) {
+      const minLabel = minCents != null ? formatCentsToInputValue(minCents) : "";
+      const maxLabel = maxCents != null ? formatCentsToInputValue(maxCents) : "";
+      let label = "";
+      if (minLabel && maxLabel) label = `Valor: ${minLabel}–${maxLabel}`;
+      else if (minLabel) label = `Valor: ${minLabel}+`;
+      else if (maxLabel) label = `Valor: até ${maxLabel}`;
+      if (label) chips.push({ key: "value", label });
+    }
+    return chips;
+  }
+
+  function renderTxnFilterChips() {
+    if (!txnFilterChips) return;
+    const chips = buildTxnFilterChips();
+    txnFilterChips.innerHTML = "";
+    if (!chips.length) {
+      txnFilterChips.hidden = true;
+      return;
+    }
+    const limit = 3;
+    const visible = chips.slice(0, limit);
+    for (const chip of visible) {
+      const el = document.createElement("span");
+      el.className = "filter-chip";
+      el.innerHTML = `
+        <span>${escapeHtml(chip.label)}</span>
+        <button type="button" data-filter-remove="${chip.key}" aria-label="Remover filtro">×</button>
+      `;
+      txnFilterChips.appendChild(el);
+    }
+    if (chips.length > limit) {
+      const extra = chips.length - limit;
+      const more = document.createElement("button");
+      more.type = "button";
+      more.className = "filter-chip more";
+      more.setAttribute("data-filter-more", "1");
+      more.textContent = `+${extra}`;
+      txnFilterChips.appendChild(more);
+    }
+    txnFilterChips.hidden = false;
+  }
+
+  function updateTxnFilterSummary(baseCount = 0, filteredCount = 0) {
+    if (txnTableCount) {
+      txnTableCount.textContent = `Mostrando ${filteredCount} de ${baseCount}`;
+    }
+    const activeCount = getActiveTxnFilterCount();
+    if (txnFilterBadge) {
+      txnFilterBadge.hidden = activeCount === 0;
+      if (activeCount) txnFilterBadge.textContent = `Filtros (${activeCount})`;
+    }
+    if (txnFilterClear) txnFilterClear.hidden = activeCount === 0;
+    renderTxnFilterChips();
+  }
+
+  function applyTxnLocalFilters(rows = []) {
+    const filters = getTxnFilterState();
+    const tokens = normalizeSearchText(filters.query).split(/\s+/).filter(Boolean);
+    const { minCents, maxCents } = getTxnFilterAmountRange(filters);
+    return rows.filter((row) => {
+      if (filters.type && filters.type !== "all" && row.type !== filters.type) return false;
+      if (filters.category && filters.category !== "all") {
+        const match = filters.category === row.categoryId || filters.category === row.categoryName;
+        if (!match) return false;
+      }
+      if (filters.payment && filters.payment !== "all") {
+        const method = normalizePaymentMethod(row.paymentMethod);
+        if (method !== filters.payment) return false;
+      }
+      if (tokens.length) {
+        const { description, observation } = splitTxnNote(row.note || "");
+        const cleanDesc = stripOccurrenceSuffix(description, occurrenceCounterLabel(row));
+        const haystack = normalizeSearchText(`${cleanDesc} ${observation}`);
+        for (const token of tokens) {
+          if (!haystack.includes(token)) return false;
+        }
+      }
+      const amountAbs = Math.abs(Number(row.amountCents || 0));
+      if (minCents != null && amountAbs < minCents) return false;
+      if (maxCents != null && amountAbs > maxCents) return false;
+      return true;
+    });
+  }
+
+  function resetTxnFilters({ keepPanelClosed = true } = {}) {
+    state.txnFilters = { ...DEFAULT_TXN_FILTERS };
+    saveTxnFiltersToStorage();
+    syncTxnFilterInputs();
+    updateTxnFilterSummary(state.currentRows?.length || 0, state.currentRows?.length || 0);
+    if (keepPanelClosed && txnFilterPanel && txnFilterToggle) {
+      txnFilterPanel.hidden = true;
+      txnFilterToggle.setAttribute("aria-expanded", "false");
+    }
+  }
+
+  function ensureTxnFilterContext(monthKey) {
+    const walletId = state.walletId || "";
+    const prev = state.txnFilterContext || { walletId: null, monthKey: null };
+    if (!prev.walletId && !prev.monthKey) {
+      state.txnFilterContext = { walletId, monthKey: monthKey || "" };
+      return;
+    }
+    if (prev.walletId !== walletId || prev.monthKey !== (monthKey || "")) {
+      resetTxnFilters({ keepPanelClosed: true });
+      state.txnFilterContext = { walletId, monthKey: monthKey || "" };
+    }
+  }
+
+  function setTxnFilterPanel(open) {
+    if (!txnFilterPanel || !txnFilterToggle) return;
+    txnFilterPanel.hidden = !open;
+    txnFilterToggle.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function applyTxnFiltersNow({ resetPage = true } = {}) {
+    saveTxnFiltersToStorage();
+    if (resetPage) resetPager("transactions");
+    refreshTableForSort("transactions");
+  }
+
+  function updateTxnFilterState(patch, { apply = true, resetPage = true, syncInputs = false } = {}) {
+    const current = getTxnFilterState();
+    state.txnFilters = { ...current, ...patch };
+    if (syncInputs) syncTxnFilterInputs();
+    if (apply) applyTxnFiltersNow({ resetPage });
+  }
+
+  let txnFilterDebounce = null;
+  function scheduleTxnFilterApply() {
+    if (txnFilterDebounce) clearTimeout(txnFilterDebounce);
+    txnFilterDebounce = setTimeout(() => {
+      applyTxnFiltersNow({ resetPage: true });
+    }, 160);
+  }
+
+  function initTxnListControls() {
+    state.txnFilters = loadTxnFiltersFromStorage();
+    state.txnSort = loadTxnSortState();
+    syncTxnFilterInputs();
+    setTxnFilterPanel(false);
+  }
 
   function normalizeSortValue(value) {
     if (value == null) return "";
@@ -4143,6 +5409,10 @@ function renderCategoriesTable() {
   }
 
   function updateSortIndicators(tableId) {
+    if (tableId === "transactions") {
+      updateTxnSortIndicators();
+      return;
+    }
     const { key, dir } = getSortState(tableId);
     document.querySelectorAll(`[data-sort-table=\"${tableId}\"][data-sort-key]`).forEach((btn) => {
       const btnKey = btn.getAttribute("data-sort-key");
@@ -4238,12 +5508,21 @@ function renderCategoriesTable() {
         const tableId = btn.getAttribute("data-sort-table");
         const key = btn.getAttribute("data-sort-key");
         if (!tableId || !key) return;
+        if (tableId === "transactions") {
+          if (key !== "date" && key !== "description") return;
+          setTxnSortPrimary(key);
+          updateTxnSortIndicators();
+          resetPager("transactions");
+          refreshTableForSort("transactions");
+          return;
+        }
         setSortState(tableId, key);
         updateSortIndicators(tableId);
         refreshTableForSort(tableId);
       });
     });
     Object.keys(state.sort || {}).forEach((tableId) => updateSortIndicators(tableId));
+    updateTxnSortIndicators();
   }
 
   function statementSignedAmount(amountCents, type) {
@@ -4356,7 +5635,7 @@ function renderCategoriesTable() {
 
   function updateStatementSummary({ month, totalCents, status, itemsCount } = {}) {
     const cardName = statementCard?.value
-      ? (state.creditCards.get(statementCard.value)?.name || "Cartao")
+      ? (state.creditCards.get(statementCard.value)?.name || "Cartão")
       : "";
     const label = formatInvoiceLabel(cardName, month);
     if (statementSummaryMonth) statementSummaryMonth.textContent = label || formatInvoiceMonthName(month) || "-";
@@ -4375,7 +5654,7 @@ function renderCategoriesTable() {
       statementItemsTitle.textContent = "Itens da fatura";
       return;
     }
-    const cardName = state.creditCards.get(cardId)?.name || "Cartao";
+    const cardName = state.creditCards.get(cardId)?.name || "Cartão";
     const label = formatInvoiceLabel(cardName, month);
     statementItemsTitle.textContent = `Itens da fatura: ${label || cardName}`;
   }
@@ -4443,7 +5722,7 @@ function renderCategoriesTable() {
       return fallbackSnaps;
     }
 
-    throw preferredError || fallbackError || new Error("Nao foi possivel carregar cartoes.");
+    throw preferredError || fallbackError || new Error("Não foi possível carregar cartões.");
   }
 
   async function loadCreditCards() {
@@ -4451,14 +5730,18 @@ function renderCategoriesTable() {
     if (txnCard) txnCard.innerHTML = "";
     if (planCreditCard) planCreditCard.innerHTML = "";
     if (statementCard) statementCard.innerHTML = "";
+    setCardsLoading(true);
 
     if (isCoupleWallet()) {
-      setCreditCardOptions(txnCard, "", "Nao disponivel");
-      setCreditCardOptions(planCreditCard, "", "Nao disponivel");
-      setCreditCardOptions(statementCard, "", "Nao disponivel");
+      setCreditCardOptions(txnCard, "", "Não disponível");
+      setCreditCardOptions(planCreditCard, "", "Não disponível");
+      setCreditCardOptions(statementCard, "", "Não disponível");
       refreshSearchCardOptions();
-      if (cardTable) cardTable.innerHTML = "";
-      if (cardStatus) cardStatus.textContent = "Cartoes nao disponiveis nesta carteira.";
+      if (cardTable) {
+        cardTable.innerHTML = "";
+        cardTable.setAttribute("aria-busy", "false");
+      }
+      if (cardStatus) cardStatus.textContent = "Cartões não disponíveis nesta carteira.";
       return;
     }
 
@@ -4467,7 +5750,7 @@ function renderCategoriesTable() {
       for (const d of snaps.docs) {
         const data = d.data();
         state.creditCards.set(d.id, {
-          name: data.name ?? "Cartao",
+          name: data.name ?? "Cartão",
           closingDay: Number(data.closingDay || 0),
           dueDay: Number(data.dueDay || 0),
           status: data.status ?? "active"
@@ -4479,23 +5762,48 @@ function renderCategoriesTable() {
       refreshSearchCardOptions();
       resetPager("cards");
       renderCardTable();
-      if (cardStatus) cardStatus.textContent = state.creditCards.size ? "" : "Nenhum cartao cadastrado.";
+      if (cardStatus) cardStatus.textContent = state.creditCards.size ? "" : "Nenhum cartão cadastrado.";
       syncCreditTxnFields();
       syncPlanFields();
       if (statementCard) await loadStatements();
     } catch (e) {
-      if (cardStatus) cardStatus.textContent = "Nao foi possivel carregar cartoes.";
+      console.error("loadCreditCards failed", e);
+      if (cardStatus) cardStatus.textContent = "Não foi possível carregar cartões.";
+      if (cardTable) cardTable.setAttribute("aria-busy", "false");
     }
   }
 
   function renderCardTable() {
     if (!cardTable) return;
+    cardTable.setAttribute("aria-busy", "false");
     cardTable.innerHTML = "";
     updateSortIndicators("cards");
     const entries = Array.from(state.creditCards.entries())
       .map(([id, c]) => ({ id, ...c }));
     const sorted = sortCollection("cards", entries);
     const pageData = getPagedRows("cards", sorted);
+
+    if (!pageData.total) {
+      const tr = document.createElement("tr");
+      tr.className = "empty-row";
+      tr.innerHTML = `
+        <td colspan="5">
+          <div class="empty-state">
+            <div class="empty-icon" aria-hidden="true"></div>
+            <div class="empty-title">Nenhum cartão cadastrado.</div>
+            <div class="empty-actions">
+              <button class="ghost" type="button" data-empty-card="1">Adicionar cartão</button>
+            </div>
+          </div>
+        </td>
+      `;
+      cardTable.appendChild(tr);
+      cardTable.querySelector("[data-empty-card]")?.addEventListener("click", () => {
+        cardName?.focus({ preventScroll: true });
+      });
+      renderPager("cards", 0);
+      return;
+    }
 
     for (const c of pageData.rows) {
       const statusLabel = c.status === "active" ? "Ativo" : "Inativo";
@@ -4546,12 +5854,12 @@ function renderCategoriesTable() {
     if (editCardDueDay) editCardDueDay.value = card.dueDay || "";
     if (editCardStatus) editCardStatus.textContent = "";
     if (editCardError) editCardError.textContent = "";
-    editCardModal.hidden = false;
+    openModal(editCardModal, editCardName);
   }
 
   function closeEditCardModal() {
     if (!editCardModal) return;
-    editCardModal.hidden = true;
+    closeModal(editCardModal);
     state.editingCardId = null;
   }
 
@@ -4608,15 +5916,15 @@ function renderCategoriesTable() {
     if (editCardStatus) editCardStatus.textContent = "";
 
     const cardId = state.editingCardId;
-    if (!cardId) { if (editCardError) editCardError.textContent = "Nenhum cartao selecionado."; return; }
+    if (!cardId) { if (editCardError) editCardError.textContent = "Nenhum cartão selecionado."; return; }
 
     const name = (editCardName.value ?? "").trim();
     const closingDay = parsePositiveInt(editCardClosingDay.value);
     const dueDay = parsePositiveInt(editCardDueDay.value);
 
-    if (!name) { if (editCardError) editCardError.textContent = "Informe o nome do cartao."; return; }
-    if (!closingDay || closingDay < 1 || closingDay > 31) { if (editCardError) editCardError.textContent = "Fechamento invalido."; return; }
-    if (!dueDay || dueDay < 1 || dueDay > 31) { if (editCardError) editCardError.textContent = "Vencimento invalido."; return; }
+    if (!name) { if (editCardError) editCardError.textContent = "Informe o nome do cartão."; return; }
+    if (!closingDay || closingDay < 1 || closingDay > 31) { if (editCardError) editCardError.textContent = "Fechamento inválido."; return; }
+    if (!dueDay || dueDay < 1 || dueDay > 31) { if (editCardError) editCardError.textContent = "Vencimento inválido."; return; }
 
     btnSaveCardEdit.disabled = true;
     btnSaveCardEdit.textContent = "Salvando...";
@@ -4633,15 +5941,16 @@ function renderCategoriesTable() {
       if (editCardStatus) editCardStatus.textContent = "Atualizando faturas futuras...";
       const result = await updateFutureCreditCardTransactions(cardId, closingDay, name);
       const suffix = result.updated ? `Faturas ajustadas: ${result.updated}.` : "Nenhuma fatura futura ajustada.";
-      if (editCardStatus) editCardStatus.textContent = `Cartao atualizado. ${suffix}`;
+      if (editCardStatus) editCardStatus.textContent = `Cartão atualizado. ${suffix}`;
 
       await loadCreditCards();
+      showToast("Cartão atualizado");
     } catch (e) {
       console.error("saveCardEdits failed", e);
-      if (editCardError) editCardError.textContent = "Nao foi possivel atualizar o cartao.";
+      if (editCardError) editCardError.textContent = "Não foi possível atualizar o cartão.";
     } finally {
       btnSaveCardEdit.disabled = false;
-      btnSaveCardEdit.textContent = "Salvar alteracoes";
+      btnSaveCardEdit.textContent = "Salvar alterações";
     }
   }
 
@@ -4657,9 +5966,9 @@ function renderCategoriesTable() {
     const closingDay = parsePositiveInt(cardClosingDay.value);
     const dueDay = parsePositiveInt(cardDueDay.value);
 
-    if (!name) { cardStatus.textContent = "Informe o nome do cartao."; return; }
-    if (!closingDay || closingDay < 1 || closingDay > 31) { cardStatus.textContent = "Fechamento invalido."; return; }
-    if (!dueDay || dueDay < 1 || dueDay > 31) { cardStatus.textContent = "Vencimento invalido."; return; }
+    if (!name) { cardStatus.textContent = "Informe o nome do cartão."; return; }
+    if (!closingDay || closingDay < 1 || closingDay > 31) { cardStatus.textContent = "Fechamento inválido."; return; }
+    if (!dueDay || dueDay < 1 || dueDay > 31) { cardStatus.textContent = "Vencimento inválido."; return; }
 
     try {
       await addDoc(getCreditCardCollectionRef(state.walletId), {
@@ -4676,9 +5985,10 @@ function renderCategoriesTable() {
       cardClosingDay.value = "";
       cardDueDay.value = "";
       await loadCreditCards();
+      showToast("Cartão adicionado");
     } catch (e) {
       console.error("addCreditCard failed", e);
-      cardStatus.textContent = "Nao foi possivel salvar o cartao. Verifique sua permissao.";
+      cardStatus.textContent = "Não foi possível salvar. Verifique sua conexão e tente novamente.";
     }
   }
 
@@ -4694,7 +6004,7 @@ function renderCategoriesTable() {
       }, { merge: true });
       await loadCreditCards();
     } catch {
-      if (cardStatus) cardStatus.textContent = "Nao foi possivel atualizar o cartao.";
+      if (cardStatus) cardStatus.textContent = "Não foi possível atualizar o cartão.";
     }
   }
 
@@ -4715,12 +6025,18 @@ function renderCategoriesTable() {
       hasTxns = !snaps.empty;
     } catch {}
 
-    const msg = hasTxns
-      ? "Este cartao tem transacoes. Excluir nao remove essas transacoes. Deseja continuar?"
-      : "Excluir este cartao?";
-    if (!confirm(msg)) return;
+    const message = hasTxns
+      ? "Esse cartão possui transações. Essa ação não remove as transações e não pode ser desfeita."
+      : "Essa ação não pode ser desfeita.";
+    const ok = await openConfirmModal({
+      title: "Excluir cartão?",
+      message,
+      confirmText: "Excluir",
+      cancelText: "Cancelar"
+    });
+    if (!ok) return;
 
-    if (cardStatus) cardStatus.textContent = "Excluindo cartao...";
+    if (cardStatus) cardStatus.textContent = "Excluindo cartão...";
 
     try {
       const stmtCol = getCreditCardStatementsRef(state.walletId, cardId);
@@ -4730,10 +6046,11 @@ function renderCategoriesTable() {
       }
       await deleteDoc(getCreditCardDocRef(state.walletId, cardId));
       await loadCreditCards();
-      if (cardStatus) cardStatus.textContent = "Cartao excluido.";
+      if (cardStatus) cardStatus.textContent = "Cartão excluído.";
+      showToast("Cartão removido");
     } catch (e) {
       console.error("deleteCreditCard failed", e);
-      if (cardStatus) cardStatus.textContent = "Nao foi possivel excluir o cartao.";
+      if (cardStatus) cardStatus.textContent = "Não foi possível excluir. Tente novamente.";
     }
   }
 
@@ -4779,22 +6096,28 @@ function renderCategoriesTable() {
       }, { merge: true });
       await loadStatements();
     } catch {
-      setStatementStatus("Nao foi possivel criar o resumo da fatura.");
+      setStatementStatus("Não foi possível criar o resumo da fatura.");
     }
   }
 
   function renderStatementsCarousel(entries, { preserveSelection = false, cardId = null } = {}) {
     if (!statementCarousel) return;
+    statementCarousel.setAttribute("aria-busy", "false");
     statementCarousel.innerHTML = "";
     updateSortIndicators("statements");
     const sorted = sortCollection("statements", entries);
 
     if (!sorted.length) {
-      statementCarousel.innerHTML = `<p class="muted">Sem faturas registradas.</p>`;
+      statementCarousel.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon" aria-hidden="true"></div>
+          <div class="empty-title">Sem faturas para este mês.</div>
+        </div>
+      `;
       return;
     }
 
-    const cardName = cardId ? (state.creditCards.get(cardId)?.name || "Cartao") : "Cartao";
+    const cardName = cardId ? (state.creditCards.get(cardId)?.name || "Cartão") : "Cartão";
 
     for (const s of sorted) {
       const statusLabel = statementStatusLabel(s.computed ? "computed" : s.status);
@@ -4896,6 +6219,7 @@ function renderCategoriesTable() {
 
   function renderStatementItems(items, month) {
     if (!statementItemsTable) return;
+    statementItemsTable.setAttribute("aria-busy", "false");
     statementItemsTable.innerHTML = "";
     updateSortIndicators("statementItems");
     const sorted = sortCollection("statementItems", items);
@@ -4912,15 +6236,15 @@ function renderCategoriesTable() {
     for (const item of pageData.rows) {
       const label = occurrenceCounterLabel(item);
       const showRecurringIcon = shouldShowRecurringIcon(item);
-      const descBase = (item.note || "").trim();
-      const descText = descBase || (label || showRecurringIcon ? "(sem descricao)" : "");
-      const labelHtml = label ? ` <span class="installment-badge">${escapeHtml(label)}</span>` : "";
+      const rawDesc = stripOccurrenceSuffix(getTxnDescription(item.note || ""), label);
+      const descText = rawDesc || (label || showRecurringIcon ? "(sem descrição)" : "");
+      const labelHtml = label ? `<span class="installment-badge">${escapeHtml(label)}</span>` : "";
       const recurringHtml = showRecurringIcon ? `<span class="recurring-icon" aria-label="Recorrente">${ICON_RECURRING}</span>` : "";
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td class="nowrap">${escapeHtml(item.date || "-")}</td>
         <td>${escapeHtml(item.categoryName || "-")}</td>
-        <td>${escapeHtml(descText)}${labelHtml}${recurringHtml}</td>
+        <td><span class="txn-desc-inline"><span>${escapeHtml(descText)}</span>${labelHtml}${recurringHtml}</span></td>
         <td class="right">${toBRL(Math.abs(item.amountCents))}</td>
       `;
       statementItemsTable.appendChild(tr);
@@ -4932,6 +6256,7 @@ function renderCategoriesTable() {
     if (!statementCarousel || !statementItemsTable) return;
     statementCarousel.innerHTML = "";
     statementItemsTable.innerHTML = "";
+    setStatementsLoading(true);
     cacheStatementEntries([]);
     collapseStatementItems();
     setStatementStatus("");
@@ -4942,15 +6267,16 @@ function renderCategoriesTable() {
 
     const cardId = statementCard?.value;
     if (!cardId) {
-      setStatementStatus("Selecione um cartao para ver as faturas.");
+      setStatementStatus("Selecione um cartão para ver as faturas.");
       if (statementMeta) statementMeta.textContent = "";
-      statementCarousel.innerHTML = `<p class="muted">Selecione um cartao para ver faturas.</p>`;
+      statementCarousel.innerHTML = `<p class="muted">Selecione um cartão para ver faturas.</p>`;
+      statementCarousel.setAttribute("aria-busy", "false");
       return;
     }
 
     const card = state.creditCards.get(cardId);
     if (statementMeta) {
-      const name = card?.name || "Cartao";
+      const name = card?.name || "Cartão";
       const closing = card?.closingDay ? `Fechamento: ${card.closingDay}` : "";
       const due = card?.dueDay ? `Vencimento: ${card.dueDay}` : "";
       const parts = [name, closing, due].filter(Boolean);
@@ -4985,12 +6311,18 @@ function renderCategoriesTable() {
     }
 
     if (!entries.length) {
-      setStatementStatus("Sem faturas para este cartao.");
-      statementCarousel.innerHTML = `<p class="muted">Sem faturas registradas.</p>`;
+      setStatementStatus("Sem faturas para este mês.");
+      statementCarousel.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon" aria-hidden="true"></div>
+          <div class="empty-title">Sem faturas para este mês.</div>
+        </div>
+      `;
+      statementCarousel.setAttribute("aria-busy", "false");
       return;
     }
 
-    setStatementStatus(usedFallback ? "Resumo calculado a partir das transacoes." : "");
+    setStatementStatus(usedFallback ? "Resumo calculado a partir das transações." : "");
     cacheStatementEntries(entries);
 
     renderStatementsCarousel(entries, { preserveSelection: false, cardId });
@@ -5068,15 +6400,17 @@ function renderCategoriesTable() {
     if (!statementItemsTable) return;
     statementItemsTable.innerHTML = "";
     resetPager("statementItems");
+    setStatementItemsLoading(true);
 
     if (!cardId || !month) {
+      if (statementItemsTable) statementItemsTable.setAttribute("aria-busy", "false");
       collapseStatementItems();
       return;
     }
 
     state.activeStatementMonth = month;
     state.statementItemsMonth = month;
-    const cardName = state.creditCards.get(cardId)?.name || "Cartao";
+    const cardName = state.creditCards.get(cardId)?.name || "Cartão";
     const label = formatInvoiceLabel(cardName, month) || formatInvoiceMonthName(month) || "Selecionado";
     if (statementItemsMonth) statementItemsMonth.textContent = label;
     if (statementItemsPanel) statementItemsPanel.hidden = false;
@@ -5112,7 +6446,7 @@ function renderCategoriesTable() {
       state.statementItemsCache = [];
       state.statementItemsMonth = month;
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td colspan="4" class="muted">Nao foi possivel carregar os itens.</td>`;
+      tr.innerHTML = `<td colspan="4" class="muted">Não foi possível carregar os itens.</td>`;
       statementItemsTable.appendChild(tr);
     }
   }
@@ -5132,7 +6466,7 @@ function renderCategoriesTable() {
       await setDoc(getStatementRef(state.walletId, cardId, month), patch, { merge: true });
       await loadStatements();
     } catch {
-      setStatementStatus("Nao foi possivel atualizar a fatura.");
+      setStatementStatus("Não foi possível atualizar a fatura.");
     }
   }
 
@@ -5149,7 +6483,7 @@ function renderCategoriesTable() {
       }, { merge: true });
       await loadStatements();
     } catch {
-      setStatementStatus("Nao foi possivel reabrir a fatura.");
+      setStatementStatus("Não foi possível reabrir a fatura.");
     }
   }
 
@@ -5160,7 +6494,7 @@ function renderCategoriesTable() {
     if (planTable) planTable.innerHTML = "";
 
     if (isCoupleWallet()) {
-      if (planStatus) planStatus.textContent = "Planos disponiveis apenas em carteiras pessoais.";
+      if (planStatus) planStatus.textContent = "Planos disponíveis apenas em carteiras pessoais.";
       return;
     }
 
@@ -5174,7 +6508,7 @@ function renderCategoriesTable() {
       renderPlansTable();
       if (planStatus) planStatus.textContent = state.plans.size ? "" : "Nenhum plano cadastrado.";
     } catch {
-      if (planStatus) planStatus.textContent = "Nao foi possivel carregar os planos.";
+      if (planStatus) planStatus.textContent = "Não foi possível carregar os planos.";
     }
   }
 
@@ -5194,7 +6528,7 @@ function renderCategoriesTable() {
       const amountLabel = p.type === "recurring"
         ? toBRL(p.amountEachCents || 0)
         : `${toBRL(p.amountTotalCents || 0)} / ${p.monthsTotal || "-"}`;
-      const generated = p.generatedThrough ? `Gerado ate ${p.generatedThrough}` : "Sem geracao";
+      const generated = p.generatedThrough ? `Gerado até ${p.generatedThrough}` : "Sem geração";
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -5258,7 +6592,7 @@ function renderCategoriesTable() {
       }, { merge: true });
       await loadPlans();
     } catch {
-      if (planStatus) planStatus.textContent = "Nao foi possivel atualizar o plano.";
+      if (planStatus) planStatus.textContent = "Não foi possível atualizar o plano.";
     }
   }
 
@@ -5272,7 +6606,7 @@ function renderCategoriesTable() {
       if (statusNode) statusNode.textContent = "Plano excluido.";
     } catch (e) {
       console.error("deletePlanOnly failed", e);
-      if (statusNode) statusNode.textContent = "Nao foi possivel excluir o plano.";
+      if (statusNode) statusNode.textContent = "Não foi possível excluir o plano.";
     }
   }
 
@@ -5299,7 +6633,7 @@ function renderCategoriesTable() {
       if (statusNode) statusNode.textContent = deletePlanDoc ? "Plano excluido." : "Parcelas excluidas.";
     } catch (e) {
       console.error("deletePlanAndOccurrences failed", e);
-      if (statusNode) statusNode.textContent = "Nao foi possivel excluir o plano.";
+      if (statusNode) statusNode.textContent = "Não foi possível excluir o plano.";
     }
   }
 
@@ -5310,7 +6644,7 @@ function renderCategoriesTable() {
       await deletePlanOnly(planId);
       return;
     }
-    const removeAll = confirm("Excluir o plano e todas as parcelas geradas? Esta acao nao pode ser desfeita.");
+    const removeAll = confirm("Excluir o plano e todas as parcelas geradas? Esta ação não pode ser desfeita.");
     if (!removeAll) return;
     await deletePlanAndOccurrences(planId, { deletePlanDoc: true });
   }
@@ -5324,7 +6658,6 @@ function renderCategoriesTable() {
 
   function buildPlanNote(plan, index, total) {
     const base = plan.title || plan.categoryName || "Plano";
-    if (total && index) return `${base} (${index}/${total})`;
     return base;
   }
 
@@ -5357,14 +6690,14 @@ function renderCategoriesTable() {
     if (!planMode) return;
     if (txnStatus) txnStatus.textContent = "";
     if (!isPersonalWalletId(state.walletId)) {
-      setOpsError("Planos so podem ser criados em carteiras pessoais.");
+      setOpsError("Planos só podem ser criados em carteiras pessoais.");
       return;
     }
 
     const title = note || categoryName || "Plano";
     let startMonth = yyyyMMFromDateStr(dateStr);
     if (!startMonth) {
-      setOpsError("Informe um mes valido.");
+      setOpsError("Informe um mês válido.");
       return;
     }
 
@@ -5375,21 +6708,21 @@ function renderCategoriesTable() {
     if (planMode === "installment" || planMode === "credit_installment") {
       monthsTotal = parsePositiveInt(installmentTotal?.value);
       if (!monthsTotal) {
-        setOpsError("Informe o numero de parcelas.");
+        setOpsError("Informe o número de parcelas.");
         return;
       }
       amountEachCents = Math.floor(amountTotalCents / monthsTotal);
     } else if (planMode === "finance") {
       monthsTotal = parsePositiveInt(financeTotal?.value);
       if (!monthsTotal) {
-        setOpsError("Informe o numero de parcelas.");
+        setOpsError("Informe o número de parcelas.");
         return;
       }
       amountEachCents = amountTotalCents;
     }
 
     if (planMode === "finance" && isCreditCardPayment(paymentMethod)) {
-      setOpsError("Financiamento nao usa cartao de credito.");
+      setOpsError("Financiamento não usa cartão de crédito.");
       return;
     }
 
@@ -5400,7 +6733,7 @@ function renderCategoriesTable() {
     if (planMode === "credit_installment" || (planMode === "recurring" && isCreditCardPayment(paymentMethod))) {
       creditCardId = txnCard?.value || "";
       if (!creditCardId) {
-        setOpsError("Selecione um cartao.");
+        setOpsError("Selecione um cartão.");
         return;
       }
       const purchaseDateStr = dateStr;
@@ -5419,18 +6752,17 @@ function renderCategoriesTable() {
       const planRef = doc(collection(db, "wallets", state.walletId, "plans"));
       const planPayment = planMode === "credit_installment" ? "credit_card" : (paymentMethod || "outro");
       const payload = {
-      type: planMode,
-      txnType: type,
+        type: planMode,
+        txnType: type,
         title,
         walletId: state.walletId,
-        txnType: type,
         categoryId: catId,
         categoryName,
         amountTotalCents,
         amountEachCents,
-      startMonth,
-      startDay: new Date(dateStr + "T00:00:00").getDate(),
-      startDate: Timestamp.fromDate(new Date(dateStr + "T00:00:00")),
+        startMonth,
+        startDay: new Date(dateStr + "T00:00:00").getDate(),
+        startDate: Timestamp.fromDate(new Date(dateStr + "T00:00:00")),
         monthsTotal: monthsTotal ?? null,
         generatedThrough: null,
         status: "active",
@@ -5454,7 +6786,8 @@ function renderCategoriesTable() {
       else if (planMode === "credit_installment") await generateCreditInstallments(planRef.id, payload);
 
       txnAmount.value = "";
-      txnNote.value = "";
+      if (txnDesc) txnDesc.value = "";
+      if (txnObs) txnObs.value = "";
       if (txnPayment) txnPayment.value = "";
       if (txnCard) txnCard.value = "";
       cbRecurring.checked = false;
@@ -5468,7 +6801,7 @@ function renderCategoriesTable() {
       await reloadAll();
     } catch (e) {
       console.error("createPlanFromTxnForm failed", e);
-      setOpsError("Nao foi possivel gerar o plano. Verifique sua permissao.");
+      setOpsError("Não foi possível gerar o plano. Verifique sua permissão.");
     } finally {
       btnAddTxn.disabled = false;
       btnAddTxn.textContent = "Adicionar";
@@ -5480,7 +6813,7 @@ function renderCategoriesTable() {
     planStatus.textContent = "";
 
     if (!isPersonalWalletId(state.walletId)) {
-      planStatus.textContent = "Planos so podem ser criados em carteiras pessoais.";
+      planStatus.textContent = "Planos só podem ser criados em carteiras pessoais.";
       return;
     }
 
@@ -5491,7 +6824,7 @@ function renderCategoriesTable() {
     const cat = state.categories.get(categoryId);
     const categoryName = cat?.name ?? (planCategory?.options[planCategory.selectedIndex]?.textContent ?? "");
 
-    if (!title) { planStatus.textContent = "Informe a descricao do plano."; return; }
+    if (!title) { planStatus.textContent = "Informe a descrição do plano."; return; }
     if (!categoryId) { planStatus.textContent = "Selecione uma categoria."; return; }
 
     let amountTotalCents = null;
@@ -5506,7 +6839,7 @@ function renderCategoriesTable() {
       amountTotalCents = parseAmountToCents(planAmountTotal?.value);
       monthsTotal = parsePositiveInt(planMonthsTotal?.value);
       if (!amountTotalCents || amountTotalCents <= 0) { planStatus.textContent = "Informe o valor total."; return; }
-      if (!monthsTotal || monthsTotal <= 0) { planStatus.textContent = "Informe o numero de meses."; return; }
+      if (!monthsTotal || monthsTotal <= 0) { planStatus.textContent = "Informe o número de meses."; return; }
       amountEachCents = type === "finance"
         ? amountTotalCents
         : Math.floor(amountTotalCents / monthsTotal);
@@ -5524,7 +6857,7 @@ function renderCategoriesTable() {
     if (type === "credit_installment") {
       paymentMethod = "credit_card";
       creditCardId = planCreditCard?.value || "";
-      if (!creditCardId) { planStatus.textContent = "Selecione um cartao."; return; }
+      if (!creditCardId) { planStatus.textContent = "Selecione um cartão."; return; }
 
       const purchaseDateStr = planPurchaseDate?.value || "";
       if (!purchaseDateStr) { planStatus.textContent = "Informe a data da compra."; return; }
@@ -5580,7 +6913,7 @@ function renderCategoriesTable() {
       await reloadAll();
     } catch (e) {
       console.error("createPlanAndGenerate failed", e);
-      planStatus.textContent = "Nao foi possivel gerar o plano. Verifique sua permissao.";
+      planStatus.textContent = "Não foi possível gerar o plano. Verifique sua permissão.";
     } finally {
       btnCreatePlan.disabled = false;
       btnCreatePlan.textContent = "Gerar agora";
@@ -5619,31 +6952,31 @@ function renderCategoriesTable() {
     let current = plan.generatedThrough ? addMonthsYYYYMM(plan.generatedThrough, 1) : plan.startMonth;
     if (!current || !targetMonth) return;
 
+    const baseDate = getPlanBaseDate(plan) || firstDateOfMonth(plan.startMonth) || new Date();
     let lastGenerated = null;
     while (compareYYYYMM(current, targetMonth) <= 0) {
       const index = monthDiff(plan.startMonth, current) + 1;
       const txnId = `r_${planId}_${current}`;
       const v2 = buildPlanV2Fields(plan, index, null);
       let creditFields = {};
+      let competenceMonth = current;
+      let occurrenceDate = alignDateToMonthKey(baseDate, current);
       if (isCreditCardPayment(plan.paymentMethod) && plan.creditCardId) {
-        const baseDay = plan.purchaseDate?.toDate?.().getDate?.() ?? 1;
-        const parsed = parseYYYYMM(current);
-        if (parsed) {
-          const day = Math.min(baseDay, 28);
-          const purchaseDateObj = new Date(parsed.y, parsed.m - 1, day);
-          const invoiceMonth = computeInvoiceMonth(purchaseDateObj, getCardClosingDay(plan.creditCardId));
-          creditFields = {
-            creditCardId: plan.creditCardId,
-            statementMonth: invoiceMonth || null,
-            invoiceMonth: invoiceMonth || null,
-            purchaseDate: Timestamp.fromDate(purchaseDateObj),
-            creditCardNameSnapshot: state.creditCards.get(plan.creditCardId)?.name || null
-          };
-        }
+        const purchaseDateObj = alignDateToMonthKey(baseDate, current);
+        const invoiceMonth = computeInvoiceMonth(purchaseDateObj, getCardClosingDay(plan.creditCardId));
+        competenceMonth = invoiceMonth || current;
+        occurrenceDate = alignDateToMonthKey(purchaseDateObj, competenceMonth);
+        creditFields = {
+          creditCardId: plan.creditCardId,
+          statementMonth: invoiceMonth || null,
+          invoiceMonth: invoiceMonth || null,
+          purchaseDate: Timestamp.fromDate(purchaseDateObj),
+          creditCardNameSnapshot: state.creditCards.get(plan.creditCardId)?.name || null
+        };
       }
-      const competenceMonth = creditFields.statementMonth || current;
       const payload = {
-        date: timestampFromYYYYMM(competenceMonth),
+        date: Timestamp.fromDate(occurrenceDate),
+        monthKey: competenceMonth,
         amountCents: plan.amountEachCents || 0,
         type: plan.txnType || "expense",
         categoryId: plan.categoryId,
@@ -5686,14 +7019,17 @@ function renderCategoriesTable() {
     if (plan.status !== "active") return;
 
     const amounts = splitAmountByMonths(plan.amountTotalCents || 0, plan.monthsTotal);
+    const baseDate = getPlanBaseDate(plan) || firstDateOfMonth(plan.startMonth) || new Date();
     let lastMonth = null;
 
     for (let i = 1; i <= plan.monthsTotal; i += 1) {
-      const month = addMonthsYYYYMM(plan.startMonth, i - 1);
+      const occurrenceDate = addMonthsPreserveDay(baseDate, i - 1);
+      const month = formatMonthKey(occurrenceDate);
       const txnId = `p_${planId}_${String(i).padStart(2, "0")}`;
       const v2 = buildPlanV2Fields(plan, i, plan.monthsTotal);
       const payload = {
-        date: timestampFromYYYYMM(month),
+        date: Timestamp.fromDate(occurrenceDate),
+        monthKey: month,
         amountCents: amounts[i - 1] ?? plan.amountEachCents ?? 0,
         type: plan.txnType || "expense",
         categoryId: plan.categoryId,
@@ -5849,7 +7185,7 @@ function renderCategoriesTable() {
     const viewRef = doc(db, "wallets", COUPLE_WALLET_ID, "transactions_view", `${personalWalletId}_${realTxnId}`);
 
     const month = txnPayload.monthKey || yyyyMMFromTimestamp(txnPayload.date);
-    if (!month) throw new Error("Data invalida.");
+    if (!month) throw new Error("Data inválida.");
 
     const reportRef = doc(db, "wallets", COUPLE_WALLET_ID, "reports", month);
 
@@ -5949,7 +7285,7 @@ function renderCategoriesTable() {
 
     await runTransaction(db, async (tx) => {
       const txnSnap = await tx.get(personalRef);
-      if (!txnSnap.exists()) throw new Error("Transacao nao encontrada.");
+      if (!txnSnap.exists()) throw new Error("Transação não encontrada.");
 
       const existingRaw = txnSnap.data();
       const existing = normalizeTxnV2(existingRaw);
@@ -5962,7 +7298,7 @@ function renderCategoriesTable() {
       const newType = next.type ?? "expense";
       const oldMonth = existing.monthKey || yyyyMMFromTimestamp(existing.date);
       const newMonth = next.monthKey || yyyyMMFromTimestamp(next.date);
-      if (!oldMonth || !newMonth) throw new Error("Data invalida.");
+      if (!oldMonth || !newMonth) throw new Error("Data inválida.");
 
       let oldRepSnap = null;
       let newRepSnap = null;
@@ -6265,25 +7601,24 @@ function renderCategoriesTable() {
   function openEditModal(txnId) {
     if (!editModal) return;
     state.editingTxnId = txnId;
-    editModal.hidden = false;
-    if (editTxnDate) editTxnDate.focus({ preventScroll: true });
+    openModal(editModal, editTxnDate);
   }
 
   function closeEditModal() {
     if (!editModal) return;
-    editModal.hidden = true;
+    closeModal(editModal);
     state.editingTxnId = null;
   }
 
   async function prepareEditModal(txnId) {
-    if (!editModal || !editTxnDate || !editTxnType || !editTxnCat || !editTxnAmount || !editTxnNote || !editStatus || !editError) {
+    if (!editModal || !editTxnDate || !editTxnType || !editTxnCat || !editTxnAmount || !editTxnDesc || !editTxnObs || !editStatus || !editError) {
       return;
     }
     editError.textContent = "";
     editStatus.textContent = "";
 
     if (!isPersonalWalletId(state.walletId)) {
-      editError.textContent = "Edição só é permitida em wallets pessoais.";
+      editError.textContent = "Edição só é permitida em carteiras pessoais.";
       return;
     }
 
@@ -6306,7 +7641,8 @@ function renderCategoriesTable() {
           };
         }
       } catch (e) {
-        editError.textContent = e?.message ?? String(e);
+        console.error("prepare edit failed", e);
+        editError.textContent = "Não foi possível carregar a transação. Tente novamente.";
         return;
       }
     }
@@ -6321,7 +7657,9 @@ function renderCategoriesTable() {
     editTxnType.value = txn.type || "expense";
     setCategoryOptions(editTxnCat, txn.categoryId || "", txn.categoryName || "Categoria removida");
     editTxnAmount.value = formatCentsToInputValue(txn.amountCents);
-    editTxnNote.value = txn.note || "";
+    const { description, observation } = splitTxnNote(txn.note || "");
+    editTxnDesc.value = description || "";
+    editTxnObs.value = observation || "";
 
     openEditModal(txnId);
   }
@@ -6330,13 +7668,17 @@ function renderCategoriesTable() {
     setOpsError("");
 
     if (!isPersonalWalletId(state.walletId)) {
-      setOpsError("Planos so podem ser criados em carteiras pessoais.");
+      setOpsError("Planos só podem ser criados em carteiras pessoais.");
+      return;
+    }
+    if (!paymentMethod) {
+      setOpsError("Selecione a forma de pagamento.");
       return;
     }
 
     const inputDate = new Date(dateStr + "T00:00:00");
     if (Number.isNaN(inputDate.getTime())) {
-      setOpsError("Informe uma data valida.");
+      setOpsError("Informe uma data válida.");
       return;
     }
 
@@ -6345,21 +7687,27 @@ function renderCategoriesTable() {
     if (planMode === "recurring") {
       monthsTotal = 12;
     } else if (planMode === "installment" || planMode === "credit_installment") {
-      monthsTotal = Number(installmentTotal?.value || 0);
-      currentInstallment = parsePositiveInt(installmentCurrent?.value) || 1;
+      monthsTotal = parsePositiveInt(installmentTotal?.value);
+      currentInstallment = parsePositiveInt(installmentCurrent?.value);
     } else if (planMode === "finance") {
-      monthsTotal = Number(financeTotal?.value || 0);
-      currentInstallment = parsePositiveInt(financeCurrent?.value) || 1;
+      monthsTotal = parsePositiveInt(financeTotal?.value);
+      currentInstallment = parsePositiveInt(financeCurrent?.value);
     }
 
-    if (!monthsTotal || monthsTotal < 1) {
-      setOpsError("Informe o total de parcelas.");
+    const needsInstallments = planMode === "installment" || planMode === "credit_installment" || planMode === "finance";
+    if (!monthsTotal || (needsInstallments && monthsTotal < 2)) {
+      setOpsError(needsInstallments ? "Informe o total de parcelas (mínimo 2)." : "Informe o total de parcelas.");
+      return;
+    }
+
+    if (needsInstallments && !currentInstallment) {
+      setOpsError("Informe a parcela atual.");
       return;
     }
 
     if ((planMode === "installment" || planMode === "credit_installment" || planMode === "finance")
       && currentInstallment > monthsTotal) {
-      setOpsError("A parcela atual nao pode ser maior que o total.");
+      setOpsError("A parcela atual não pode ser maior que o total.");
       return;
     }
 
@@ -6368,7 +7716,8 @@ function renderCategoriesTable() {
       ? addMonthsPreserveDay(inputDate, -(currentInstallment - 1))
       : inputDate;
     const startMonth = formatMonthKey(startDate);
-    const planTitleValue = (note || categoryName || "Plano").trim();
+    const { description: planTitleBase } = splitTxnNote(note);
+    const planTitleValue = (planTitleBase || categoryName || "Plano").trim();
     const shouldSplit = planMode === "installment" || planMode === "credit_installment";
     const amounts = shouldSplit ? splitCents(amountCents, monthsTotal) : [];
     const amountEachCents = shouldSplit ? (amounts[0] ?? amountCents) : amountCents;
@@ -6378,13 +7727,13 @@ function renderCategoriesTable() {
     let planPurchaseDate = null;
     let statementStartMonth = "";
     if (planMode === "finance" && isCreditCardPayment(paymentMethod)) {
-      setOpsError("Financiamento nao usa cartao de credito.");
+      setOpsError("Financiamento não usa cartão de crédito.");
       return;
     }
     if (isCreditCardPayment(paymentMethod)) {
       creditCardId = txnCard?.value || "";
       if (!creditCardId) {
-        setOpsError("Selecione um cartao.");
+        setOpsError("Selecione um cartão.");
         return;
       }
       cardClosingDay = getCardClosingDay(creditCardId);
@@ -6409,7 +7758,7 @@ function renderCategoriesTable() {
         startDay: startDate.getDate(),
         startDate: Timestamp.fromDate(startDate),
         monthsTotal,
-        generatedThrough: startMonth,
+        generatedThrough: null,
         status: "active",
         paymentMethod: isCreditCardPayment(paymentMethod) ? "credit_card" : (paymentMethod || "outro"),
         creditCardId: creditCardId || null,
@@ -6484,13 +7833,14 @@ function renderCategoriesTable() {
         await createTxnWithDerivations(txnPayload, { walletId: state.walletId, txnId });
       }
 
-      if (planMode === "recurring") {
-        const generatedThrough = formatMonthKey(addMonthsPreserveDay(startDate, monthsTotal - 1));
+      const generatedThrough = formatMonthKey(addMonthsPreserveDay(startDate, monthsTotal - 1));
+      if (generatedThrough) {
         await setDoc(planRef, { generatedThrough, updatedAt: serverTimestamp(), updatedBy: state.uid }, { merge: true });
       }
 
       txnAmount.value = "";
-      txnNote.value = "";
+      if (txnDesc) txnDesc.value = "";
+      if (txnObs) txnObs.value = "";
       if (txnPayment) txnPayment.value = "";
       if (txnCard) txnCard.value = "";
       syncCreditTxnFields();
@@ -6498,7 +7848,7 @@ function renderCategoriesTable() {
       await reloadAll();
     } catch (e) {
       console.error("createPlanFromTxnFormV2 failed", e);
-      setOpsError("Nao foi possivel gerar o plano. Tente novamente.");
+      setOpsError("Não foi possível gerar o plano. Tente novamente.");
     } finally {
       btnAddTxn.disabled = false;
       btnAddTxn.textContent = "Adicionar";
@@ -6509,7 +7859,7 @@ function renderCategoriesTable() {
     setOpsError("");
 
     if (isCoupleWallet()) {
-      setOpsError("Esta visao consolidada e somente leitura. Lance receitas e despesas em uma carteira pessoal.");
+      setOpsError("Esta visão consolidada é somente leitura. Lance receitas e despesas em uma carteira pessoal.");
       return;
     }
 
@@ -6518,17 +7868,22 @@ function renderCategoriesTable() {
 
     const rawType = txnType.value;
     const type = rawType === "reserve" ? "expense" : rawType;
+    const paymentMethodRaw = (txnPayment?.value ?? "").trim();
+    if (!paymentMethodRaw) { setOpsError("Selecione a forma de pagamento."); return; }
     const txnV2 = buildTxnV2Payload(rawType, type);
     const catId = txnCat.value;
     if (!catId) { setOpsError("Selecione uma categoria."); return; }
 
     const amountCents = parseAmountToCents(txnAmount.value);
     if (amountCents == null || amountCents <= 0) {
-      setOpsError("Informe um valor valido (maior que zero).");
+      setOpsError("Informe um valor válido (maior que zero).");
       return;
     }
 
-    const note = (txnNote.value ?? "").trim();
+    const description = (txnDesc?.value ?? "").trim();
+    if (!description) { setOpsError("Informe a descrição."); return; }
+    const observation = (txnObs?.value ?? "").trim();
+    const note = buildTxnNote(description, observation);
     const cat = state.categories.get(catId);
     const categoryName = cat?.name ?? "";
 
@@ -6537,7 +7892,7 @@ function renderCategoriesTable() {
     const wantsFinance = !!cbFinance?.checked;
 
     if ((wantsInstallment && wantsFinance) || (wantsRecurring && (wantsInstallment || wantsFinance))) {
-      setOpsError("Escolha apenas uma opcao de plano.");
+      setOpsError("Escolha apenas uma opção de plano.");
       return;
     }
 
@@ -6570,7 +7925,7 @@ function renderCategoriesTable() {
 
     if (isCreditCardPayment(txnV2.paymentMethod)) {
       creditCardId = txnCard?.value || "";
-      if (!creditCardId) { setOpsError("Selecione um cartao."); return; }
+      if (!creditCardId) { setOpsError("Selecione um cartão."); return; }
 
       const purchaseDateObj = new Date(dateStr + "T00:00:00");
       invoiceMonth = computeInvoiceMonth(purchaseDateObj, getCardClosingDay(creditCardId));
@@ -6607,15 +7962,17 @@ function renderCategoriesTable() {
       await createTxnWithDerivations(txnPayload, { walletId: personalWalletId });
 
       txnAmount.value = "";
-      txnNote.value = "";
+      if (txnDesc) txnDesc.value = "";
+      if (txnObs) txnObs.value = "";
       if (txnPayment) txnPayment.value = "";
       if (txnCard) txnCard.value = "";
       syncCreditTxnFields();
 
       await reloadAll();
+      showToast("Transação adicionada");
     } catch (e) {
       console.error("addTransaction failed", e);
-      setOpsError("Nao foi possivel salvar a transacao. Tente novamente.");
+      setOpsError("Não foi possível salvar. Verifique sua conexão e tente novamente.");
     } finally {
       btnAddTxn.disabled = false;
       btnAddTxn.textContent = "Adicionar";
@@ -6634,8 +7991,9 @@ function renderCategoriesTable() {
     try {
       await deleteTxnWithDerivations(txnId, { walletId: personalWalletId });
       await reloadAll();
+      showToast("Transação removida");
     } catch (e) {
-      setOpsError("Nao foi possivel excluir a transacao. Tente novamente.");
+      setOpsError("Não foi possível excluir. Verifique sua conexão e tente novamente.");
     }
   }
 
@@ -6663,41 +8021,61 @@ function renderCategoriesTable() {
     const isInstallmentPlan = planId && ["installment", "finance", "credit_installment"].includes(planType);
 
     if (isInstallmentPlan) {
-      const onlyThis = confirm("Excluir somente esta parcela do mes?\nOK = apenas esta parcela\nCancelar = outras opcoes");
+      const onlyThis = await openConfirmModal({
+        title: "Excluir parcela?",
+        message: "Essa ação não pode ser desfeita.",
+        confirmText: "Excluir parcela",
+        cancelText: "Outras opções"
+      });
       if (onlyThis) {
         await deleteTransactionPersonalAndSync(txnId);
         return;
       }
-      const removeAll = confirm("Excluir todas as parcelas deste plano? Isso remove o plano e todas as parcelas.");
+      const removeAll = await openConfirmModal({
+        title: "Excluir todas as parcelas?",
+        message: "Essa ação não pode ser desfeita.",
+        confirmText: "Excluir todas",
+        cancelText: "Cancelar"
+      });
       if (!removeAll) return;
       await deletePlanAndOccurrences(planId, { deletePlanDoc: true, statusEl: txnStatus });
+      showToast("Transações removidas");
       return;
     }
 
-    if (!confirm("Excluir esta transacao? Isso tambem removera do consolidado.")) return;
+    const ok = await openConfirmModal({
+      title: "Excluir transação?",
+      message: "Essa ação não pode ser desfeita.",
+      confirmText: "Excluir",
+      cancelText: "Cancelar"
+    });
+    if (!ok) return;
     await deleteTransactionPersonalAndSync(txnId);
   }
 
   async function updateTransactionPersonalAndSync() {
-    if (!editModal || !editTxnDate || !editTxnType || !editTxnCat || !editTxnAmount || !editTxnNote || !btnSaveEdit || !editError || !editStatus) {
+    if (!editModal || !editTxnDate || !editTxnType || !editTxnCat || !editTxnAmount || !editTxnDesc || !editTxnObs || !btnSaveEdit || !editError || !editStatus) {
       return;
     }
     editError.textContent = "";
     editStatus.textContent = "";
 
-    if (!state.editingTxnId) { editError.textContent = "Nenhuma transacao selecionada."; return; }
-    if (!isPersonalWalletId(state.walletId)) { editError.textContent = "Edicao so e permitida em wallets pessoais."; return; }
+    if (!state.editingTxnId) { editError.textContent = "Nenhuma transação selecionada."; return; }
+    if (!isPersonalWalletId(state.walletId)) { editError.textContent = "Edição só é permitida em carteiras pessoais."; return; }
 
     const txnId = state.editingTxnId;
     const dateStr = editTxnDate.value;
     const type = editTxnType.value;
     const catId = editTxnCat.value;
     const amountCents = parseAmountToCents(editTxnAmount.value);
-    const note = (editTxnNote.value ?? "").trim();
+    const description = (editTxnDesc.value ?? "").trim();
+    const observation = (editTxnObs.value ?? "").trim();
+    const note = buildTxnNote(description, observation);
 
     if (!dateStr) { editError.textContent = "Informe a data."; return; }
     if (!catId) { editError.textContent = "Selecione uma categoria."; return; }
-    if (amountCents == null || amountCents <= 0) { editError.textContent = "Informe um valor valido (maior que zero)."; return; }
+    if (amountCents == null || amountCents <= 0) { editError.textContent = "Informe um valor válido (maior que zero)."; return; }
+    if (!description) { editError.textContent = "Informe a descrição."; return; }
 
     const cat = state.categories.get(catId);
     const categoryName = cat?.name ?? (editTxnCat.options[editTxnCat.selectedIndex]?.textContent ?? "");
@@ -6737,14 +8115,16 @@ function renderCategoriesTable() {
 
       await updateTxnWithDerivations(txnId, updates, { walletId: state.walletId });
 
-      editStatus.textContent = "Transacao atualizada.";
+      editStatus.textContent = "";
       closeEditModal();
       await reloadAll();
+      showToast("Transação atualizada");
     } catch (e) {
-      editError.textContent = e?.message ?? String(e);
+      console.error("update transaction failed", e);
+      editError.textContent = "Não foi possível salvar. Verifique sua conexão e tente novamente.";
     } finally {
       btnSaveEdit.disabled = false;
-      btnSaveEdit.textContent = "Salvar alteracoes";
+      btnSaveEdit.textContent = "Salvar alterações";
     }
   }
 
@@ -6775,25 +8155,64 @@ function renderCategoriesTable() {
   }
 
   function renderTxnRows(rows, { allowDelete, isCoupleView, allowEdit }) {
+    setTxnListLoading(false);
     txnTable.innerHTML = "";
-    updateSortIndicators("transactions");
+    updateTxnSortIndicators();
     const focusId = state.txnFocusId;
     const baseRows = rows || [];
-    const filteredRows = focusId ? baseRows.filter((r) => r.id === focusId) : baseRows;
-    const sorted = sortCollection("transactions", filteredRows);
+    const focusRows = focusId ? baseRows.filter((r) => r.id === focusId) : baseRows;
+    const filteredRows = applyTxnLocalFilters(focusRows);
+    updateTxnFilterSummary(baseRows.length, filteredRows.length);
+    const sorted = sortTxnRows(filteredRows);
     const pageData = getPagedRows("transactions", sorted);
+    const activeFilterCount = getActiveTxnFilterCount();
 
     if (txnFocusBanner) {
       if (focusId) {
         txnFocusBanner.hidden = false;
         if (txnFocusText) {
           txnFocusText.textContent = filteredRows.length
-            ? "Filtro rapido ativo. Exibindo transacao selecionada."
-            : "Transacao nao encontrada neste mes.";
+            ? "Filtro rápido ativo. Exibindo transação selecionada."
+            : "Transação não encontrada com os filtros atuais.";
         }
       } else {
         txnFocusBanner.hidden = true;
       }
+    }
+
+    if (!filteredRows.length) {
+      const hasBase = baseRows.length > 0;
+      const message = hasBase
+        ? "Nenhuma transação encontrada para os filtros selecionados."
+        : "Sem movimentações neste mês.";
+      const actionLabel = hasBase
+        ? (activeFilterCount ? "Limpar filtros" : "")
+        : (allowEdit ? "Adicionar a primeira transação" : "");
+      const tr = document.createElement("tr");
+      tr.className = "empty-row";
+      tr.innerHTML = `
+        <td colspan="6">
+          <div class="empty-state">
+            <div class="empty-icon" aria-hidden="true"></div>
+            <div class="empty-title">${escapeHtml(message)}</div>
+            ${actionLabel ? `<div class="empty-actions"><button class="ghost" type="button" data-empty-action="1">${escapeHtml(actionLabel)}</button></div>` : ""}
+          </div>
+        </td>
+      `;
+      txnTable.appendChild(tr);
+      const actionBtn = tr.querySelector("[data-empty-action]");
+      if (actionBtn) {
+        actionBtn.addEventListener("click", () => {
+          if (hasBase && activeFilterCount) {
+            resetTxnFilters({ keepPanelClosed: false });
+            applyTxnFiltersNow({ resetPage: true });
+          } else if (!hasBase && allowEdit) {
+            focusTxnFormNow();
+          }
+        });
+      }
+      renderPager("transactions", 0);
+      return;
     }
 
     for (const r of pageData.rows) {
@@ -6801,54 +8220,28 @@ function renderCategoriesTable() {
       const dt = dateToShow ? toISODateLocal(dateToShow) : "-";
       const display = toBRL(Math.abs(r.amountCents));
       const prefix = (r.type === "income") ? "+" : "-";
-      const metaParts = [];
-      const isInstallment = isInstallmentTxn(r);
-      const isFinance = isFinanceTxn(r);
-      const isCounterTxn = isInstallment || isFinance;
-      const isCredit = isCreditCardPayment(r.paymentMethod);
       const installmentBadge = occurrenceCounterLabel(r);
       const showRecurringIcon = shouldShowRecurringIcon(r);
-      if (r.planType && r.planType !== "recurring" && !isCounterTxn && !isCredit) {
-        metaParts.push(friendlyPlanType(r.planType));
-      }
-      const isRecurringPlan = r.planType === "recurring" || r.recurring?.isRecurring;
-      if (r.occurrenceIndex && r.occurrenceTotal && !isCounterTxn && !isRecurringPlan && !isCredit) {
-        metaParts.push(`${r.occurrenceIndex}/${r.occurrenceTotal}`);
-      }
-      const statusLabel = friendlyTxnStatus(r.status);
-      if (statusLabel && !isCounterTxn && !isCredit && !(showRecurringIcon && statusLabel.toLowerCase().includes("agend"))) {
-        metaParts.push(statusLabel);
-      }
-      const creditTag = creditCardTag(r);
-      const extraParts = [];
-      if (isCoupleView && r.sourceLabel) extraParts.push(`<span>${escapeHtml(r.sourceLabel)}</span>`);
-      if (metaParts.length) extraParts.push(`<span>${escapeHtml(metaParts.join(" | "))}</span>`);
-      if (creditTag) extraParts.push(`<span class="badge">${escapeHtml(creditTag)}</span>`);
-      const extraLine = extraParts.length
-        ? `<div class="muted" style="margin-top:4px; display:flex; flex-wrap:wrap; gap:6px;">${extraParts.join("")}</div>`
-        : "";
-      const descBase = (r.note || "").trim();
-      const descText = descBase || (installmentBadge || showRecurringIcon ? "(sem descricao)" : "-");
+      const rawDesc = stripOccurrenceSuffix(getTxnDescription(r.note || ""), installmentBadge);
+      const descText = rawDesc || (installmentBadge || showRecurringIcon ? "(sem descrição)" : "-");
       const installmentHtml = installmentBadge ? `<span class="installment-badge">${escapeHtml(installmentBadge)}</span>` : "";
       const recurringHtml = showRecurringIcon ? `<span class="recurring-icon" aria-label="Recorrente">${ICON_RECURRING}</span>` : "";
+      const sourceLine = (isCoupleView && r.sourceLabel)
+        ? `<div class="muted" style="margin-top:4px;">${escapeHtml(r.sourceLabel)}</div>`
+        : "";
       const canPay = allowDelete && !isCoupleView
         && r.status && r.status !== "paid"
         && ["installment", "finance", "credit_installment"].includes(r.planType);
-
-      const paymentBase = friendlyPaymentMethod(r.paymentMethod);
-      let paymentLabel = paymentBase;
-      if (isCreditCardPayment(r.paymentMethod)) {
-        const cardName = r.creditCardNameSnapshot
-          || (r.creditCardId ? state.creditCards.get(r.creditCardId)?.name : "");
-        if (cardName) paymentLabel = `${paymentBase} - ${cardName}`;
-      }
+      const paymentInfo = buildPaymentDisplay(r);
+      const paymentSub = paymentInfo.sub ? `<div class="payment-sub">${escapeHtml(paymentInfo.sub)}</div>` : "";
+      const paymentHtml = `<div class="payment-main">${escapeHtml(paymentInfo.main)}</div>${paymentSub}`;
 
       const tr = document.createElement("tr");
       tr.setAttribute("data-txn-id", r.id);
       if (focusId && r.id === focusId) tr.classList.add("txn-highlight");
       tr.innerHTML = `
-        <td>${escapeHtml(descText)}${installmentHtml}${recurringHtml}${extraLine}</td>
-        <td>${escapeHtml(paymentLabel)}</td>
+        <td><span class="txn-desc-inline"><span>${escapeHtml(descText)}</span>${installmentHtml}${recurringHtml}</span>${sourceLine}</td>
+        <td>${paymentHtml}</td>
         <td>${escapeHtml(r.categoryName || "-")}</td>
         <td class="nowrap">${escapeHtml(dt)}</td>
         <td class="right nowrap">${prefix} ${escapeHtml(display)}</td>
@@ -6994,6 +8387,7 @@ function renderCategoriesTable() {
 
       state.currentRows = rows;
       resetPager("transactions");
+      syncTxnFilterOptions(rows);
       renderTxnRows(rows, { allowDelete: false, isCoupleView: true, allowEdit: false });
       coupleBreakdown.style.display = "none";
 
@@ -7010,7 +8404,8 @@ function renderCategoriesTable() {
     txnStatus.textContent = "";
     setOpsError("");
     state.currentRows = [];
-    renderDashboardMovements([]);
+    setDashboardLoading(true);
+    setTxnListLoading(true);
     dashboardStatus.textContent = "";
 
     let yyyyMM = yyyyMMFromMonthInput(monthInput.value);
@@ -7021,7 +8416,26 @@ function renderCategoriesTable() {
         syncMonthLabel();
       }
     }
-    if (!yyyyMM) { setOpsError("Selecione um mês válido."); return { income: 0, expense: 0, balance: 0 }; }
+    if (!yyyyMM) {
+      setDashboardLoading(false);
+      setOpsError("Selecione um mês válido.");
+      if (txnTable) {
+        txnTable.innerHTML = `
+          <tr class="empty-row">
+            <td colspan="6">
+              <div class="empty-state">
+                <div class="empty-icon" aria-hidden="true"></div>
+                <div class="empty-title">Selecione um mês válido.</div>
+              </div>
+            </td>
+          </tr>
+        `;
+        txnTable.setAttribute("aria-busy", "false");
+        renderPager("transactions", 0);
+      }
+      return { income: 0, expense: 0, balance: 0 };
+    }
+    ensureTxnFilterContext(yyyyMM);
 
     const { start, end } = startEndForMonth(yyyyMM);
     const startTS = Timestamp.fromDate(start);
@@ -7030,17 +8444,38 @@ function renderCategoriesTable() {
     if (isCoupleWallet()) {
       if (state.coupleTab === "totals") {
         const totals = await loadCoupleTotals(yyyyMM);
-        renderKPIs(totals.income, totals.expense);
+        setDashboardLoading(false);
+        renderKPIs(totals.income, totals.expense, state.currentRows);
         txnStatus.textContent = "Totais consolidados carregados.";
-        renderDashboardMovements([]);
-        dashboardStatus.textContent = "Use a aba Detalhes para ver os lançamentos.";
+        if (dashboardEmpty) dashboardEmpty.hidden = true;
+        if (dashboardSummaryPanels) dashboardSummaryPanels.hidden = true;
+        if (incomeList) incomeList.innerHTML = "";
+        if (expenseList) expenseList.innerHTML = "";
+        dashboardStatus.textContent = "Use a aba Detalhes para ver as movimentações.";
+        syncTxnFilterOptions([]);
+        updateTxnFilterSummary(0, 0);
+        if (txnTable) {
+          txnTable.innerHTML = `
+            <tr class="empty-row">
+              <td colspan="6">
+                <div class="empty-state">
+                  <div class="empty-icon" aria-hidden="true"></div>
+                  <div class="empty-title">Use a aba Detalhes para ver as movimentações.</div>
+                </div>
+              </td>
+            </tr>
+          `;
+          txnTable.setAttribute("aria-busy", "false");
+          renderPager("transactions", 0);
+        }
         return totals;
       } else {
         const totals = await loadCoupleDetails(startTS, endTS);
-        renderKPIs(totals.income, totals.expense);
+        setDashboardLoading(false);
+        renderKPIs(totals.income, totals.expense, state.currentRows);
         txnStatus.textContent = "Detalhes consolidados carregados.";
         renderDashboardMovements(state.currentRows);
-        dashboardStatus.textContent = state.currentRows.length ? "Movimentações consolidadas do mês." : "Sem lançamentos neste mês.";
+        dashboardStatus.textContent = state.currentRows.length ? "Movimentações consolidadas do mês." : "Sem movimentações neste mês.";
         return totals;
       }
     }
@@ -7120,21 +8555,45 @@ function renderCategoriesTable() {
 
       state.currentRows = rows;
       resetPager("transactions");
+      syncTxnFilterOptions(rows);
+      setDashboardLoading(false);
       renderDashboardMovements(rows);
       renderTxnRows(rows, { allowDelete: true, isCoupleView: false, allowEdit: true });
-      txnStatus.textContent = `Transações no mês: ${rows.length}`;
-      renderKPIs(income, expense);
-      dashboardStatus.textContent = rows.length ? "Movimentações do mês selecionado." : "Sem lançamentos no mês.";
+      txnStatus.textContent = `Movimentações no mês: ${rows.length}`;
+      renderKPIs(income, expense, rows);
+      dashboardStatus.textContent = rows.length ? "Movimentações do mês selecionado." : "Sem movimentações no mês.";
 
       return { income, expense, balance: income - expense };
     } catch (e) {
       setOpsError("Não foi possível carregar suas movimentações. Tente novamente.");
-      renderKPIs(0, 0);
+      setDashboardLoading(false);
+      renderDashboardMovements([]);
+      renderKPIs(0, 0, []);
+      if (txnTable) {
+        txnTable.innerHTML = `
+          <tr class="empty-row">
+            <td colspan="6">
+              <div class="empty-state">
+                <div class="empty-icon" aria-hidden="true"></div>
+                <div class="empty-title">Não foi possível carregar as movimentações.</div>
+                <div class="empty-actions">
+                  <button class="ghost" type="button" data-txn-retry="1">Tentar novamente</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
+        txnTable.setAttribute("aria-busy", "false");
+        renderPager("transactions", 0);
+        txnTable.querySelector("[data-txn-retry]")?.addEventListener("click", () => {
+          reloadAll();
+        });
+      }
       return { income: 0, expense: 0, balance: 0 };
     }
   }
 
-  function setCreditCardOptions(selectEl, selectedId = "", emptyLabel = "Sem cartoes") {
+  function setCreditCardOptions(selectEl, selectedId = "", emptyLabel = "Sem cartões") {
     if (!selectEl) return;
     selectEl.innerHTML = "";
     const entries = Array.from(state.creditCards.entries())
@@ -7214,7 +8673,7 @@ function renderCategoriesTable() {
     }
 
     const extra = failures ? ` (${failures} com erro)` : "";
-    migrateStatus.textContent = `Defaults aplicados: ${updated} de ${scanned} transacoes${extra}.`;
+    migrateStatus.textContent = `Defaults aplicados: ${updated} de ${scanned} transações${extra}.`;
     btnMigrateTxnV2.disabled = false;
     btnMigrateTxnV2.textContent = originalLabel;
   }
@@ -7228,7 +8687,7 @@ function renderCategoriesTable() {
       txnCat.innerHTML = `<option value="">-</option>`;
       refreshSearchCategoryOptions();
       if (catGrid) catGrid.innerHTML = "";
-      if (catStatus) catStatus.textContent = "Categorias nao disponiveis nesta carteira.";
+      if (catStatus) catStatus.textContent = "Categorias não disponíveis nesta carteira.";
     }
     await loadTransactionsForMonth();
   }
@@ -7265,11 +8724,17 @@ function renderCategoriesTable() {
   if (btnSaveEdit) btnSaveEdit.addEventListener("click", updateTransactionPersonalAndSync);
   if (btnCloseCardEdit) btnCloseCardEdit.addEventListener("click", closeEditCardModal);
   if (btnSaveCardEdit) btnSaveCardEdit.addEventListener("click", saveCardEdits);
+  if (confirmCancel) confirmCancel.addEventListener("click", () => resolveConfirmModal(false));
+  if (confirmOk) confirmOk.addEventListener("click", () => resolveConfirmModal(true));
+  if (confirmClose) confirmClose.addEventListener("click", () => resolveConfirmModal(false));
   if (editModal) editModal.addEventListener("click", (e) => {
     if (e.target === editModal) closeEditModal();
   });
   if (editCardModal) editCardModal.addEventListener("click", (e) => {
     if (e.target === editCardModal) closeEditCardModal();
+  });
+  if (confirmModal) confirmModal.addEventListener("click", (e) => {
+    if (e.target === confirmModal) resolveConfirmModal(false);
   });
   document.addEventListener("keydown", (e) => {
     const isCmdK = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k";
@@ -7281,6 +8746,25 @@ function renderCategoriesTable() {
     if (e.key === "Escape" && searchModal && !searchModal.hidden) {
       closeSearchModal();
       return;
+    }
+    if (e.key === "Escape" && filterPanel && !filterPanel.hidden) {
+      toggleFilterPanel(false);
+      return;
+    }
+    if (e.key === "Escape" && txnFilterPanel && !txnFilterPanel.hidden) {
+      setTxnFilterPanel(false);
+      return;
+    }
+    if (confirmModal && !confirmModal.hidden) {
+      if (e.key === "Escape") {
+        resolveConfirmModal(false);
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        resolveConfirmModal(true);
+        return;
+      }
     }
     if (e.key === "Escape" && editModal && !editModal.hidden) closeEditModal();
     if (e.key === "Escape" && editCardModal && !editCardModal.hidden) closeEditCardModal();
@@ -7299,6 +8783,7 @@ function renderCategoriesTable() {
   btnAddCat.addEventListener("click", addCategory);
   btnSeedCats.addEventListener("click", seedDefaultCategories);
   btnAddTxn.addEventListener("click", addTransaction);
+  if (dashboardAddTxn) dashboardAddTxn.addEventListener("click", openTransactionsForCreate);
   if (btnMigrateTxnV2) btnMigrateTxnV2.addEventListener("click", migrateTxnV2Defaults);
   bindOptionCard(cardRecurring, cbRecurring);
   bindOptionCard(cardInstallment, cbInstallment);
@@ -7344,6 +8829,9 @@ function renderCategoriesTable() {
   }
   if (globalSearchInput) {
     globalSearchInput.addEventListener("focus", openSearchFromHeader);
+  }
+  if (filterToggle) {
+    filterToggle.addEventListener("click", () => toggleFilterPanel());
   }
   if (searchModal) {
     searchModal.addEventListener("click", (e) => {
@@ -7397,6 +8885,69 @@ function renderCategoriesTable() {
     });
   }
   if (btnClearTxnFocus) btnClearTxnFocus.addEventListener("click", clearTxnFocus);
+  if (incomeMore) incomeMore.addEventListener("click", () => openTransactionsWithTypeFilter("income"));
+  if (expenseMore) expenseMore.addEventListener("click", () => openTransactionsWithTypeFilter("expense"));
+  if (txnFilterToggle) {
+    txnFilterToggle.addEventListener("click", () => {
+      const open = txnFilterPanel ? txnFilterPanel.hidden : false;
+      setTxnFilterPanel(open);
+    });
+  }
+  if (txnFilterSearch) {
+    txnFilterSearch.addEventListener("input", () => {
+      updateTxnFilterState({ query: txnFilterSearch.value || "" }, { apply: false });
+      scheduleTxnFilterApply();
+    });
+  }
+  if (txnFilterCategory) {
+    txnFilterCategory.addEventListener("change", () => {
+      updateTxnFilterState({ category: txnFilterCategory.value || "all" });
+    });
+  }
+  if (txnFilterPayment) {
+    txnFilterPayment.addEventListener("change", () => {
+      updateTxnFilterState({ payment: txnFilterPayment.value || "all" });
+    });
+  }
+  if (txnFilterType) {
+    txnFilterType.addEventListener("change", () => {
+      updateTxnFilterState({ type: txnFilterType.value || "all" });
+    });
+  }
+  if (txnFilterMin) {
+    txnFilterMin.addEventListener("input", () => {
+      updateTxnFilterState({ min: txnFilterMin.value || "" }, { apply: false });
+      scheduleTxnFilterApply();
+    });
+  }
+  if (txnFilterMax) {
+    txnFilterMax.addEventListener("input", () => {
+      updateTxnFilterState({ max: txnFilterMax.value || "" }, { apply: false });
+      scheduleTxnFilterApply();
+    });
+  }
+  if (txnFilterClear) {
+    txnFilterClear.addEventListener("click", () => {
+      resetTxnFilters({ keepPanelClosed: false });
+      applyTxnFiltersNow({ resetPage: true });
+    });
+  }
+  if (txnFilterChips) {
+    txnFilterChips.addEventListener("click", (e) => {
+      const remove = e.target?.closest?.("[data-filter-remove]");
+      if (remove) {
+        const key = remove.getAttribute("data-filter-remove");
+        if (key === "query") updateTxnFilterState({ query: "" }, { syncInputs: true });
+        else if (key === "category") updateTxnFilterState({ category: "all" }, { syncInputs: true });
+        else if (key === "payment") updateTxnFilterState({ payment: "all" }, { syncInputs: true });
+        else if (key === "type") updateTxnFilterState({ type: "all" }, { syncInputs: true });
+        else if (key === "value") updateTxnFilterState({ min: "", max: "" }, { syncInputs: true });
+        return;
+      }
+      const more = e.target?.closest?.("[data-filter-more]");
+      if (more) setTxnFilterPanel(true);
+    });
+  }
   if (sidebarToggle && appShell) {
     sidebarToggle.addEventListener("click", () => {
       const collapsed = appShell.classList.toggle("collapsed");
@@ -7418,7 +8969,7 @@ function renderCategoriesTable() {
 
   if (searchShortcutHint) {
     const isMac = navigator?.platform?.toUpperCase?.().includes("MAC");
-    searchShortcutHint.textContent = isMac ? "Cmd K" : "Ctrl K";
+    searchShortcutHint.textContent = isMac ? "Cmd+K" : "Ctrl+K";
   }
 
   (function initDates() {
@@ -7435,6 +8986,7 @@ function renderCategoriesTable() {
     syncPlanFields();
   })();
 
+  initTxnListControls();
   initSortControls();
 
   setView("loading");
@@ -7459,8 +9011,8 @@ function renderCategoriesTable() {
       resetSessionState();
       const msg = e?.message?.toLowerCase?.() || "";
       const friendly = msg.includes("autoriz")
-        ? "Conta nao autorizada."
-        : "Nao foi possivel iniciar a sessao. Tente novamente.";
+        ? "Conta não autorizada."
+        : "Não foi possível iniciar a sessão. Tente novamente.";
       setAuthMessage(friendly, true);
       renderRoute();
     }
